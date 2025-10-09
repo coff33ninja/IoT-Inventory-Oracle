@@ -1,0 +1,5 @@
+{
+  "name": "IoT Inventory Oracle",
+  "description": "A smart inventory management application for IoT projects, powered by Gemini. Track components you have, need, or want, and chat with an AI assistant to plan projects, find parts, and get coding support.",
+  "requestFramePermissions": []
+}
