@@ -350,7 +350,9 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           const { displayContent: contentAfterSuggestions, jsonData: suggestions } = parseJsonBlock<AiSuggestedPart[]>(msg.content, '/// SUGGESTIONS_JSON_START ///', '/// SUGGESTIONS_JSON_END ///');
           const { displayContent: contentAfterProject, jsonData: project } = parseJsonBlock<{ projectName: string; components: { name: string; quantity: number }[] }>(contentAfterSuggestions, '/// PROJECT_JSON_START ///', '/// PROJECT_JSON_END ///');
           const { displayContent: contentAfterMove, jsonData: moveAction } = parseJsonBlock<{ action: string; sourceProjectId: string; targetProjectId: string; componentName: string; quantity: number; reason: string }>(contentAfterProject, '/// MOVE_JSON_START ///', '/// MOVE_JSON_END ///');
-          const { displayContent, jsonData: transferAction } = parseJsonBlock<{ action: string; inventoryItemId: string; targetProjectId: string; quantity: number; reason: string }>(contentAfterMove, '/// TRANSFER_JSON_START ///', '/// TRANSFER_JSON_END ///');
+          const { displayContent: contentAfterTransfer, jsonData: transferAction } = parseJsonBlock<{ action: string; inventoryItemId: string; targetProjectId: string; quantity: number; reason: string }>(contentAfterMove, '/// TRANSFER_JSON_START ///', '/// TRANSFER_JSON_END ///');
+          const { displayContent: contentAfterTemplate, jsonData: templateAction } = parseJsonBlock<{ action: string; templateId: string; templateName: string; matchingComponents: string[]; missingComponents: string[]; reason: string }>(contentAfterTransfer, '/// TEMPLATE_JSON_START ///', '/// TEMPLATE_JSON_END ///');
+          const { displayContent, jsonData: analysisAction } = parseJsonBlock<{ action: string; issues: Array<{type: string; message: string}>; suggestions: Array<{type: string; component: string; alternative?: string; quantity?: number; reason: string}> }>(contentAfterTemplate, '/// ANALYSIS_JSON_START ///', '/// ANALYSIS_JSON_END ///');
           
           return (
             <div key={index} className={`flex items-start gap-3 sm:gap-4 ${msg.role === 'user' ? 'justify-end' : ''}`}>
@@ -360,7 +362,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                   {parseContent(displayContent)}
                 </div>
 
-                {(suggestions || project || moveAction || transferAction) && (
+                {(suggestions || project || moveAction || transferAction || templateAction || analysisAction) && (
                     <div className="mt-4 pt-3 border-t border-border-color space-y-3">
                         <h4 className="text-sm font-semibold text-text-secondary">Interactive Actions:</h4>
                         {project && (
@@ -411,6 +413,53 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                                         Execute Transfer
                                     </button>
                                 </div>
+                            </div>
+                        )}
+                        {templateAction && (
+                            <div className="bg-primary/50 p-3 rounded-lg">
+                                <p className="font-semibold text-text-primary text-sm">📋 Project Template Suggestion</p>
+                                <p className="font-medium text-text-primary text-sm mt-1">{templateAction.templateName}</p>
+                                <p className="text-xs text-text-secondary mt-1">{templateAction.reason}</p>
+                                <div className="mt-2 space-y-1">
+                                    {templateAction.matchingComponents.length > 0 && (
+                                        <p className="text-xs text-green-400">✓ You have: {templateAction.matchingComponents.join(', ')}</p>
+                                    )}
+                                    {templateAction.missingComponents.length > 0 && (
+                                        <p className="text-xs text-yellow-400">⚠ Missing: {templateAction.missingComponents.join(', ')}</p>
+                                    )}
+                                </div>
+                                <div className="flex items-center space-x-2 mt-2">
+                                    <button 
+                                        type="button"
+                                        onClick={() => addToast('Template feature coming soon!', 'info')} 
+                                        className="text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/40 px-2 py-1 rounded-md transition-colors w-full text-center"
+                                    >
+                                        Use Template
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {analysisAction && (
+                            <div className="bg-primary/50 p-3 rounded-lg">
+                                <p className="font-semibold text-text-primary text-sm">🔍 Component Analysis</p>
+                                {analysisAction.issues.length > 0 && (
+                                    <div className="mt-2">
+                                        <p className="text-xs font-semibold text-red-400 mb-1">Issues Found:</p>
+                                        {analysisAction.issues.map((issue, idx) => (
+                                            <p key={idx} className="text-xs text-red-300 mb-1">• {issue.message}</p>
+                                        ))}
+                                    </div>
+                                )}
+                                {analysisAction.suggestions.length > 0 && (
+                                    <div className="mt-2">
+                                        <p className="text-xs font-semibold text-blue-400 mb-1">Suggestions:</p>
+                                        {analysisAction.suggestions.map((suggestion, idx) => (
+                                            <p key={idx} className="text-xs text-blue-300 mb-1">
+                                                • {suggestion.type === 'alternative' ? `Replace ${suggestion.component} with ${suggestion.alternative}` : `Add ${suggestion.quantity}x ${suggestion.component}`}: {suggestion.reason}
+                                            </p>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                         {suggestions?.map((part, partIdx) => (

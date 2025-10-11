@@ -1,27 +1,71 @@
-# IoT Inventory Oracle
+# IoT Inventory Oracle 🚀
+
+A comprehensive inventory management system for IoT makers and electronics enthusiasts, powered by advanced AI assistance and smart project management capabilities.
+
+## ✨ Latest Features (v2.0)
+
+### 🧠 Enhanced AI Context Management
+- **Persistent Memory**: AI remembers your projects and components across conversations
+- **Cross-Project Operations**: Move components between projects with one-click
+- **Smart Suggestions**: AI analyzes compatibility and suggests optimal component allocation
+- **Context-Aware Recommendations**: Maintains conversation continuity for better assistance
+
+### 📊 Analytics Dashboard
+- **Inventory Insights**: Total value, utilization rates, and category breakdowns
+- **Project Readiness**: See which projects are ready to build vs missing components
+- **Smart Alerts**: Low stock warnings and duplicate component detection
+- **Visual Analytics**: Charts and metrics for better inventory management
+
+### 📋 Project Templates System
+- **Pre-built Templates**: Smart home, weather station, security systems, and more
+- **Difficulty Ratings**: Beginner, Intermediate, and Advanced project classifications
+- **Component Matching**: AI suggests templates based on your available components
+- **Guided Instructions**: Step-by-step build guides with code snippets
+
+### 🔍 Smart Search & Discovery
+- **Universal Search**: Find components, projects, and categories instantly
+- **Intelligent Filtering**: Search by name, category, description, or project usage
+- **Quick Navigation**: Jump directly to items or projects from search results
+
+---
 
 A smart inventory management application for IoT projects, powered by Google's Gemini API. Track components you have, need, or want, and chat with an AI assistant to plan projects, find parts, and get coding support.
 
 ![IoT Inventory Oracle Screenshot](https://storage.googleapis.com/aistudio-ux-team-public/sdk-pro-samples/iot-oracle-screenshot.png)
 
-## ✨ Key Features
+## ✨ Core Features
 
-*   **Smart Inventory Management**: Keep a detailed record of your electronic components. Track items you have, need, want, or have salvaged. Organize by custom categories, locations, and purchase sources.
-*   **AI-Powered Assistant**: Leverage the power of Gemini to:
-    *   Suggest new projects based on the components you already own.
-    *   Generate step-by-step project plans, circuit diagrams, and starter code.
-    *   Find datasheets and source components online from various suppliers.
-    *   Answer technical questions about your parts or code.
-*   **Project Tracking**:
-    *   Create projects directly from your available inventory.
-    *   Link projects to **GitHub repositories** and use AI to automatically parse and import the required bill of materials.
-    *   Keep project-specific notes and manage project status.
-*   **Component Intelligence**: Go beyond simple tracking. For any component, the AI can generate:
-    *   A detailed technical description.
-    *   Innovative project ideas.
-    *   Real-time market pricing and links from online suppliers, powered by Google Search grounding.
-*   **Home Assistant Integration**: Connect to your Home Assistant instance to view your entities and link them to the physical hardware in your inventory, bridging the gap between your smart home and your component stock.
-*   **Data Portability**: Easily import and export your entire inventory as a JSON file for backup or migration.
+### 🎯 Smart Inventory Management
+*   **Detailed Component Tracking**: Record electronic components with status tracking (Have, Need, Want, Salvaged, etc.)
+*   **AI-Enhanced Cataloging**: Auto-generate descriptions and suggest categories for new components
+*   **Advanced Analytics**: View inventory value, utilization rates, and component distribution
+*   **Smart Alerts**: Get notified about low stock items and potential duplicates
+
+### 🤖 AI-Powered Assistant
+*   **Persistent Context**: AI remembers your projects and components across conversations
+*   **Project Suggestions**: Get project ideas based on your available components
+*   **Cross-Project Management**: Move components between projects with AI guidance
+*   **Component Analysis**: Compatibility checking and optimization suggestions
+*   **Code Generation**: Complete Arduino/ESP32/Raspberry Pi code with explanations
+*   **Real-time Sourcing**: Find components online with pricing from multiple suppliers
+
+### 📋 Advanced Project Management
+*   **Project Templates**: Pre-built templates for common IoT projects (Smart Home, Weather Station, etc.)
+*   **GitHub Integration**: Import component lists from public repositories automatically
+*   **Readiness Analysis**: See which projects are ready to build vs missing components
+*   **Interactive Operations**: One-click component moves and inventory transfers
+*   **AI Kickstart**: Get detailed build plans, circuit diagrams, and starter code
+
+### 🏠 Home Assistant Integration
+*   **Entity Linking**: Connect HA entities to physical components in your inventory
+*   **Bridge Digital & Physical**: Understand the hardware behind your smart home setup
+*   **Real-time Monitoring**: View your Home Assistant entities alongside component data
+
+### 📊 Analytics & Insights
+*   **Inventory Dashboard**: Comprehensive analytics with visual charts and metrics
+*   **Project Readiness**: Track which projects can be built immediately
+*   **Cost Analysis**: Monitor total inventory value and spending by category
+*   **Utilization Tracking**: See how well you're using your component collection
 
 ## 🚀 Tech Stack
 

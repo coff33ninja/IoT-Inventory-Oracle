@@ -5,8 +5,9 @@ import { ChatIcon } from './icons/ChatIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { ProjectsIcon } from './icons/ProjectsIcon';
 import { HomeAssistantIcon } from './icons/HomeAssistantIcon';
+import { AnalyticsIcon } from './icons/AnalyticsIcon';
 
-type View = 'inventory' | 'chat' | 'settings' | 'projects' | 'home-assistant';
+type View = 'inventory' | 'chat' | 'settings' | 'projects' | 'home-assistant' | 'analytics';
 
 interface SidebarProps {
   currentView: View;
@@ -74,6 +75,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isSideba
                     icon={<ProjectsIcon />}
                     isActive={currentView === 'projects'}
                     onClick={() => handleNavigation('projects')}
+                />
+                <NavItem
+                    label="Analytics"
+                    icon={<AnalyticsIcon />}
+                    isActive={currentView === 'analytics'}
+                    onClick={() => handleNavigation('analytics')}
                 />
                 <NavItem
                     label="Home Assistant"

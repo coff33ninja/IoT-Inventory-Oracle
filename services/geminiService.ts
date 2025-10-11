@@ -96,6 +96,37 @@ const getChat = (history: ChatMessage[]): Chat => {
             /// TRANSFER_JSON_END ///
             \`\`\`
 
+            - **For Project Templates (NEW):**
+            \`\`\`json
+            /// TEMPLATE_JSON_START ///
+            {
+              "action": "suggest_template",
+              "templateId": "smart-led-strip",
+              "templateName": "Smart LED Strip Controller",
+              "matchingComponents": ["ESP32", "RGB LED Strip"],
+              "missingComponents": ["MOSFET", "12V Power Supply"],
+              "reason": "Based on your available components, this template is 60% ready"
+            }
+            /// TEMPLATE_JSON_END ///
+            \`\`\`
+
+            - **For Component Analysis (NEW):**
+            \`\`\`json
+            /// ANALYSIS_JSON_START ///
+            {
+              "action": "component_analysis",
+              "issues": [
+                {"type": "compatibility", "message": "ESP32 voltage levels may not be compatible with 5V sensors"},
+                {"type": "missing", "message": "Project requires pull-up resistors for I2C communication"}
+              ],
+              "suggestions": [
+                {"type": "alternative", "component": "ESP32", "alternative": "Arduino Uno", "reason": "Better 5V compatibility"},
+                {"type": "addition", "component": "10kΩ Resistor", "quantity": 2, "reason": "Required for I2C pull-ups"}
+              ]
+            }
+            /// ANALYSIS_JSON_END ///
+            \`\`\`
+
             **IMPORTANT CONTEXT MANAGEMENT:**
             - Always reference specific IDs when discussing projects or inventory items
             - Remember recent operations and build upon them in follow-up responses

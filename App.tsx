@@ -7,14 +7,15 @@ import ChatView from './components/ChatView';
 import SettingsView from './components/SettingsView';
 import ProjectsView from './components/ProjectsView';
 import HomeAssistantView from './components/HomeAssistantView';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AddItemModal from './components/AddItemModal';
 import { PlusIcon } from './components/icons/PlusIcon';
 import { useInventory } from './contexts/InventoryContext';
 
-type View = 'inventory' | 'chat' | 'settings' | 'projects' | 'home-assistant';
+type View = 'inventory' | 'chat' | 'settings' | 'projects' | 'home-assistant' | 'analytics';
 
 const App: React.FC = () => {
-  const { inventory, addItem, updateItem, addProject } = useInventory();
+  const { inventory, addItem, updateItem, addProject, projects } = useInventory();
   const [currentView, setCurrentView] = useState<View>('inventory');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | undefined>(undefined);
@@ -67,7 +68,13 @@ const App: React.FC = () => {
       />
       <main className="flex-1 flex flex-col overflow-hidden transition-all duration-300 lg:ml-64">
          <div className="p-4 lg:hidden border-b border-border-color flex items-center">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-text-primary">
+            <button 
+                type="button"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                className="text-text-primary"
+                aria-label="Toggle sidebar"
+                title="Toggle sidebar"
+            >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
                 </svg>
@@ -83,6 +90,7 @@ const App: React.FC = () => {
             )}
             {currentView === 'projects' && <ProjectsView onAiKickstart={handleAiKickstart} />}
             {currentView === 'chat' && <ChatView initialMessage={chatInitialMessage} />}
+            {currentView === 'analytics' && <AnalyticsDashboard inventory={inventory} projects={projects} />}
             {currentView === 'settings' && <SettingsView />}
             {currentView === 'home-assistant' && <HomeAssistantView />}
         </div>
