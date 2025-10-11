@@ -22,21 +22,29 @@ const getChat = (history: ChatMessage[]): Chat => {
             systemInstruction: `You are an expert IoT project assistant and inventory manager called 'IoT Oracle'. 
             Your primary role is to help users manage their electronics components inventory and plan their projects.
             
-            Current Inventory Context:
-            You will be provided with a JSON array of the user's full inventory. Each item has a 'status' field which is critical to understanding the user's needs. The possible statuses are:
-            - 'I Have': The user possesses this item. This is their current stock.
-            - 'I Want': The item is on the user's wishlist for future projects.
-            - 'I Need': The item is required for a current or planned project.
-            - Other statuses like 'Salvaged', 'Returned', etc. are for user's own tracking.
+            Current Inventory & Project Context:
+            You will be provided with:
+            1. A JSON array of the user's full inventory with status fields ('I Have', 'I Want', 'I Need', etc.)
+            2. A JSON array of the user's current projects with their components
+            3. A conversation context summary with recent operations and active discussions
             
-            Use this JSON as your primary source of truth. When recommending projects, prioritize using items the user already 'Has'. When suggesting parts to buy, first check if they are already on the 'Want' or 'Need' lists before searching the web.
+            **ENHANCED CAPABILITIES FOR CROSS-PROJECT MANAGEMENT:**
             
-            Your Capabilities:
-            1.  **Project Suggestion & Creation**: Based on the user's 'I Have' inventory, suggest interesting IoT projects they could build. Provide a detailed description, a component list (differentiating between what they have and what they might need from their wishlist), and starter code. If you suggest a project, you MUST also provide a JSON block for project creation.
-            2.  **Part Sourcing**: If a project requires a part the user doesn't have, use your search tool to find it online. Present findings in a markdown table ('Part Name', 'Supplier', 'Price', 'Link'). This should be followed by a JSON block for interactive part addition.
-            3.  **Code Generation**: Provide helpful code snippets (e.g., for Arduino, ESP32, Raspberry Pi) when requested. Wrap code in appropriate markdown code blocks with language identifiers.
-            4.  **Document Analysis**: The user may upload a document (e.g., a project plan, datasheet notes, or code file). The content will be provided in their prompt, clearly marked. Your task is to analyze this document and respond to the user's request based on its content. For example, if they upload a project description, you should identify required components, create a step-by-step plan, and suggest actions.
-            5.  **Conversation Memory**: Remember the context of the current conversation to provide coherent follow-up assistance.
+            1. **Project & Inventory Management**: You can help users move components between projects, transfer items from inventory to projects, and reorganize their setup. Always reference specific project IDs and item IDs when suggesting moves.
+            
+            2. **Context-Aware Recommendations**: Use the conversation context to understand what the user has been working on recently. If they've been discussing a specific project, maintain that context across multiple messages.
+            
+            3. **Cross-Project Analysis**: Compare projects to identify shared components, suggest consolidation opportunities, or recommend splitting large projects.
+            
+            4. **Smart Component Allocation**: When users ask about moving items between projects, analyze the impact on both source and destination projects before making recommendations.
+            
+            5. **Project Suggestion & Creation**: Based on the user's 'I Have' inventory, suggest interesting IoT projects they could build. Provide a detailed description, a component list (differentiating between what they have and what they might need from their wishlist), and starter code. If you suggest a project, you MUST also provide a JSON block for project creation.
+            
+            6. **Part Sourcing**: If a project requires a part the user doesn't have, use your search tool to find it online. Present findings in a markdown table ('Part Name', 'Supplier', 'Price', 'Link'). This should be followed by a JSON block for interactive part addition.
+            
+            7. **Code Generation**: Provide helpful code snippets (e.g., for Arduino, ESP32, Raspberry Pi) when requested. Wrap code in appropriate markdown code blocks with language identifiers.
+            
+            8. **Document Analysis**: The user may upload a document (e.g., a project plan, datasheet notes, or code file). The content will be provided in their prompt, clearly marked. Your task is to analyze this document and respond to the user's request based on its content.
             
             **CRITICAL OUTPUT FORMATTING RULES (JSON BLOCKS):**
             You MUST provide machine-readable JSON for interactive actions. These blocks must come AFTER your conversational text.
@@ -61,28 +69,154 @@ const getChat = (history: ChatMessage[]): Chat => {
             /// PROJECT_JSON_END ///
             \`\`\`
 
+            - **For Component Moves/Transfers (NEW):**
+            \`\`\`json
+            /// MOVE_JSON_START ///
+            {
+              "action": "move_component",
+              "sourceProjectId": "project-id-123",
+              "targetProjectId": "project-id-456", 
+              "componentName": "Arduino Uno",
+              "quantity": 1,
+              "reason": "Better suited for the new project requirements"
+            }
+            /// MOVE_JSON_END ///
+            \`\`\`
+
+            - **For Inventory to Project Transfers (NEW):**
+            \`\`\`json
+            /// TRANSFER_JSON_START ///
+            {
+              "action": "transfer_to_project",
+              "inventoryItemId": "item-id-123",
+              "targetProjectId": "project-id-456",
+              "quantity": 2,
+              "reason": "Adding available components to project"
+            }
+            /// TRANSFER_JSON_END ///
+            \`\`\`
+
+            **IMPORTANT CONTEXT MANAGEMENT:**
+            - Always reference specific IDs when discussing projects or inventory items
+            - Remember recent operations and build upon them in follow-up responses
+            - If context seems lost, ask for clarification rather than making assumptions
+            - When suggesting moves between projects, explain the reasoning and potential impact
+
             Interaction Style:
-            Be concise, helpful, and professional. Format your responses for clarity using markdown.
+            Be concise, helpful, and professional. Format your responses for clarity using markdown. Maintain conversation continuity by referencing previous discussions when relevant.
             `,
             tools: [{googleSearch: {}}],
         },
     });
 }
 
+// Enhanced context management for better cross-conversation memory
+interface ContextSummary {
+    recentProjects: Array<{id: string, name: string, status: string, componentCount: number}>;
+    recentOperations: Array<{type: 'move' | 'create' | 'update', entity: string, details: string}>;
+    activeDiscussion: string | null;
+}
+
+const createContextSummary = (history: ChatMessage[], projects: any[]): ContextSummary => {
+    const recentProjects = projects.slice(-5).map(p => ({
+        id: p.id,
+        name: p.name,
+        status: p.status,
+        componentCount: p.components.length
+    }));
+
+    // Extract recent operations from chat history
+    const recentOperations: ContextSummary['recentOperations'] = [];
+    const recentMessages = history.slice(-10);
+    
+    for (const msg of recentMessages) {
+        if (msg.content.includes('moved') || msg.content.includes('transferred')) {
+            recentOperations.push({
+                type: 'move',
+                entity: 'item',
+                details: msg.content.substring(0, 100) + '...'
+            });
+        }
+        if (msg.content.includes('created project') || msg.content.includes('new project')) {
+            recentOperations.push({
+                type: 'create',
+                entity: 'project',
+                details: msg.content.substring(0, 100) + '...'
+            });
+        }
+    }
+
+    // Determine active discussion topic
+    let activeDiscussion = null;
+    const lastUserMessage = [...history].reverse().find(m => m.role === 'user');
+    if (lastUserMessage) {
+        if (lastUserMessage.content.toLowerCase().includes('project')) {
+            activeDiscussion = 'project_management';
+        } else if (lastUserMessage.content.toLowerCase().includes('move') || 
+                   lastUserMessage.content.toLowerCase().includes('transfer')) {
+            activeDiscussion = 'item_management';
+        }
+    }
+
+    return { recentProjects, recentOperations, activeDiscussion };
+};
+
+const pruneHistory = (history: ChatMessage[], maxMessages: number = 20): ChatMessage[] => {
+    if (history.length <= maxMessages) return history;
+    
+    // Keep first 2 messages (usually contain important context)
+    // Keep last maxMessages-2 messages (recent conversation)
+    const start = history.slice(0, 2);
+    const end = history.slice(-(maxMessages - 2));
+    
+    // Add a summary message to bridge the gap
+    const summaryMessage: ChatMessage = {
+        role: 'model',
+        content: '[Context Summary: Previous conversation covered project planning and component management. Continuing from recent discussion...]'
+    };
+    
+    return [...start, summaryMessage, ...end];
+};
+
 export const getAiChatStream = async (
     message: string,
     history: ChatMessage[],
-    fullInventory: InventoryItem[]
+    fullInventory: InventoryItem[],
+    projects: any[] = []
 ): Promise<AsyncGenerator<GenerateContentResponse>> => {
     
-    const chat = getChat(history);
+    // Prune history to manage context limits while preserving key information
+    const prunedHistory = pruneHistory(history);
+    const contextSummary = createContextSummary(history, projects);
+    
+    const chat = getChat(prunedHistory);
     
     const inventoryContext = `
       Here is the user's full inventory, including items with various statuses (I Have, I Want, I Need, etc.):
       ${JSON.stringify(fullInventory, null, 2)}
     `;
 
-    const fullPrompt = `${inventoryContext}\n\nUser's request: ${message}`;
+    const projectContext = projects.length > 0 ? `
+      Here are the user's current projects:
+      ${JSON.stringify(projects.map(p => ({
+          id: p.id,
+          name: p.name,
+          status: p.status,
+          components: p.components,
+          description: p.description
+      })), null, 2)}
+    ` : '';
+
+    const contextSummaryText = `
+      CONVERSATION CONTEXT:
+      - Recent Projects: ${contextSummary.recentProjects.map(p => `${p.name} (${p.status}, ${p.componentCount} components)`).join(', ')}
+      - Recent Operations: ${contextSummary.recentOperations.map(op => `${op.type} ${op.entity}: ${op.details}`).join('; ')}
+      - Active Discussion: ${contextSummary.activeDiscussion || 'general'}
+      
+      IMPORTANT: You can reference specific projects and inventory items by their IDs. When suggesting moves or transfers between projects, always specify the exact project IDs and item IDs involved.
+    `;
+
+    const fullPrompt = `${contextSummaryText}\n\n${inventoryContext}\n\n${projectContext}\n\nUser's request: ${message}`;
     
     try {
         const response = await chat.sendMessageStream({ message: fullPrompt });

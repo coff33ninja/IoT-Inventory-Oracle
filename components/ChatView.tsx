@@ -37,7 +37,7 @@ const parseJsonBlock = <T,>(content: string, startMarker: string, endMarker: str
 
 
 const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
-  const { inventory, addItem, addProject } = useInventory();
+  const { inventory, addItem, addProject, projects, updateProject, updateItem } = useInventory();
   const { addToast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -98,7 +98,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     setIsLoading(true);
 
     try {
-      const stream = await getAiChatStream(messageContent, messages.slice(0, -1), inventory);
+      const stream = await getAiChatStream(messageContent, messages, inventory, projects);
 
       const modelMessage: ChatMessage = { role: 'model', content: '', groundingChunks: [] };
       setMessages(prev => [...prev, modelMessage]);
@@ -167,6 +167,107 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
 
     addProject(newProject);
     addToast(`Project "${projectName}" created!`, 'success');
+  };
+
+  const handleMoveComponent = (moveData: { action: string; sourceProjectId: string; targetProjectId: string; componentName: string; quantity: number; reason: string }) => {
+    const sourceProject = projects.find(p => p.id === moveData.sourceProjectId);
+    const targetProject = projects.find(p => p.id === moveData.targetProjectId);
+    
+    if (!sourceProject || !targetProject) {
+      addToast('Could not find source or target project', 'error');
+      return;
+    }
+
+    // Find the component in the source project
+    const componentIndex = sourceProject.components.findIndex(c => 
+      c.name.toLowerCase() === moveData.componentName.toLowerCase()
+    );
+    
+    if (componentIndex === -1) {
+      addToast(`Component "${moveData.componentName}" not found in source project`, 'error');
+      return;
+    }
+
+    const component = sourceProject.components[componentIndex];
+    
+    if (component.quantity < moveData.quantity) {
+      addToast(`Not enough quantity available (has ${component.quantity}, requested ${moveData.quantity})`, 'error');
+      return;
+    }
+
+    // Update source project (remove or reduce quantity)
+    const updatedSourceComponents = [...sourceProject.components];
+    if (component.quantity === moveData.quantity) {
+      updatedSourceComponents.splice(componentIndex, 1);
+    } else {
+      updatedSourceComponents[componentIndex] = { ...component, quantity: component.quantity - moveData.quantity };
+    }
+
+    // Update target project (add or increase quantity)
+    const updatedTargetComponents = [...targetProject.components];
+    const existingComponentIndex = updatedTargetComponents.findIndex(c => 
+      c.name.toLowerCase() === moveData.componentName.toLowerCase()
+    );
+    
+    if (existingComponentIndex >= 0) {
+      updatedTargetComponents[existingComponentIndex].quantity += moveData.quantity;
+    } else {
+      updatedTargetComponents.push({
+        id: component.id,
+        name: component.name,
+        quantity: moveData.quantity,
+        source: component.source
+      });
+    }
+
+    // Apply updates
+    updateProject({ ...sourceProject, components: updatedSourceComponents });
+    updateProject({ ...targetProject, components: updatedTargetComponents });
+    
+    addToast(`Moved ${moveData.quantity}x ${moveData.componentName} from "${sourceProject.name}" to "${targetProject.name}"`, 'success');
+  };
+
+  const handleTransferToProject = (transferData: { action: string; inventoryItemId: string; targetProjectId: string; quantity: number; reason: string }) => {
+    const inventoryItem = inventory.find(item => item.id === transferData.inventoryItemId);
+    const targetProject = projects.find(p => p.id === transferData.targetProjectId);
+    
+    if (!inventoryItem || !targetProject) {
+      addToast('Could not find inventory item or target project', 'error');
+      return;
+    }
+
+    if (inventoryItem.quantity < transferData.quantity) {
+      addToast(`Not enough quantity available (has ${inventoryItem.quantity}, requested ${transferData.quantity})`, 'error');
+      return;
+    }
+
+    // Update inventory item (reduce quantity)
+    const updatedInventoryItem = { 
+      ...inventoryItem, 
+      quantity: inventoryItem.quantity - transferData.quantity 
+    };
+    updateItem(updatedInventoryItem);
+
+    // Update target project (add component)
+    const updatedComponents = [...targetProject.components];
+    const existingComponentIndex = updatedComponents.findIndex(c => 
+      c.name.toLowerCase() === inventoryItem.name.toLowerCase()
+    );
+    
+    if (existingComponentIndex >= 0) {
+      updatedComponents[existingComponentIndex].quantity += transferData.quantity;
+    } else {
+      updatedComponents.push({
+        id: inventoryItem.id,
+        name: inventoryItem.name,
+        quantity: transferData.quantity,
+        source: 'manual'
+      });
+    }
+
+    updateProject({ ...targetProject, components: updatedComponents });
+    
+    addToast(`Transferred ${transferData.quantity}x ${inventoryItem.name} to project "${targetProject.name}"`, 'success');
   };
 
   const parseContent = (content: string) => {
@@ -247,7 +348,9 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto pr-2 space-y-4 sm:space-y-6 pb-4">
         {messages.map((msg, index) => {
           const { displayContent: contentAfterSuggestions, jsonData: suggestions } = parseJsonBlock<AiSuggestedPart[]>(msg.content, '/// SUGGESTIONS_JSON_START ///', '/// SUGGESTIONS_JSON_END ///');
-          const { displayContent, jsonData: project } = parseJsonBlock<{ projectName: string; components: { name: string; quantity: number }[] }>(contentAfterSuggestions, '/// PROJECT_JSON_START ///', '/// PROJECT_JSON_END ///');
+          const { displayContent: contentAfterProject, jsonData: project } = parseJsonBlock<{ projectName: string; components: { name: string; quantity: number }[] }>(contentAfterSuggestions, '/// PROJECT_JSON_START ///', '/// PROJECT_JSON_END ///');
+          const { displayContent: contentAfterMove, jsonData: moveAction } = parseJsonBlock<{ action: string; sourceProjectId: string; targetProjectId: string; componentName: string; quantity: number; reason: string }>(contentAfterProject, '/// MOVE_JSON_START ///', '/// MOVE_JSON_END ///');
+          const { displayContent, jsonData: transferAction } = parseJsonBlock<{ action: string; inventoryItemId: string; targetProjectId: string; quantity: number; reason: string }>(contentAfterMove, '/// TRANSFER_JSON_START ///', '/// TRANSFER_JSON_END ///');
           
           return (
             <div key={index} className={`flex items-start gap-3 sm:gap-4 ${msg.role === 'user' ? 'justify-end' : ''}`}>
@@ -257,15 +360,55 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                   {parseContent(displayContent)}
                 </div>
 
-                {(suggestions || project) && (
+                {(suggestions || project || moveAction || transferAction) && (
                     <div className="mt-4 pt-3 border-t border-border-color space-y-3">
                         <h4 className="text-sm font-semibold text-text-secondary">Interactive Actions:</h4>
                         {project && (
                              <div className="bg-primary/50 p-3 rounded-lg">
                                 <p className="font-semibold text-text-primary text-sm flex items-center gap-2"><ProjectsIcon /> {project.projectName}</p>
                                 <div className="flex items-center space-x-2 mt-2">
-                                    <button onClick={() => handleCreateProject(project.components, project.projectName)} className="text-xs bg-highlight/20 text-highlight hover:bg-highlight/40 px-2 py-1 rounded-md transition-colors w-full text-center">
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleCreateProject(project.components, project.projectName)} 
+                                        className="text-xs bg-highlight/20 text-highlight hover:bg-highlight/40 px-2 py-1 rounded-md transition-colors w-full text-center"
+                                    >
                                         Create Project
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {moveAction && (
+                            <div className="bg-primary/50 p-3 rounded-lg">
+                                <p className="font-semibold text-text-primary text-sm">Move Component</p>
+                                <p className="text-xs text-text-secondary mt-1">
+                                    {moveAction.quantity}x {moveAction.componentName} from {projects.find(p => p.id === moveAction.sourceProjectId)?.name || 'Unknown'} to {projects.find(p => p.id === moveAction.targetProjectId)?.name || 'Unknown'}
+                                </p>
+                                <p className="text-xs text-text-secondary mt-1">{moveAction.reason}</p>
+                                <div className="flex items-center space-x-2 mt-2">
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleMoveComponent(moveAction)} 
+                                        className="text-xs bg-green-500/20 text-green-400 hover:bg-green-500/40 px-2 py-1 rounded-md transition-colors w-full text-center"
+                                    >
+                                        Execute Move
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {transferAction && (
+                            <div className="bg-primary/50 p-3 rounded-lg">
+                                <p className="font-semibold text-text-primary text-sm">Transfer from Inventory</p>
+                                <p className="text-xs text-text-secondary mt-1">
+                                    {transferAction.quantity}x {inventory.find(item => item.id === transferAction.inventoryItemId)?.name || 'Unknown'} to {projects.find(p => p.id === transferAction.targetProjectId)?.name || 'Unknown'}
+                                </p>
+                                <p className="text-xs text-text-secondary mt-1">{transferAction.reason}</p>
+                                <div className="flex items-center space-x-2 mt-2">
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleTransferToProject(transferAction)} 
+                                        className="text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 px-2 py-1 rounded-md transition-colors w-full text-center"
+                                    >
+                                        Execute Transfer
                                     </button>
                                 </div>
                             </div>
@@ -274,10 +417,18 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                             <div key={partIdx} className="bg-primary/50 p-3 rounded-lg">
                                 <p className="font-semibold text-text-primary text-sm">{part.name}</p>
                                 <div className="flex items-center space-x-2 mt-2">
-                                    <button onClick={() => handleAddToInventory(part, ItemStatus.NEED)} className="text-xs bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-2 py-1 rounded-md transition-colors">
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAddToInventory(part, ItemStatus.NEED)} 
+                                        className="text-xs bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-2 py-1 rounded-md transition-colors"
+                                    >
                                         To Required
                                     </button>
-                                     <button onClick={() => handleAddToInventory(part, ItemStatus.WANT)} className="text-xs bg-sky-500/20 text-sky-400 hover:bg-sky-500/40 px-2 py-1 rounded-md transition-colors">
+                                     <button 
+                                        type="button"
+                                        onClick={() => handleAddToInventory(part, ItemStatus.WANT)} 
+                                        className="text-xs bg-sky-500/20 text-sky-400 hover:bg-sky-500/40 px-2 py-1 rounded-md transition-colors"
+                                    >
                                         To Wishlist
                                     </button>
                                 </div>
@@ -330,7 +481,13 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                 <PaperclipIcon />
                 <span className="text-text-secondary truncate font-medium" title={attachedFile.name}>{attachedFile.name}</span>
             </div>
-            <button onClick={() => setAttachedFile(null)} className="text-text-secondary hover:text-text-primary p-1 rounded-full text-lg leading-none">&times;</button>
+            <button 
+                type="button"
+                onClick={() => setAttachedFile(null)} 
+                className="text-text-secondary hover:text-text-primary p-1 rounded-full text-lg leading-none"
+                aria-label="Remove attached file"
+                title="Remove attached file"
+            >&times;</button>
           </div>
         )}
         <div className="flex items-center bg-secondary border border-border-color rounded-lg p-2">
@@ -340,8 +497,16 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
               onChange={handleFileChange} 
               className="hidden"
               accept=".txt,.md,.json,.js,.py,.c,.cpp,.h,.ino"
+              id="file-upload"
+              aria-label="Upload document file"
           />
-          <button onClick={() => fileInputRef.current?.click()} className="p-2 text-text-secondary hover:text-text-primary transition-colors" aria-label="Attach file">
+          <button 
+              type="button"
+              onClick={() => fileInputRef.current?.click()} 
+              className="p-2 text-text-secondary hover:text-text-primary transition-colors" 
+              aria-label="Attach file"
+              title="Attach file"
+          >
               <PaperclipIcon />
           </button>
           <textarea
@@ -352,7 +517,14 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
             rows={1}
             className="flex-1 bg-transparent px-2 resize-none focus:outline-none max-h-40"
           />
-          <button onClick={handleSend} disabled={isLoading || (!input.trim() && !attachedFile) } className="bg-accent p-2 rounded-md text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <button 
+              type="button"
+              onClick={handleSend} 
+              disabled={isLoading || (!input.trim() && !attachedFile)} 
+              className="bg-accent p-2 rounded-md text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Send message"
+              title="Send message"
+          >
             <SendIcon />
           </button>
         </div>
