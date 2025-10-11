@@ -5,18 +5,21 @@ import { Project } from '../types';
 import { ProjectCard } from './ProjectCard';
 import LinkGithubModal from './LinkGithubModal';
 import { analyzeGithubRepo } from '../services/geminiService';
+import AddProjectModal from './AddProjectModal';
+import { PlusIcon } from './icons/PlusIcon';
 
 interface ProjectsViewProps {
     onAiKickstart: (project: Project) => void;
 }
 
 const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
-  const { projects, updateProject, updateProjectComponents } = useInventory();
+  const { projects, addProject, updateProject, updateProjectComponents } = useInventory();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<'In Progress' | 'Completed'>('In Progress');
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [projectToLink, setProjectToLink] = useState<Project | null>(null);
   const [syncingProjectId, setSyncingProjectId] = useState<string | null>(null);
+  const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
 
   const handleOpenLinkModal = (project: Project) => {
     setProjectToLink(project);
@@ -52,13 +55,27 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
         setSyncingProjectId(null);
     }
   };
+  
+  const handleAddProject = (newProjectData: Omit<Project, 'id' | 'createdAt'>) => {
+    addProject(newProjectData);
+    addToast(`Project "${newProjectData.name}" created!`, 'success');
+  };
 
   const filteredProjects = projects.filter(p => p.status === activeTab)
      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
     <div className="space-y-8">
-        <h1 className="text-3xl font-bold text-text-primary">My Projects</h1>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 className="text-3xl font-bold text-text-primary">My Projects</h1>
+            <button
+                onClick={() => setIsAddProjectModalOpen(true)}
+                className="flex items-center justify-center gap-2 bg-accent hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors"
+            >
+                <PlusIcon />
+                <span>Create New Project</span>
+            </button>
+        </div>
         
         <div className="border-b border-border-color">
             <nav className="-mb-px flex space-x-6" aria-label="Tabs">
@@ -110,6 +127,12 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
             onClose={handleCloseLinkModal}
             onLink={handleLinkRepo}
             project={projectToLink}
+        />
+
+        <AddProjectModal 
+            isOpen={isAddProjectModalOpen}
+            onClose={() => setIsAddProjectModalOpen(false)}
+            onSave={handleAddProject}
         />
     </div>
   );

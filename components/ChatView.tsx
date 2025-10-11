@@ -9,6 +9,7 @@ import { useInventory } from '../contexts/InventoryContext';
 import { useToast } from '../contexts/ToastContext';
 import { ChatIcon } from './icons/ChatIcon';
 import { ProjectsIcon } from './icons/ProjectsIcon';
+import { PaperclipIcon } from './icons/PaperclipIcon';
 
 interface ChatViewProps {
     initialMessage?: string | null;
@@ -42,6 +43,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
   
   useEffect(() => {
     if (initialMessage) {
@@ -55,16 +58,47 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     }
   }, [messages, isLoading]);
 
-  const handleSend = async () => {
-    if (input.trim() === '' || isLoading) return;
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Limit file size to 1MB
+      if (file.size > 1 * 1024 * 1024) {
+        addToast('File size cannot exceed 1MB.', 'error');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        setAttachedFile({ name: file.name, content });
+      };
+      reader.onerror = () => {
+        addToast('Error reading file.', 'error');
+      };
+      reader.readAsText(file);
+    }
+    // Allow selecting the same file again
+    if (event.target) {
+        event.target.value = '';
+    }
+  };
 
-    const userMessage: ChatMessage = { role: 'user', content: input };
+  const handleSend = async () => {
+    if ((input.trim() === '' && !attachedFile) || isLoading) return;
+
+    let messageContent = input;
+    if (attachedFile) {
+      messageContent = `Please analyze the following document named "${attachedFile.name}":\n\n--- DOCUMENT CONTENT START ---\n${attachedFile.content}\n--- DOCUMENT CONTENT END ---\n\nMy request related to this document is: ${input || 'Please provide a summary and suggest next steps.'}`;
+    }
+
+    const userMessage: ChatMessage = { role: 'user', content: messageContent };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setAttachedFile(null); // Clear the file after preparing the message
     setIsLoading(true);
 
     try {
-      const stream = await getAiChatStream(input, messages.slice(0, -1), inventory);
+      const stream = await getAiChatStream(messageContent, messages.slice(0, -1), inventory);
 
       const modelMessage: ChatMessage = { role: 'model', content: '', groundingChunks: [] };
       setMessages(prev => [...prev, modelMessage]);
@@ -183,14 +217,26 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           </div>
         );
       }
-      // Simple markdown for bold, italics, lists
-      const formattedText = part.content
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/^- (.*$)/gm, '<ul class="list-disc list-inside ml-4"><li>$1</li></ul>')
-        .replace(/<\/ul>\n<ul/g, ''); // Fix for multiple list items
 
-      return <div key={i} className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: formattedText }} />;
+      // Process lists, bold, italics for the remaining text part
+      let htmlContent = part.content;
+
+      // Process list blocks
+      htmlContent = htmlContent.replace(/((?:^- .*(?:\n|$))+)/gm, (match) => {
+          const items = match.trim().split('\n').map(line => line.substring(2).trim());
+          return `
+              <ul class="list-disc list-inside ml-4 my-2">
+                  ${items.map(item => `<li>${item}</li>`).join('')}
+              </ul>
+          `;
+      });
+      
+      // Process bold and italics on the result
+      htmlContent = htmlContent
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+      return <div key={i} className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: htmlContent }} />;
     });
   };
 
@@ -278,16 +324,35 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       </div>
 
       <div className="mt-auto pt-4 shrink-0 bg-primary">
+        {attachedFile && (
+          <div className="mb-2 px-3 py-2 bg-primary border border-border-color rounded-lg flex justify-between items-center text-sm">
+            <div className="flex items-center gap-2 overflow-hidden">
+                <PaperclipIcon />
+                <span className="text-text-secondary truncate font-medium" title={attachedFile.name}>{attachedFile.name}</span>
+            </div>
+            <button onClick={() => setAttachedFile(null)} className="text-text-secondary hover:text-text-primary p-1 rounded-full text-lg leading-none">&times;</button>
+          </div>
+        )}
         <div className="flex items-center bg-secondary border border-border-color rounded-lg p-2">
+          <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              className="hidden"
+              accept=".txt,.md,.json,.js,.py,.c,.cpp,.h,.ino"
+          />
+          <button onClick={() => fileInputRef.current?.click()} className="p-2 text-text-secondary hover:text-text-primary transition-colors" aria-label="Attach file">
+              <PaperclipIcon />
+          </button>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="Plan your next project..."
+            placeholder={attachedFile ? `Add a comment about ${attachedFile.name}...` : "Plan your next project..."}
             rows={1}
             className="flex-1 bg-transparent px-2 resize-none focus:outline-none max-h-40"
           />
-          <button onClick={handleSend} disabled={isLoading} className="bg-accent p-2 rounded-md text-white disabled:bg-gray-600 transition-colors">
+          <button onClick={handleSend} disabled={isLoading || (!input.trim() && !attachedFile) } className="bg-accent p-2 rounded-md text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             <SendIcon />
           </button>
         </div>

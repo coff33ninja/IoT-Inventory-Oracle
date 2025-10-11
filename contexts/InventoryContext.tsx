@@ -102,7 +102,8 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
       ...project,
       id: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      components: project.components.map(c => ({ ...c, source: 'manual' })),
+      // Ensure all components have a source, defaulting to manual if not provided
+      components: project.components.map(c => ({ ...c, source: c.source || 'manual' })),
     };
     setProjects(prev => [newProject, ...prev]);
   };
