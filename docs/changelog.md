@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Event Propagation**: Proper event handling in project cards
 - **Type Safety Issues**: Resolved all TypeScript compilation warnings
 - **ChatView Error**: Fixed undefined object error in inventory/project update displays
+- **Quantity Parsing**: Enhanced AI to properly parse quantities from descriptions (e.g., "3 DDR4 sticks" → 1 entry with quantity 3)
 
 ### Technical
 - Database migration system for seamless upgrades

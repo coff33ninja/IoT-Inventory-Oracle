@@ -139,19 +139,19 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         }
       } catch (error) {
         console.error("Failed to initialize chat:", error);
-        
+
         // Check if it's a network error (server not running)
-        if (error instanceof TypeError && error.message.includes('fetch')) {
+        if (error instanceof TypeError && error.message.includes("fetch")) {
           addToast("Chat server not available - using offline mode", "info");
           console.log("Server appears to be offline, using local fallback");
         } else {
           addToast("Failed to load chat history - using offline mode", "error");
         }
-        
+
         // Fallback: create a local conversation with better UX
         const fallbackId = `local-${Date.now()}`;
         setCurrentConversationId(fallbackId);
-        
+
         // Create a fallback conversation object
         const fallbackConversation = {
           id: fallbackId,
@@ -162,7 +162,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           messageCount: 0,
         };
         setConversations([fallbackConversation]);
-        
+
         console.log("Using fallback conversation:", fallbackConversation);
       }
     };
@@ -312,7 +312,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                   ...msg,
                   content: fullResponse,
                   groundingChunks,
-                  suggestedProject: projectData || msg.suggestedProject || undefined,
+                  suggestedProject:
+                    projectData || msg.suggestedProject || undefined,
                 }
               : msg
           )
@@ -531,7 +532,10 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
 
       if (inventoryUpdateAction) {
         handleInventoryUpdate(inventoryUpdateAction);
-        addToast(`Updated inventory: ${inventoryUpdateAction.itemName}`, "success");
+        addToast(
+          `Updated inventory: ${inventoryUpdateAction.itemName}`,
+          "success"
+        );
       }
 
       // Parse and auto-execute price checks
@@ -645,7 +649,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       supplier: part.supplier,
       purchasePrice: part.purchasePrice,
       currency: part.currency || "USD",
-      condition: part.condition as any || "New",
+      condition: (part.condition as any) || "New",
     };
     addItem(newItem);
     const statusName =
@@ -1110,7 +1114,10 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     const item = inventory.find((i) => i.id === updateData.itemId);
 
     if (!item) {
-      addToast(`Could not find inventory item: ${updateData.itemName}`, "error");
+      addToast(
+        `Could not find inventory item: ${updateData.itemName}`,
+        "error"
+      );
       return;
     }
 
@@ -1118,68 +1125,111 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     const updatedItem = { ...item };
     let changes: string[] = [];
 
-    if (updateData.updates.status && updateData.updates.status !== item.status) {
+    if (
+      updateData.updates.status &&
+      updateData.updates.status !== item.status
+    ) {
       updatedItem.status = updateData.updates.status as any;
       changes.push(`status to "${updateData.updates.status}"`);
     }
 
-    if (updateData.updates.quantity !== undefined && updateData.updates.quantity !== item.quantity) {
+    if (
+      updateData.updates.quantity !== undefined &&
+      updateData.updates.quantity !== item.quantity
+    ) {
       updatedItem.quantity = updateData.updates.quantity;
       changes.push(`quantity to ${updateData.updates.quantity}`);
     }
 
-    if (updateData.updates.location && updateData.updates.location !== item.location) {
+    if (
+      updateData.updates.location &&
+      updateData.updates.location !== item.location
+    ) {
       updatedItem.location = updateData.updates.location;
       changes.push(`location to "${updateData.updates.location}"`);
     }
 
     // Handle all the new fields
-    if (updateData.updates.serialNumber && updateData.updates.serialNumber !== item.serialNumber) {
+    if (
+      updateData.updates.serialNumber &&
+      updateData.updates.serialNumber !== item.serialNumber
+    ) {
       updatedItem.serialNumber = updateData.updates.serialNumber;
       changes.push(`serial number to "${updateData.updates.serialNumber}"`);
     }
 
-    if (updateData.updates.modelNumber && updateData.updates.modelNumber !== item.modelNumber) {
+    if (
+      updateData.updates.modelNumber &&
+      updateData.updates.modelNumber !== item.modelNumber
+    ) {
       updatedItem.modelNumber = updateData.updates.modelNumber;
       changes.push(`model number to "${updateData.updates.modelNumber}"`);
     }
 
-    if (updateData.updates.manufacturer && updateData.updates.manufacturer !== item.manufacturer) {
+    if (
+      updateData.updates.manufacturer &&
+      updateData.updates.manufacturer !== item.manufacturer
+    ) {
       updatedItem.manufacturer = updateData.updates.manufacturer;
       changes.push(`manufacturer to "${updateData.updates.manufacturer}"`);
     }
 
-    if (updateData.updates.purchaseDate && updateData.updates.purchaseDate !== item.purchaseDate) {
+    if (
+      updateData.updates.purchaseDate &&
+      updateData.updates.purchaseDate !== item.purchaseDate
+    ) {
       updatedItem.purchaseDate = updateData.updates.purchaseDate;
       changes.push(`purchase date to "${updateData.updates.purchaseDate}"`);
     }
 
-    if (updateData.updates.receivedDate && updateData.updates.receivedDate !== item.receivedDate) {
+    if (
+      updateData.updates.receivedDate &&
+      updateData.updates.receivedDate !== item.receivedDate
+    ) {
       updatedItem.receivedDate = updateData.updates.receivedDate;
       changes.push(`received date to "${updateData.updates.receivedDate}"`);
     }
 
-    if (updateData.updates.purchasePrice !== undefined && updateData.updates.purchasePrice !== item.purchasePrice) {
+    if (
+      updateData.updates.purchasePrice !== undefined &&
+      updateData.updates.purchasePrice !== item.purchasePrice
+    ) {
       updatedItem.purchasePrice = updateData.updates.purchasePrice;
-      changes.push(`purchase price to ${updateData.updates.currency || '$'}${updateData.updates.purchasePrice}`);
+      changes.push(
+        `purchase price to ${updateData.updates.currency || "$"}${
+          updateData.updates.purchasePrice
+        }`
+      );
     }
 
-    if (updateData.updates.currency && updateData.updates.currency !== item.currency) {
+    if (
+      updateData.updates.currency &&
+      updateData.updates.currency !== item.currency
+    ) {
       updatedItem.currency = updateData.updates.currency;
       changes.push(`currency to "${updateData.updates.currency}"`);
     }
 
-    if (updateData.updates.supplier && updateData.updates.supplier !== item.supplier) {
+    if (
+      updateData.updates.supplier &&
+      updateData.updates.supplier !== item.supplier
+    ) {
       updatedItem.supplier = updateData.updates.supplier;
       changes.push(`supplier to "${updateData.updates.supplier}"`);
     }
 
-    if (updateData.updates.invoiceNumber && updateData.updates.invoiceNumber !== item.invoiceNumber) {
+    if (
+      updateData.updates.invoiceNumber &&
+      updateData.updates.invoiceNumber !== item.invoiceNumber
+    ) {
       updatedItem.invoiceNumber = updateData.updates.invoiceNumber;
       changes.push(`invoice number to "${updateData.updates.invoiceNumber}"`);
     }
 
-    if (updateData.updates.condition && updateData.updates.condition !== item.condition) {
+    if (
+      updateData.updates.condition &&
+      updateData.updates.condition !== item.condition
+    ) {
       updatedItem.condition = updateData.updates.condition as any;
       changes.push(`condition to "${updateData.updates.condition}"`);
     }
@@ -1193,11 +1243,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
 
     if (changes.length > 0) {
       updateItem(updatedItem);
-      
-      addToast(
-        `Updated ${item.name}: ${changes.join(", ")}`,
-        "success"
-      );
+
+      addToast(`Updated ${item.name}: ${changes.join(", ")}`, "success");
     } else {
       addToast("No changes needed for inventory item", "info");
     }
@@ -1213,16 +1260,23 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     try {
       // Find the inventory item
       const item = inventory.find((i) => i.id === priceData.itemId);
-      
+
       if (!item) {
-        addToast(`Could not find inventory item: ${priceData.itemName}`, "error");
+        addToast(
+          `Could not find inventory item: ${priceData.itemName}`,
+          "error"
+        );
         return;
       }
 
       // Check if we have recent market data (less than 24 hours old)
       const now = new Date();
-      const lastRefreshed = item.lastRefreshed ? new Date(item.lastRefreshed) : null;
-      const isDataFresh = lastRefreshed && (now.getTime() - lastRefreshed.getTime() < 24 * 60 * 60 * 1000);
+      const lastRefreshed = item.lastRefreshed
+        ? new Date(item.lastRefreshed)
+        : null;
+      const isDataFresh =
+        lastRefreshed &&
+        now.getTime() - lastRefreshed.getTime() < 24 * 60 * 60 * 1000;
 
       if (isDataFresh && item.marketData && item.marketData.length > 0) {
         addToast(`Using recent price data for ${item.name}`, "info");
@@ -1230,18 +1284,20 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       }
 
       // Get fresh market data using the AI service
-      const { getComponentIntelligence } = await import('../services/geminiService');
+      const { getComponentIntelligence } = await import(
+        "../services/geminiService"
+      );
       const intelligence = await getComponentIntelligence(item.name);
-      
+
       // Update the item with new market data
       const updatedItem = {
         ...item,
         marketData: intelligence.marketData,
-        lastRefreshed: new Date().toISOString()
+        lastRefreshed: new Date().toISOString(),
       };
 
       updateItem(updatedItem);
-      
+
       addToast(
         `Updated prices for ${item.name} - found ${intelligence.marketData.length} suppliers`,
         "success"
@@ -1275,11 +1331,12 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
 
       if (relationshipAction.createSeparateEntries) {
         // Create primary component
-        const primaryStatus = relationshipAction.primaryComponent.status === "I Have" 
-          ? ItemStatus.HAVE 
-          : relationshipAction.primaryComponent.status === "I Need"
-          ? ItemStatus.NEED
-          : ItemStatus.WANT;
+        const primaryStatus =
+          relationshipAction.primaryComponent.status === "I Have"
+            ? ItemStatus.HAVE
+            : relationshipAction.primaryComponent.status === "I Need"
+            ? ItemStatus.NEED
+            : ItemStatus.WANT;
 
         const primaryItem = {
           id: "", // Will be generated
@@ -1295,11 +1352,12 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         await addItem(primaryItem);
 
         // Create related component
-        const relatedStatus = relationshipAction.relatedComponent.status === "I Have" 
-          ? ItemStatus.HAVE 
-          : relationshipAction.relatedComponent.status === "I Need"
-          ? ItemStatus.NEED
-          : ItemStatus.WANT;
+        const relatedStatus =
+          relationshipAction.relatedComponent.status === "I Have"
+            ? ItemStatus.HAVE
+            : relationshipAction.relatedComponent.status === "I Need"
+            ? ItemStatus.NEED
+            : ItemStatus.WANT;
 
         const relatedItem = {
           id: "", // Will be generated
@@ -1315,8 +1373,10 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         await addItem(relatedItem);
 
         // Create relationship between components (this would require API call)
-        console.log(`Would create relationship between components when API is available`);
-        
+        console.log(
+          `Would create relationship between components when API is available`
+        );
+
         addToast(
           `Created separate entries: ${relationshipAction.primaryComponent.name} and ${relationshipAction.relatedComponent.name}`,
           "success"
@@ -1363,8 +1423,11 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       }
 
       // Create bundle (this would require API call to bundle service)
-      console.log(`Would create bundle "${bundleAction.bundleName}" with components:`, createdComponentIds);
-      
+      console.log(
+        `Would create bundle "${bundleAction.bundleName}" with components:`,
+        createdComponentIds
+      );
+
       addToast(
         `Created bundle "${bundleAction.bundleName}" with ${bundleAction.components.length} components`,
         "success"
@@ -1715,40 +1778,44 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
               "/// ANALYSIS_JSON_START ///",
               "/// ANALYSIS_JSON_END ///"
             );
-            const { displayContent: contentAfterProjectUpdate, jsonData: projectUpdateAction } =
-              parseJsonBlock<{
-                action: string;
-                projectId: string;
-                projectName: string;
-                updates: {
-                  status?: string;
-                  progress?: number;
-                  description?: string;
-                  notes?: string;
-                };
-                reason: string;
-              }>(
-                contentAfterAnalysis,
-                "/// PROJECT_UPDATE_JSON_START ///",
-                "/// PROJECT_UPDATE_JSON_END ///"
-              );
-            const { displayContent: contentAfterInventoryUpdate, jsonData: inventoryUpdateAction } =
-              parseJsonBlock<{
-                action: string;
-                itemId: string;
-                itemName: string;
-                updates: {
-                  status?: string;
-                  quantity?: number;
-                  location?: string;
-                  notes?: string;
-                };
-                reason: string;
-              }>(
-                contentAfterProjectUpdate,
-                "/// INVENTORY_UPDATE_JSON_START ///",
-                "/// INVENTORY_UPDATE_JSON_END ///"
-              );
+            const {
+              displayContent: contentAfterProjectUpdate,
+              jsonData: projectUpdateAction,
+            } = parseJsonBlock<{
+              action: string;
+              projectId: string;
+              projectName: string;
+              updates: {
+                status?: string;
+                progress?: number;
+                description?: string;
+                notes?: string;
+              };
+              reason: string;
+            }>(
+              contentAfterAnalysis,
+              "/// PROJECT_UPDATE_JSON_START ///",
+              "/// PROJECT_UPDATE_JSON_END ///"
+            );
+            const {
+              displayContent: contentAfterInventoryUpdate,
+              jsonData: inventoryUpdateAction,
+            } = parseJsonBlock<{
+              action: string;
+              itemId: string;
+              itemName: string;
+              updates: {
+                status?: string;
+                quantity?: number;
+                location?: string;
+                notes?: string;
+              };
+              reason: string;
+            }>(
+              contentAfterProjectUpdate,
+              "/// INVENTORY_UPDATE_JSON_START ///",
+              "/// INVENTORY_UPDATE_JSON_END ///"
+            );
             const { displayContent, jsonData: priceCheckAction } =
               parseJsonBlock<{
                 action: string;
@@ -1977,16 +2044,19 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                             </button>
                           </div>
                           <div className="mt-2 text-xs text-text-secondary">
-                            {projectUpdateAction.updates && Object.entries(projectUpdateAction.updates).map(
-                              ([key, value]) => (
-                                <div key={key} className="flex justify-between">
-                                  <span className="capitalize">{key}:</span>
-                                  <span className="text-text-primary">
-                                    {value}
-                                  </span>
-                                </div>
-                              )
-                            )}
+                            {projectUpdateAction.updates &&
+                              Object.entries(projectUpdateAction.updates).map(
+                                ([key, value]) => (
+                                  <div
+                                    key={key}
+                                    className="flex justify-between">
+                                    <span className="capitalize">{key}:</span>
+                                    <span className="text-text-primary">
+                                      {value}
+                                    </span>
+                                  </div>
+                                )
+                              )}
                           </div>
                         </div>
                       )}
@@ -2001,18 +2071,27 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                           <div className="flex items-center space-x-2 mt-2">
                             <button
                               type="button"
-                              onClick={() => handleInventoryUpdate(inventoryUpdateAction)}
+                              onClick={() =>
+                                handleInventoryUpdate(inventoryUpdateAction)
+                              }
                               className="text-xs bg-green-500/20 text-green-400 hover:bg-green-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
                               Apply Updates
                             </button>
                           </div>
                           <div className="mt-2 text-xs text-text-secondary">
-                            {inventoryUpdateAction.updates && Object.entries(inventoryUpdateAction.updates).map(([key, value]) => (
-                              <div key={key} className="flex justify-between">
-                                <span className="capitalize">{key}:</span>
-                                <span className="text-text-primary">{value}</span>
-                              </div>
-                            ))}
+                            {inventoryUpdateAction.updates &&
+                              Object.entries(inventoryUpdateAction.updates).map(
+                                ([key, value]) => (
+                                  <div
+                                    key={key}
+                                    className="flex justify-between">
+                                    <span className="capitalize">{key}:</span>
+                                    <span className="text-text-primary">
+                                      {value}
+                                    </span>
+                                  </div>
+                                )
+                              )}
                           </div>
                         </div>
                       )}

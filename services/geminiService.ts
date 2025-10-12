@@ -68,6 +68,16 @@ const getChat = (history: ChatMessage[]): Chat => {
             - Condition: "brand new", "used", "refurbished", "open box"
             - Warranty: "2 year warranty", "warranty until 2026", "no warranty"
             
+            **QUANTITY PARSING RULES:**
+            CRITICAL: Always extract quantities from component descriptions:
+            - "3 DDR4 4GIG sticks" → quantity: 3, name: "DDR4 4GB RAM Stick"
+            - "2 SAMSUNG 20 INCH SCREENS" → quantity: 2, name: "Samsung 20 inch Monitor"
+            - "5 ESP32 modules" → quantity: 5, name: "ESP32 Module"
+            - "1 AMD Ryzen 7 2700x" → quantity: 1, name: "AMD Ryzen 7 2700X CPU"
+            - "4x 8GB DDR4 modules" → quantity: 4, name: "8GB DDR4 RAM Module"
+            
+            When users list multiple identical items, create ONE inventory entry with the correct quantity, NOT multiple separate entries.
+            
             **COMPONENT CATEGORIZATION SYSTEM:**
             Components are organized into specific categories for better inventory management:
             
@@ -360,28 +370,32 @@ const getChat = (history: ChatMessage[]): Chat => {
             - **For Inventory Updates (NEW):**
             \`\`\`json
             /// INVENTORY_UPDATE_JSON_START ///
-            {
-              "action": "update_inventory",
-              "itemId": "item-id-123",
-              "itemName": "Arduino Uno",
-              "updates": {
-                "status": "I Have",
-                "quantity": 5,
-                "location": "Electronics Drawer",
-                "serialNumber": "ABC123456",
-                "modelNumber": "UNO-R3",
-                "manufacturer": "Arduino",
-                "purchaseDate": "2024-01-15",
-                "receivedDate": "2024-01-18",
-                "purchasePrice": 25.99,
-                "currency": "USD",
-                "supplier": "Amazon",
-                "invoiceNumber": "INV-789",
-                "condition": "New",
-                "notes": "Just received new shipment from Amazon order"
+            [
+              {
+                "action": "update_inventory",
+                "itemName": "DDR4 4GB RAM Stick",
+                "updates": {
+                  "status": "I Have",
+                  "quantity": 3,
+                  "location": "PC Build Storage",
+                  "condition": "Used",
+                  "notes": "From current PC build"
+                },
+                "reason": "User mentioned having 3 DDR4 4GB sticks"
               },
-              "reason": "User mentioned receiving new components with purchase details"
-            }
+              {
+                "action": "update_inventory", 
+                "itemName": "Samsung 20 inch Monitor",
+                "updates": {
+                  "status": "I Have",
+                  "quantity": 2,
+                  "location": "Desk Setup",
+                  "condition": "Used",
+                  "notes": "Current dual monitor setup"
+                },
+                "reason": "User mentioned having 2 Samsung 20 inch screens"
+              }
+            ]
             /// INVENTORY_UPDATE_JSON_END ///
             \`\`\`
 
@@ -394,6 +408,13 @@ const getChat = (history: ChatMessage[]): Chat => {
             - Mention purchase information ("bought from Amazon", "cost $50", "serial number ABC123")
             - Mention warranty information ("warranty expires next year", "still under warranty")
             - Ask to modify item details or descriptions
+            - List multiple identical components ("3 DDR4 sticks", "2 monitors", "5 sensors")
+            
+            **QUANTITY PARSING EXAMPLES:**
+            User: "I have 3 DDR4 4GB sticks and 2 Samsung monitors"
+            → Create entry for "DDR4 4GB RAM Stick" with quantity: 3
+            → Create entry for "Samsung Monitor" with quantity: 2
+            NOT 3 separate DDR4 entries and 2 separate monitor entries!
 
             **PROACTIVE PRICE CHECKING:**
             Automatically suggest price checks when:
