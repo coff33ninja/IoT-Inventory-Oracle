@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | undefined>(undefined);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [chatInitialMessage, setChatInitialMessage] = useState<string | null>(null);
 
   const handleEditItem = (item: InventoryItem) => {
@@ -65,8 +66,10 @@ const App: React.FC = () => {
         setCurrentView={setCurrentView} 
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
       />
-      <main className="flex-1 flex flex-col overflow-hidden transition-all duration-300 lg:ml-64">
+      <main className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
          <div className="p-4 lg:hidden border-b border-border-color flex items-center">
             <button 
                 type="button"
