@@ -2,19 +2,31 @@
 
 A comprehensive inventory management system for IoT makers and electronics enthusiasts, powered by advanced AI assistance and smart project management capabilities.
 
-## ✨ Latest Features (v2.0)
+## ✨ Latest Features (v2.1) - Modern Storage System
+
+### 🗄️ Advanced Data Storage
+- **SQLite Database**: Fast, reliable inventory storage with proper indexing and relationships
+- **Markdown Projects**: Human-readable project files with rich metadata and documentation
+- **File-Based Architecture**: No more localStorage limitations - proper data persistence
+- **Data Integrity**: Foreign key constraints and transaction support
+
+### 🛠️ Developer Tools
+- **CLI Interface**: Comprehensive command-line tools for power users and automation
+- **Database Analytics**: Advanced querying and reporting capabilities
+- **Markdown Documentation**: Projects stored as readable markdown files with frontmatter
+- **Search Performance**: Indexed database searches across all data
+
+### 📊 Enhanced Analytics
+- **Real-time Statistics**: Fast aggregation queries for inventory insights
+- **Rich Project Documentation**: Markdown format with code snippets and diagrams
+- **Global Search**: Search across inventory and projects simultaneously
+- **Status Tracking**: Detailed breakdowns by category, status, and usage
 
 ### 🧠 Enhanced AI Context Management
 - **Persistent Memory**: AI remembers your projects and components across conversations
 - **Cross-Project Operations**: Move components between projects with one-click
 - **Smart Suggestions**: AI analyzes compatibility and suggests optimal component allocation
 - **Context-Aware Recommendations**: Maintains conversation continuity for better assistance
-
-### 📊 Analytics Dashboard
-- **Inventory Insights**: Total value, utilization rates, and category breakdowns
-- **Project Readiness**: See which projects are ready to build vs missing components
-- **Smart Alerts**: Low stock warnings and duplicate component detection
-- **Visual Analytics**: Charts and metrics for better inventory management
 
 ### 📋 Project Templates System
 - **Pre-built Templates**: Smart home, weather station, security systems, and more
@@ -73,6 +85,126 @@ A smart inventory management application for IoT projects, powered by Google's G
 *   **AI**: [Google Gemini API (`@google/genai`)](https://ai.google.dev/docs)
 *   **Core Libraries**: No bundler! The app uses modern browser features like **ES Modules** and **Import Maps** for a fast, buildless development experience.
 
+## 🗄️ Storage Architecture
+
+The application uses a modern client-server architecture:
+
+### Server-Side Storage
+- **Database**: `inventory.db` (SQLite database) for inventory data
+- **Projects**: `projects/` directory with Markdown files
+- **Features**: ACID transactions, indexed queries, file-based documentation
+- **API**: RESTful endpoints for all data operations
+
+### Client-Side (React App)
+- **API Client**: Communicates with server via HTTP requests
+- **State Management**: React context with local state
+- **Fallback**: localStorage backup when server is unavailable
+- **Real-time**: Immediate UI updates with server synchronization
+
+### Data Flow
+1. **React App** → API calls → **Express Server** → **Database/Files**
+2. **CLI Tools** → Direct access → **Database/Files**
+3. **Fallback**: localStorage when server unavailable
+
+## 🛠️ Command Line Interface (CLI)
+
+The application includes powerful CLI tools for direct database management and advanced operations. These tools provide direct access to the SQLite database and markdown files:
+
+### Inventory Management
+
+```bash
+# List all inventory items
+npm run cli inventory list
+
+# List items by status
+npm run cli inventory list "I Have"
+npm run cli inventory list "I Want"
+npm run cli inventory list "I Need"
+
+# List items by category
+npm run cli inventory list "Sensors"
+npm run cli inventory list "Core"
+
+# Add new inventory item
+npm run cli inventory add <name> <quantity> <location> <status> [category] [description]
+# Example:
+npm run cli inventory add "ESP32-DevKit" 3 "Electronics-Box" "I Have" "Microcontrollers"
+
+# Search inventory
+npm run cli inventory search <query>
+# Example:
+npm run cli inventory search "ESP32"
+
+# Show inventory statistics
+npm run cli inventory stats
+```
+
+### Project Management
+
+```bash
+# List all projects
+npm run cli projects list
+
+# List projects by status
+npm run cli projects list "In Progress"
+npm run cli projects list "Completed"
+
+# Show detailed project information
+npm run cli projects show <project-id>
+
+# Search projects
+npm run cli projects search <query>
+# Example:
+npm run cli projects search "temperature"
+
+# Show project statistics
+npm run cli projects stats
+```
+
+### Global Operations
+
+```bash
+# Search across both inventory and projects
+npm run cli search <query>
+# Example:
+npm run cli search "ESP32"
+
+# Show comprehensive statistics
+npm run cli stats
+```
+
+### CLI Examples
+
+```bash
+# Quick inventory check
+npm run cli inventory list "I Have"
+
+# Find all sensor-related items
+npm run cli search "sensor"
+
+# Check project status
+npm run cli projects list "In Progress"
+
+# Get overview of everything
+npm run cli stats
+
+# Add a new component
+npm run cli inventory add "Arduino-Nano" 2 "Dev-Board-Box" "I Have" "Microcontrollers"
+
+# Search for specific projects
+npm run cli projects search "LED"
+
+# View detailed project info
+npm run cli projects show "2025-10-11T23:45:25.501Z"
+```
+
+### CLI Tips
+
+- **Status Values**: Use exact status names: "I Have", "I Want", "I Need", "I Salvaged", "I Returned", "Discarded", "Given Away"
+- **Quotes**: Use quotes around multi-word arguments: `"I Have"`, `"Test Component"`
+- **Project IDs**: Use the full project ID from the list command for detailed views
+- **Search**: Search works across names, descriptions, categories, and project components
+
 ## 🛠️ Setup and Installation
 
 ### Prerequisites
@@ -105,14 +237,22 @@ A smart inventory management application for IoT projects, powered by Google's G
    # Replace 'your_gemini_api_key_here' with your actual API key
    ```
 
-4. **Start the development server**
+4. **Start both server and client**
    ```bash
-   npm run dev
-   # or
-   yarn dev
+   # Start both API server and React app
+   npm run dev:full
+   
+   # Or start them separately:
+   npm run server  # API server on http://localhost:3001
+   npm run dev     # React app on http://localhost:3000
    ```
 
 5. **Open your browser** and navigate to `http://localhost:3000`
+
+### Architecture
+- **API Server**: `http://localhost:3001` - Handles database operations
+- **React App**: `http://localhost:3000` - User interface
+- **CLI Tools**: Direct database access for advanced operations
 
 ### Environment Configuration
 
