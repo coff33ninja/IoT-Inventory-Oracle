@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChatMessage, ItemStatus, AiSuggestedPart, Project } from "../types";
-import { getAiChatStream } from "../services/geminiService";
+import { getAiChatStream, analyzeProjectComplexity } from "../services/geminiService";
 import { SendIcon } from "./icons/SendIcon";
 import { BotIcon } from "./icons/BotIcon";
 import { UserIcon } from "./icons/UserIcon";
@@ -352,6 +352,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       // Parse and auto-execute project suggestions
       const { jsonData: projectData } = parseJsonBlock<{
         projectName: string;
+        projectDescription?: string;
         components: { name: string; quantity: number }[];
       }>(
         responseContent,
@@ -362,7 +363,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       if (projectData) {
         console.log("Found project data:", projectData);
         // Auto-create project if AI suggests one
-        handleCreateProject(projectData.components, projectData.projectName);
+        handleCreateProject(projectData.components, projectData.projectName, projectData.projectDescription);
         addToast(`Auto-created project: ${projectData.projectName}`, "success");
       } else {
         console.log("No project data found");
@@ -483,10 +484,11 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     addToast(`${part.name} added to "${statusName}"!`, "success");
   };
 
-  // Enhanced project creation with intelligent inventory allocation
+  // Enhanced project creation with intelligent inventory allocation and sub-project support
   const handleCreateProject = async (
     projectData: { name: string; quantity: number }[],
-    projectName: string
+    projectName: string,
+    projectDescription?: string
   ) => {
     const projectComponents = [];
     const inventoryAllocations = [];
@@ -586,6 +588,16 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     };
 
     try {
+      // Analyze project complexity for potential sub-project breakdown
+      let complexityAnalysis = null;
+      if (projectDescription && projectDescription.length > 100) {
+        try {
+          complexityAnalysis = await analyzeProjectComplexity(projectName, projectDescription);
+        } catch (error) {
+          console.log('Complexity analysis failed, proceeding with single project');
+        }
+      }
+
       const createdProject = await addProject(newProject);
       
       // Allocate inventory items if any
@@ -597,16 +609,64 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         await allocateInventoryItems(allocationsWithProjectId);
       }
 
-      // Create detailed success message
-      let successMessage = `Project "${projectName}" created!`;
-      if (allocatedFromInventory > 0) {
-        successMessage += ` ${allocatedFromInventory} components allocated from inventory.`;
-      }
-      if (missingComponents.length > 0) {
-        successMessage += ` ${missingComponents.length} components need to be acquired.`;
-      }
+      // Create sub-projects if complexity analysis suggests it
+      if (complexityAnalysis && complexityAnalysis.isComplex && complexityAnalysis.suggestedSubProjects.length > 0) {
+        const subProjectIds = [];
+        
+        for (const subProjectSuggestion of complexityAnalysis.suggestedSubProjects) {
+          const subProjectComponents = subProjectSuggestion.components.map((compName, index) => ({
+            id: `sub-${Date.now()}-${index}`,
+            name: compName,
+            quantity: 1,
+            source: 'ai-suggested' as const,
+          }));
 
-      addToast(successMessage, "success");
+          const subProject: Omit<Project, "id" | "createdAt"> = {
+            name: `${projectName} - ${subProjectSuggestion.name}`,
+            description: subProjectSuggestion.description,
+            longDescription: `Sub-project of "${projectName}". ${subProjectSuggestion.description}`,
+            category: newProject.category,
+            difficulty: newProject.difficulty,
+            estimatedTime: subProjectSuggestion.estimatedTime,
+            components: subProjectComponents,
+            instructions: undefined,
+            updatedAt: new Date().toISOString(),
+            status: "Planning",
+            progress: 0,
+            notes: `Sub-project created by AI analysis. Phase ${subProjectSuggestion.phase} of main project.`,
+            tags: ['AI-Generated', 'Sub-Project', `Phase-${subProjectSuggestion.phase}`],
+            parentProjectId: createdProject.id,
+            isSubProject: true,
+            phase: subProjectSuggestion.phase,
+            dependencies: subProjectSuggestion.dependencies,
+          };
+
+          const createdSubProject = await addProject(subProject);
+          subProjectIds.push(createdSubProject.id);
+        }
+
+        // Update main project with sub-project references
+        const updatedMainProject = {
+          ...createdProject,
+          subProjects: subProjectIds,
+          notes: `${notes}\n\n🔗 Sub-projects created:\n${complexityAnalysis.suggestedSubProjects.map((sp, i) => `Phase ${sp.phase}: ${sp.name}`).join('\n')}\n\nReasoning: ${complexityAnalysis.reasoning}`
+        };
+        
+        await updateProject(updatedMainProject);
+
+        addToast(`Complex project "${projectName}" created with ${subProjectIds.length} sub-projects!`, "success");
+      } else {
+        // Create detailed success message for single project
+        let successMessage = `Project "${projectName}" created!`;
+        if (allocatedFromInventory > 0) {
+          successMessage += ` ${allocatedFromInventory} components allocated from inventory.`;
+        }
+        if (missingComponents.length > 0) {
+          successMessage += ` ${missingComponents.length} components need to be acquired.`;
+        }
+
+        addToast(successMessage, "success");
+      }
     } catch (error) {
       console.error('Failed to create AI project:', error);
       addToast('Failed to create project', 'error');

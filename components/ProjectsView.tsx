@@ -113,11 +113,16 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
   };
 
   const filteredProjects = projects
-    .filter((p) => p.status === activeTab)
+    .filter((p) => p.status === activeTab && !p.isSubProject) // Only show main projects
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
+
+  // Get sub-projects for each main project
+  const getSubProjects = (parentId: string) => {
+    return projects.filter(p => p.parentProjectId === parentId);
+  };
 
   return (
     <div className="space-y-8">
@@ -162,6 +167,7 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
                 onSyncRepo={handleSyncRepo}
                 onClick={setSelectedProject}
                 isSyncing={syncingProjectId === project.id}
+                subProjects={getSubProjects(project.id)}
               />
             ))}
           </div>

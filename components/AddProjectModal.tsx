@@ -125,7 +125,7 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
           </div>
           <div className="mt-4 p-3 bg-accent/10 border border-accent/20 rounded-lg">
             <p className="text-sm text-text-primary">
-              <span className="font-medium">💡 Pro Tip:</span> Use the AI assistance buttons to automatically generate categories, enhance descriptions, and get project suggestions!
+              <span className="font-medium">💡 Pro Tip:</span> Use the AI assistance buttons to automatically generate categories, enhance descriptions, and get project suggestions! Complex projects will be automatically analyzed for sub-project breakdown.
             </p>
           </div>
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">

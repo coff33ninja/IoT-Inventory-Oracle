@@ -77,6 +77,12 @@ export interface Project {
     troubleshooting: string[];
     relatedProjects: string[];
   };
+  // Sub-project support
+  parentProjectId?: string; // If this is a sub-project
+  subProjects?: string[]; // Array of sub-project IDs
+  isSubProject?: boolean;
+  phase?: number; // Phase number for multi-phase projects
+  dependencies?: string[]; // IDs of projects that must be completed first
 }
 
 export interface ChatMessage {

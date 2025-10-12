@@ -128,6 +128,7 @@ const getChat = (history: ChatMessage[]): Chat => {
             /// PROJECT_JSON_START ///
             {
               "projectName": "The Name of Your Suggested Project",
+              "projectDescription": "Detailed description for complexity analysis",
               "components": [
                 { "name": "Component Name from Project", "quantity": 1 },
                 { "name": "Another Component", "quantity": 4 }
@@ -135,6 +136,13 @@ const getChat = (history: ChatMessage[]): Chat => {
             }
             /// PROJECT_JSON_END ///
             \`\`\`
+            
+            **COMPLEX PROJECT HANDLING:**
+            For complex projects (like multi-room systems, distributed IoT networks, or multi-phase builds):
+            - Include a detailed "projectDescription" field in PROJECT_JSON
+            - The system will automatically analyze complexity and suggest sub-projects
+            - Sub-projects will be created automatically for phases, locations, or functional modules
+            - Dependencies between sub-projects will be managed automatically
 
             - **For Component Moves/Transfers (NEW):**
             \`\`\`json
@@ -718,5 +726,97 @@ export const generateProjectInstructions = async (projectName: string, descripti
     } catch(error) {
         console.error("Gemini project instructions generation failed:", error);
         throw new Error("Failed to generate project instructions from AI.");
+    }
+};
+
+export const analyzeProjectComplexity = async (projectName: string, description: string): Promise<{
+    isComplex: boolean;
+    suggestedSubProjects: {
+        name: string;
+        description: string;
+        phase: number;
+        estimatedTime: string;
+        components: string[];
+        dependencies: string[];
+    }[];
+    reasoning: string;
+}> => {
+    try {
+        const prompt = `Analyze this IoT/electronics project for complexity and suggest sub-project breakdown:
+        
+        Project: "${projectName}"
+        Description: "${description}"
+        
+        Determine if this project would benefit from being broken down into sub-projects or phases.
+        Consider factors like:
+        - Multiple physical locations/devices
+        - Different functional modules
+        - Complex dependencies between components
+        - Significant time investment
+        - Multiple testing phases required
+        
+        If the project is complex, suggest logical sub-projects that can be developed and tested independently.
+        
+        Your response MUST be only a single, raw JSON object with this structure:
+        {
+            "isComplex": true/false,
+            "suggestedSubProjects": [
+                {
+                    "name": "Sub-project name",
+                    "description": "What this sub-project accomplishes",
+                    "phase": 1,
+                    "estimatedTime": "2-3 days",
+                    "components": ["component1", "component2"],
+                    "dependencies": ["previous sub-project name"]
+                }
+            ],
+            "reasoning": "Explanation of why this breakdown makes sense"
+        }`;
+        
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        isComplex: { type: Type.BOOLEAN },
+                        suggestedSubProjects: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    name: { type: Type.STRING },
+                                    description: { type: Type.STRING },
+                                    phase: { type: Type.INTEGER },
+                                    estimatedTime: { type: Type.STRING },
+                                    components: {
+                                        type: Type.ARRAY,
+                                        items: { type: Type.STRING }
+                                    },
+                                    dependencies: {
+                                        type: Type.ARRAY,
+                                        items: { type: Type.STRING }
+                                    }
+                                },
+                                required: ["name", "description", "phase", "estimatedTime", "components", "dependencies"]
+                            }
+                        },
+                        reasoning: { type: Type.STRING }
+                    },
+                    required: ["isComplex", "suggestedSubProjects", "reasoning"]
+                }
+            }
+        });
+        
+        const jsonString = response.text.trim();
+        const parsedJson = JSON.parse(jsonString);
+        
+        return parsedJson;
+
+    } catch(error) {
+        console.error("Gemini project complexity analysis failed:", error);
+        throw new Error("Failed to analyze project complexity from AI.");
     }
 };

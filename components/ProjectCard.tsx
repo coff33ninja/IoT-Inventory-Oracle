@@ -18,6 +18,7 @@ interface ProjectCardProps {
   onSyncRepo: (project: Project) => void;
   onClick?: (project: Project) => void;
   isSyncing: boolean;
+  subProjects?: Project[];
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -29,6 +30,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   onSyncRepo,
   onClick,
   isSyncing,
+  subProjects = [],
 }) => {
   const [notes, setNotes] = useState(project.notes || "");
   const [isEditing, setIsEditing] = useState(false);
@@ -281,6 +283,50 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           />
         </div>
       </div>
+      
+      {/* Sub-projects section */}
+      {subProjects.length > 0 && (
+        <div className="px-4 py-3 border-t border-border-color">
+          <h4 className="text-sm font-medium text-text-primary mb-2 flex items-center">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            Sub-Projects ({subProjects.length})
+          </h4>
+          <div className="space-y-2">
+            {subProjects.map((subProject) => (
+              <div key={subProject.id} className="bg-secondary p-2 rounded border border-border-color">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text-primary truncate">
+                      {subProject.name.replace(`${project.name} - `, '')}
+                    </p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        subProject.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
+                        subProject.status === 'In Progress' ? 'bg-blue-500/20 text-blue-400' :
+                        subProject.status === 'Testing' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {subProject.status}
+                      </span>
+                      {subProject.phase && (
+                        <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">
+                          Phase {subProject.phase}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-xs text-text-secondary">
+                    {subProject.progress || 0}%
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <div className="p-4 bg-primary/50 rounded-b-lg space-y-2">
         <div className="flex space-x-2">
           <button
