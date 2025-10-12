@@ -98,7 +98,8 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
       };
 
       setEditedProject(updatedProject);
-      addToast("Instructions generated successfully!", "success");
+      onUpdate(updatedProject); // Auto-save the generated instructions
+      addToast("Instructions generated and saved successfully!", "success");
     } catch (error) {
       console.error("Failed to generate instructions:", error);
       addToast("Failed to generate instructions", "error");
@@ -115,12 +116,14 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         project.longDescription || project.description
       );
 
-      setEditedProject({
+      const updatedProject = {
         ...editedProject,
         longDescription: enhanced,
-      });
+      };
 
-      addToast("Description enhanced successfully!", "success");
+      setEditedProject(updatedProject);
+      onUpdate(updatedProject); // Auto-save the enhanced description
+      addToast("Description enhanced and saved successfully!", "success");
     } catch (error) {
       console.error("Failed to enhance description:", error);
       addToast("Failed to enhance description", "error");
@@ -147,12 +150,14 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         relatedProjects: [], // Could be enhanced later
       };
 
-      setEditedProject({
+      const updatedProject = {
         ...editedProject,
         aiInsights: insights,
-      });
+      };
 
-      addToast("AI insights generated successfully!", "success");
+      setEditedProject(updatedProject);
+      onUpdate(updatedProject); // Auto-save the generated insights
+      addToast("AI insights generated and saved successfully!", "success");
     } catch (error) {
       console.error("Failed to get insights:", error);
       addToast("Failed to get AI insights", "error");
