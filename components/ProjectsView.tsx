@@ -20,6 +20,8 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
     updateProject,
     deleteProject,
     updateProjectComponents,
+    allocateInventoryItems,
+    deallocateInventoryItems,
   } = useInventory();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<"In Progress" | "Completed">(
@@ -69,15 +71,40 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
     }
   };
 
-  const handleAddProject = (
+  const handleAddProject = async (
     newProjectData: Omit<Project, "id" | "createdAt">
   ) => {
-    addProject(newProjectData);
-    addToast(`Project "${newProjectData.name}" created!`, "success");
+    try {
+      // Create the project first
+      const createdProject = await addProject(newProjectData);
+      
+      // Handle inventory allocations for components sourced from inventory
+      const inventoryAllocations = newProjectData.components
+        .filter(c => c.source === 'inventory' && c.inventoryItemId)
+        .map(c => ({
+          inventoryItemId: c.inventoryItemId!,
+          quantity: c.quantity,
+          projectId: createdProject.id,
+          projectName: createdProject.name
+        }));
+
+      if (inventoryAllocations.length > 0) {
+        await allocateInventoryItems(inventoryAllocations);
+      }
+
+      addToast(`Project "${newProjectData.name}" created!`, "success");
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      addToast('Failed to create project', 'error');
+    }
   };
 
   const handleDeleteProject = async (project: Project) => {
     try {
+      // Deallocate inventory items first
+      await deallocateInventoryItems(project.id);
+      
+      // Then delete the project
       await deleteProject(project.id);
       addToast(`Project "${project.name}" deleted successfully!`, "success");
     } catch (error) {

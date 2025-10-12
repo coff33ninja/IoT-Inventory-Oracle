@@ -15,7 +15,7 @@ interface ComponentDetailModalProps {
   item: InventoryItem | null;
 }
 
-type ActiveTab = 'insights' | 'market';
+type ActiveTab = 'insights' | 'market' | 'usage';
 
 const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({ isOpen, onClose, item }) => {
   const { updateItemIntelligence } = useInventory();
@@ -106,6 +106,12 @@ const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({ isOpen, onC
                     <button onClick={() => setActiveTab('market')} className={`${activeTab === 'market' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'} flex items-center gap-2 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}>
                         <PriceTagIcon /> Market Price
                     </button>
+                    <button onClick={() => setActiveTab('usage')} className={`${activeTab === 'usage' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'} flex items-center gap-2 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        Project Usage
+                    </button>
                 </nav>
             </div>
           </div>
@@ -166,6 +172,70 @@ const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({ isOpen, onC
                             </div>
                          ) : <p className="text-sm text-text-secondary text-center py-4">No market data found for this component.</p>}
                      </div>
+                )}
+                {activeTab === 'usage' && (
+                    <div className="space-y-4 animate-fade-in">
+                        <div>
+                            <h4 className="font-semibold text-text-primary">Project Usage</h4>
+                            <p className="text-sm text-text-secondary">See which projects are using this component</p>
+                        </div>
+                        
+                        {item.allocatedQuantity && item.allocatedQuantity > 0 ? (
+                            <div className="space-y-3">
+                                <div className="bg-primary p-3 rounded-lg border border-border-color">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm font-medium text-text-primary">Allocation Summary</span>
+                                        <span className="text-sm text-text-secondary">
+                                            {item.allocatedQuantity} of {item.quantity} allocated
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-secondary rounded-full h-2">
+                                        <div 
+                                            className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+                                            style={{ width: `${(item.allocatedQuantity / item.quantity) * 100}%` }}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-xs text-text-secondary mt-1">
+                                        <span>Available: {item.quantity - item.allocatedQuantity}</span>
+                                        <span>Allocated: {item.allocatedQuantity}</span>
+                                    </div>
+                                </div>
+                                
+                                {item.usedInProjects && item.usedInProjects.length > 0 ? (
+                                    <div className="space-y-2">
+                                        <h5 className="text-sm font-medium text-text-primary">Used in Projects:</h5>
+                                        {item.usedInProjects.map((project, index) => (
+                                            <div key={index} className="bg-secondary p-3 rounded border border-border-color">
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <p className="font-medium text-text-primary">{project.projectName}</p>
+                                                        <p className="text-sm text-text-secondary">
+                                                            Using {project.quantity} unit{project.quantity !== 1 ? 's' : ''}
+                                                        </p>
+                                                    </div>
+                                                    <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">
+                                                        Active
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-text-secondary text-center py-4">
+                                        Component is allocated but project information is not available.
+                                    </p>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8">
+                                <div className="text-4xl mb-2">📦</div>
+                                <p className="text-sm text-text-secondary">This component is not currently allocated to any projects.</p>
+                                <p className="text-xs text-text-secondary mt-1">
+                                    All {item.quantity} unit{item.quantity !== 1 ? 's' : ''} are available for use.
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 )}
                 </>
             )}

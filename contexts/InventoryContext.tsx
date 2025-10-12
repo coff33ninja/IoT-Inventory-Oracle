@@ -10,11 +10,13 @@ interface InventoryContextType {
   updateItem: (item: InventoryItem) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
   checkoutItems: (itemsToCheckout: {id: string; quantity: number}[]) => Promise<void>;
-  addProject: (project: Omit<Project, 'id' | 'createdAt'>) => Promise<void>;
+  addProject: (project: Omit<Project, 'id' | 'createdAt'>) => Promise<Project>;
   updateProject: (updatedProject: Project) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   updateItemIntelligence: (itemId: string, aiInsights: AiInsights, marketData: MarketDataItem[]) => Promise<void>;
   updateProjectComponents: (projectId: string, githubComponents: { name: string; quantity: number }[]) => Promise<void>;
+  allocateInventoryItems: (allocations: { inventoryItemId: string; quantity: number; projectId: string; projectName: string }[]) => Promise<void>;
+  deallocateInventoryItems: (projectId: string) => Promise<void>;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -121,10 +123,11 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
-  const addProject = async (project: Omit<Project, 'id' | 'createdAt'>) => {
+  const addProject = async (project: Omit<Project, 'id' | 'createdAt'>): Promise<Project> => {
     try {
       const newProject = await apiClient.addProject(project);
       setProjects(prev => [newProject, ...prev]);
+      return newProject;
     } catch (error) {
       console.error('Failed to add project:', error);
       // Fallback to local state
@@ -135,6 +138,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
         components: project.components.map(c => ({ ...c, source: c.source || 'manual' })),
       };
       setProjects(prev => [newProject, ...prev]);
+      return newProject;
     }
   };
 
@@ -200,6 +204,79 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
+  const allocateInventoryItems = async (allocations: { inventoryItemId: string; quantity: number; projectId: string; projectName: string }[]) => {
+    try {
+      // Update inventory items with allocation info
+      setInventory(prevInventory => {
+        return prevInventory.map(item => {
+          const allocation = allocations.find(a => a.inventoryItemId === item.id);
+          if (allocation) {
+            const currentAllocated = item.allocatedQuantity || 0;
+            const newAllocated = currentAllocated + allocation.quantity;
+            const usedInProjects = item.usedInProjects || [];
+            
+            // Check if project already exists in usedInProjects
+            const existingProjectIndex = usedInProjects.findIndex(p => p.projectId === allocation.projectId);
+            let updatedUsedInProjects;
+            
+            if (existingProjectIndex >= 0) {
+              // Update existing project allocation
+              updatedUsedInProjects = usedInProjects.map((p, index) => 
+                index === existingProjectIndex 
+                  ? { ...p, quantity: p.quantity + allocation.quantity }
+                  : p
+              );
+            } else {
+              // Add new project allocation
+              updatedUsedInProjects = [...usedInProjects, {
+                projectId: allocation.projectId,
+                projectName: allocation.projectName,
+                quantity: allocation.quantity
+              }];
+            }
+
+            return {
+              ...item,
+              allocatedQuantity: newAllocated,
+              availableQuantity: item.quantity - newAllocated,
+              usedInProjects: updatedUsedInProjects
+            };
+          }
+          return item;
+        });
+      });
+    } catch (error) {
+      console.error('Failed to allocate inventory items:', error);
+    }
+  };
+
+  const deallocateInventoryItems = async (projectId: string) => {
+    try {
+      // Remove allocations for the specified project
+      setInventory(prevInventory => {
+        return prevInventory.map(item => {
+          if (item.usedInProjects) {
+            const projectAllocation = item.usedInProjects.find(p => p.projectId === projectId);
+            if (projectAllocation) {
+              const newAllocated = (item.allocatedQuantity || 0) - projectAllocation.quantity;
+              const updatedUsedInProjects = item.usedInProjects.filter(p => p.projectId !== projectId);
+              
+              return {
+                ...item,
+                allocatedQuantity: Math.max(0, newAllocated),
+                availableQuantity: item.quantity - Math.max(0, newAllocated),
+                usedInProjects: updatedUsedInProjects
+              };
+            }
+          }
+          return item;
+        });
+      });
+    } catch (error) {
+      console.error('Failed to deallocate inventory items:', error);
+    }
+  };
+
   return (
     <InventoryContext.Provider value={{ 
       inventory, 
@@ -213,7 +290,9 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
       updateProject,
       deleteProject,
       updateItemIntelligence,
-      updateProjectComponents
+      updateProjectComponents,
+      allocateInventoryItems,
+      deallocateInventoryItems
     }}>
       {children}
     </InventoryContext.Provider>

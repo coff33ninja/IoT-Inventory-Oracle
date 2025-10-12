@@ -23,6 +23,8 @@ export interface InventoryItem {
   id: string;
   name:string;
   quantity: number;
+  allocatedQuantity?: number; // Quantity allocated to projects
+  availableQuantity?: number; // Calculated: quantity - allocatedQuantity
   location: string;
   status: ItemStatus;
   category?: string;
@@ -33,6 +35,7 @@ export interface InventoryItem {
   aiInsights?: AiInsights;
   marketData?: MarketDataItem[];
   lastRefreshed?: string;
+  usedInProjects?: { projectId: string; projectName: string; quantity: number }[]; // Track project usage
 }
 
 export interface Project {
@@ -47,7 +50,9 @@ export interface Project {
     id: string;
     name: string;
     quantity: number;
-    source?: 'manual' | 'github' | 'ai-suggested';
+    source?: 'manual' | 'github' | 'ai-suggested' | 'inventory';
+    inventoryItemId?: string; // Link to inventory item if sourced from inventory
+    isAllocated?: boolean; // Whether this component is allocated from inventory
   }[];
   instructions?: {
     id: string;

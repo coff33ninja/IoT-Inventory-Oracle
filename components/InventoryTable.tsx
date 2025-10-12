@@ -146,7 +146,14 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
                         <span className="text-sm text-text-secondary">/ {item.quantity}</span>
                       </div>
                   ) : (
-                    <div className="text-sm text-text-primary">{item.quantity}</div>
+                    <div className="text-sm text-text-primary">
+                      {item.quantity}
+                      {item.allocatedQuantity && item.allocatedQuantity > 0 && (
+                        <div className="text-xs text-yellow-400">
+                          {item.allocatedQuantity} allocated
+                        </div>
+                      )}
+                    </div>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">

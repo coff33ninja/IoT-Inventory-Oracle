@@ -3,6 +3,7 @@ import { Project } from '../types';
 import { suggestProjectCategory, enhanceProjectDescription } from '../services/geminiService';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { SpinnerIcon } from './icons/SpinnerIcon';
+import ComponentSelector from './ComponentSelector';
 
 interface AddProjectModalProps {
   isOpen: boolean;
@@ -10,34 +11,20 @@ interface AddProjectModalProps {
   onSave: (project: Omit<Project, 'id' | 'createdAt'>) => void;
 }
 
-const parseComponents = (text: string): { id: string, name: string; quantity: number, source: 'manual' }[] => {
-    if (!text.trim()) return [];
-    
-    return text.split('\n')
-        .map(line => line.trim())
-        .filter(line => line)
-        .map(line => {
-            const match = line.match(/^(?:(\d+)\s*[xX]?\s*)?(.+)/);
-            if (!match) return null;
-            
-            const quantity = parseInt(match[1] || '1', 10);
-            const name = match[2].trim();
-            
-            return {
-                id: `manual-${Date.now()}-${name.replace(/\s/g, "")}`,
-                name,
-                quantity: isNaN(quantity) ? 1 : quantity,
-                source: 'manual' as const,
-            };
-        })
-        .filter((c): c is NonNullable<typeof c> => c !== null);
-};
+
 
 const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [longDescription, setLongDescription] = useState('');
-  const [componentsText, setComponentsText] = useState('');
+  const [components, setComponents] = useState<{
+    id: string;
+    name: string;
+    quantity: number;
+    source: 'manual' | 'inventory';
+    inventoryItemId?: string;
+    isAllocated?: boolean;
+  }[]>([]);
   const [category, setCategory] = useState('');
   const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
   const [estimatedTime, setEstimatedTime] = useState('');
@@ -49,7 +36,7 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
         setName('');
         setDescription('');
         setLongDescription('');
-        setComponentsText('');
+        setComponents([]);
         setCategory('');
         setDifficulty('Intermediate');
         setEstimatedTime('');
@@ -96,8 +83,6 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
         alert('Project Name is required.');
         return;
     }
-    
-    const components = parseComponents(componentsText);
 
     const newProject: Omit<Project, 'id' | 'createdAt'> = {
         name,
@@ -228,16 +213,9 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
                     />
                 </div>
             </div>
-             <div>
-                <label htmlFor="project-components" className="block text-sm font-medium text-text-secondary">Initial Components</label>
-                <textarea 
-                  id="project-components" 
-                  value={componentsText}
-                  onChange={(e) => setComponentsText(e.target.value)}
-                  rows={4} 
-                  placeholder={"List one component per line.\ne.g.,\n2 x ESP32\n1 BME280 Sensor\nRed LED"}
-                  className="mt-1 block w-full bg-primary border border-border-color rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm font-mono" />
-            </div>
+            <ComponentSelector
+              onComponentsChange={setComponents}
+            />
             <div className="pt-4 flex justify-end space-x-3">
               <button type="button" onClick={onClose} className="bg-secondary border border-border-color py-2 px-4 rounded-md text-sm font-medium text-text-primary hover:bg-primary transition-colors">Cancel</button>
               <button type="submit" className="bg-accent hover:bg-blue-600 py-2 px-4 rounded-md text-sm font-medium text-white transition-colors">Create Project</button>

@@ -87,6 +87,21 @@ const getChat = (history: ChatMessage[]): Chat => {
             - If user mentions "LED" → Auto-suggest LED strip controller, RGB projects, etc.
             - If user talks about "automation" → Auto-suggest home automation projects
             
+            **INTELLIGENT INVENTORY MANAGEMENT:**
+            When suggesting projects, be smart about the user's inventory:
+            - If they have components, suggest projects that use those components
+            - If they're missing key components, suggest them with "I Need" status
+            - Consider component compatibility and quantities
+            - Suggest component alternatives if they don't have exact matches
+            - Prioritize projects they can build with existing inventory
+            
+            **PROJECT COMPONENT INTELLIGENCE:**
+            When creating PROJECT_JSON blocks, consider:
+            - What components the user already has (from "I Have" inventory)
+            - Suggest realistic quantities based on typical project needs
+            - Include both essential and optional components
+            - Consider component compatibility and voltage requirements
+            
             Always include JSON blocks when these scenarios occur, even if the user doesn't explicitly ask for them. Be generous with suggestions!
             
             - **For Part Suggestions (AUTO-POPULATED):**
