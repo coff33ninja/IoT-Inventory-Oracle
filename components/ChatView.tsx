@@ -15,6 +15,7 @@ import { ProjectsIcon } from "./icons/ProjectsIcon";
 import { PaperclipIcon } from "./icons/PaperclipIcon";
 import apiClient from "../services/apiClient";
 import { ChatConversation } from "../services/chatService";
+import ChatHistorySidebar from "./ChatHistorySidebar";
 
 interface ChatViewProps {
   initialMessage?: string | null;
@@ -99,7 +100,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
   const [currentConversationId, setCurrentConversationId] = useState<
     string | null
   >(null);
-  const [showConversationList, setShowConversationList] = useState(false);
+  const [isHistorySidebarCollapsed, setIsHistorySidebarCollapsed] = useState(false);
 
   // Initialize conversations and load active conversation
   useEffect(() => {
@@ -1016,7 +1017,6 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       ]);
       setCurrentConversationId(id);
       setMessages([]);
-      setShowConversationList(false);
       addToast("New conversation started", "success");
     } catch (error) {
       console.error("Failed to create conversation:", error);
@@ -1036,7 +1036,6 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       setConversations((prev) =>
         prev.map((c) => ({ ...c, isActive: c.id === conversationId }))
       );
-      setShowConversationList(false);
 
       const conversation = conversations.find((c) => c.id === conversationId);
       addToast(
@@ -1089,31 +1088,18 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto w-full relative">
+    <div className="flex h-full w-full relative">
+      {/* Main Chat Area */}
+      <div className={`flex flex-col h-full transition-all duration-300 ${
+        isHistorySidebarCollapsed ? 'mr-12' : 'mr-80'
+      } flex-1`}>
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
             Chat Assistant
           </h1>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowConversationList(!showConversationList)}
-              className="p-2 text-text-secondary hover:text-text-primary transition-colors rounded-md hover:bg-secondary"
-              title="Chat History">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                />
-              </svg>
-            </button>
+
             <button
               type="button"
               onClick={createNewConversation}
@@ -1142,57 +1128,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         )}
       </div>
 
-      {/* Conversation List Dropdown */}
-      {showConversationList && (
-        <div className="absolute top-16 left-0 right-0 bg-secondary border border-border-color rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto mb-4">
-          <div className="p-3 border-b border-border-color">
-            <h3 className="font-semibold text-text-primary">Chat History</h3>
-          </div>
-          <div className="max-h-80 overflow-y-auto">
-            {conversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                className={`p-3 border-b border-border-color last:border-b-0 hover:bg-primary cursor-pointer ${
-                  conversation.isActive ? "bg-primary" : ""
-                }`}
-                onClick={() => switchConversation(conversation.id)}>
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-primary truncate">
-                      {conversation.title}
-                    </p>
-                    <p className="text-xs text-text-secondary">
-                      {new Date(conversation.updatedAt).toLocaleDateString()} •{" "}
-                      {conversation.messageCount} messages
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteConversation(conversation.id);
-                    }}
-                    className="ml-2 p-1 text-text-secondary hover:text-danger transition-colors"
-                    title="Delete conversation">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       <div
         ref={chatContainerRef}
@@ -1610,6 +1546,18 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           </button>
         </div>
       </div>
+      </div>
+      
+      {/* Chat History Sidebar */}
+      <ChatHistorySidebar
+        conversations={conversations}
+        activeConversationId={currentConversationId}
+        onSwitchConversation={switchConversation}
+        onDeleteConversation={deleteConversation}
+        onNewConversation={createNewConversation}
+        isCollapsed={isHistorySidebarCollapsed}
+        onToggleCollapse={() => setIsHistorySidebarCollapsed(!isHistorySidebarCollapsed)}
+      />
     </div>
   );
 };
