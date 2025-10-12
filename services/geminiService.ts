@@ -28,6 +28,16 @@ const getChat = (history: ChatMessage[]): Chat => {
             2. A JSON array of the user's current projects with their components
             3. A conversation context summary with recent operations and active discussions
             
+            **INVENTORY STATUS SYSTEM UNDERSTANDING:**
+            The user organizes components using these statuses:
+            - "I Have" - Components they currently own and can use
+            - "I Need" - Essential components required for current projects
+            - "I Want" - Components they'd like to have for future projects or enhancements
+            - "I Salvaged" - Components recovered from old projects
+            - "I Returned" - Components that were returned/sent back
+            - "Discarded" - Components that are no longer usable
+            - "Given Away" - Components given to others
+            
             **ENHANCED CAPABILITIES FOR CROSS-PROJECT MANAGEMENT:**
             
             1. **Project & Inventory Management**: You can help users move components between projects, transfer items from inventory to projects, and reorganize their setup. Always reference specific project IDs and item IDs when suggesting moves.
@@ -59,13 +69,17 @@ const getChat = (history: ChatMessage[]): Chat => {
             
             **TRIGGER SCENARIOS FOR AUTO-POPULATION:**
             - User mentions wanting to build something → Suggest PROJECT_JSON
-            - User asks "what do I need for..." → Suggest SUGGESTIONS_JSON with missing parts
+            - User asks "what do I need for..." → Suggest SUGGESTIONS_JSON with "I Need" status
+            - User asks "what should I buy..." → Suggest SUGGESTIONS_JSON with "I Want" status  
             - User discusses project optimization → Suggest MOVE_JSON or TRANSFER_JSON
             - User mentions a specific component → Suggest related components in SUGGESTIONS_JSON
             - User asks about project ideas → Suggest multiple PROJECT_JSON blocks
             - User describes a problem they want to solve → Suggest PROJECT_JSON with solution
             - User mentions learning about electronics → Suggest beginner-friendly PROJECT_JSON
             - User talks about upgrading existing projects → Suggest SUGGESTIONS_JSON with better components
+            - User asks about essential components → Use "I Need" status
+            - User asks about nice-to-have components → Use "I Want" status
+            - User mentions they already have something → Use "I Have" status
             
             **PROACTIVE BEHAVIOR EXAMPLES:**
             - If user says "I want to monitor temperature" → Auto-suggest temperature sensor project
@@ -78,9 +92,21 @@ const getChat = (history: ChatMessage[]): Chat => {
             - **For Part Suggestions (AUTO-POPULATED):**
             \`\`\`json
             /// SUGGESTIONS_JSON_START ///
-            [{"name": "Part Name", "supplier": "Supplier", "price": "Price", "link": "URL"}]
+            [{"name": "Part Name", "supplier": "Supplier", "price": "Price", "link": "URL", "status": "I Need"}]
             /// SUGGESTIONS_JSON_END ///
             \`\`\`
+            
+            **IMPORTANT STATUS CATEGORIZATION:**
+            When suggesting parts, always include a "status" field with one of these values:
+            - "I Need" - Essential components required for the project to work
+            - "I Want" - Nice-to-have components that would enhance the project
+            - "I Have" - Only if the user explicitly mentions they already own the component
+            
+            **Status Selection Guidelines:**
+            - Core components (microcontrollers, sensors, power supplies) → "I Need"
+            - Enhancement components (displays, LEDs, cases) → "I Want" 
+            - Basic components (resistors, wires, breadboards) → "I Need"
+            - Advanced features (WiFi modules, cameras) → "I Want"
 
             - **For Project Creation (AUTO-POPULATED):**
             \`\`\`json
@@ -249,9 +275,28 @@ export const getAiChatStream = async (
     
     const chat = getChat(prunedHistory);
     
+    // Organize inventory by status for better AI understanding
+    const inventoryByStatus = fullInventory.reduce((acc, item) => {
+      if (!acc[item.status]) acc[item.status] = [];
+      acc[item.status].push(`${item.quantity}x ${item.name}`);
+      return acc;
+    }, {} as Record<string, string[]>);
+
     const inventoryContext = `
-      Here is the user's full inventory, including items with various statuses (I Have, I Want, I Need, etc.):
+      Here is the user's current inventory organized by status:
+      
+      COMPONENTS THEY HAVE: ${inventoryByStatus['I Have']?.join(', ') || 'None'}
+      COMPONENTS THEY NEED: ${inventoryByStatus['I Need']?.join(', ') || 'None'}  
+      COMPONENTS THEY WANT: ${inventoryByStatus['I Want']?.join(', ') || 'None'}
+      SALVAGED COMPONENTS: ${inventoryByStatus['I Salvaged']?.join(', ') || 'None'}
+      
+      Full inventory details:
       ${JSON.stringify(fullInventory, null, 2)}
+      
+      IMPORTANT: When suggesting components, consider what they already HAVE vs what they NEED vs what they WANT.
+      - If they already have a component, don't suggest it again unless it's for a different quantity
+      - For essential project components they don't have, use "I Need" status
+      - For enhancement components or future projects, use "I Want" status
     `;
 
     const projectContext = projects.length > 0 ? `
