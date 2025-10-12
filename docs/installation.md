@@ -13,7 +13,7 @@ Get IoT Inventory Oracle up and running on your system in just a few minutes.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/coff33ninja/IoT-Inventory-Oracle.git
+git clone https://github.com/IdeaGazm/IoT-Inventory-Oracle.git
 cd IoT-Inventory-Oracle
 ```
 

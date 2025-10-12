@@ -352,8 +352,8 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                 style={{ width: `${project.progress}%` }}
                 role="progressbar"
                 aria-valuenow={project.progress}
-                aria-valuemin={0}
-                aria-valuemax={100}
+                aria-valuemin="0"
+                aria-valuemax="100"
                 aria-label={`Project progress: ${project.progress}%`}
               />
             </div>

@@ -7,6 +7,7 @@ import { HomeAssistantIcon } from "./icons/HomeAssistantIcon";
 import { AnalyticsIcon } from "./icons/AnalyticsIcon";
 import { ChevronLeftIcon } from "./icons/ChevronLeftIcon";
 import { ChevronRightIcon } from "./icons/ChevronRightIcon";
+import { InfoIcon } from "./icons/InfoIcon";
 
 type View =
   | "inventory"
@@ -177,6 +178,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => handleNavigation("settings")}
             isCollapsed={isCollapsed}
           />
+          <a
+            href="https://github.com/IdeaGazm/IoT-Inventory-Oracle/tree/main/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center w-full ${
+              isCollapsed ? "px-3 py-3 justify-center" : "px-4 py-3"
+            } text-left rounded-lg transition-colors duration-200 text-text-secondary hover:bg-secondary hover:text-text-primary`}
+            title={isCollapsed ? "Read the Docs" : undefined}
+          >
+            <span className={`w-6 h-6 ${isCollapsed ? "" : "mr-4"}`}><InfoIcon /></span>
+            {!isCollapsed && <span className="font-medium">Read the Docs</span>}
+          </a>
         </nav>
         {!isCollapsed && (
           <div className="mt-auto text-center text-text-secondary text-xs">
