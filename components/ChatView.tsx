@@ -22,23 +22,45 @@ const parseJsonBlock = <T,>(
   startMarker: string,
   endMarker: string
 ): { displayContent: string; jsonData: T | null } => {
-  const regex = new RegExp(
+  // Try with 'json' language identifier first
+  let regex = new RegExp(
     "```json\\s*" + startMarker + "([\\s\\S]*?)" + endMarker + "\\s*```"
   );
-  const match = content.match(regex);
+  let match = content.match(regex);
+
+  // If not found, try without language identifier
+  if (!match) {
+    regex = new RegExp(
+      "```\\s*" + startMarker + "([\\s\\S]*?)" + endMarker + "\\s*```"
+    );
+    match = content.match(regex);
+  }
+
+  // Also try without code blocks (direct markers)
+  if (!match) {
+    regex = new RegExp(
+      startMarker + "([\\s\\S]*?)" + endMarker
+    );
+    match = content.match(regex);
+  }
 
   if (!match || !match[1]) {
+    console.log(`No match found for markers ${startMarker} to ${endMarker}`);
     return { displayContent: content, jsonData: null };
   }
 
   const jsonString = match[1].trim();
   const displayContent = content.replace(match[0], "").trim();
 
+  console.log(`Found JSON block for ${startMarker}:`, jsonString.substring(0, 100) + '...');
+
   try {
     const jsonData = JSON.parse(jsonString) as T;
+    console.log(`Successfully parsed JSON for ${startMarker}:`, jsonData);
     return { displayContent, jsonData };
   } catch (e) {
     console.error(`Failed to parse JSON for marker ${startMarker}:`, e);
+    console.error('JSON string was:', jsonString);
     return { displayContent: content, jsonData: null }; // Return original content on error
   }
 };
@@ -198,6 +220,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
 
       let fullResponse = "";
       let groundingChunks: any[] = [];
+      let projectData: { projectName: string; components: { name: string; quantity: number }[] } | null = null;
 
       for await (const chunk of stream) {
         fullResponse += chunk.text;
@@ -205,7 +228,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           chunk.candidates?.[0]?.groundingMetadata?.groundingChunks ||
           groundingChunks;
 
-        const { jsonData: projectData } = parseJsonBlock<{
+        const { jsonData } = parseJsonBlock<{
           projectName: string;
           components: { name: string; quantity: number }[];
         }>(
@@ -213,6 +236,10 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           "/// PROJECT_JSON_START ///",
           "/// PROJECT_JSON_END ///"
         );
+        
+        if (jsonData) {
+          projectData = jsonData;
+        }
 
         setMessages((prev) =>
           prev.map((msg, index) =>
@@ -268,8 +295,18 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     const isEnabled =
       autoPopulateEnabled !== null ? JSON.parse(autoPopulateEnabled) : true;
 
+    console.log('Auto-populate enabled:', isEnabled);
+    console.log('Response content length:', responseContent.length);
+    console.log('Current conversation ID:', currentConversationId);
+
     if (!isEnabled) {
+      console.log('Auto-population disabled, skipping');
       return; // Skip auto-execution if disabled
+    }
+
+    if (!currentConversationId) {
+      console.log('No current conversation, skipping auto-execution');
+      return;
     }
 
     try {
@@ -284,9 +321,12 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       );
 
       if (projectData) {
+        console.log('Found project data:', projectData);
         // Auto-create project if AI suggests one
         handleCreateProject(projectData.components, projectData.projectName);
         addToast(`Auto-created project: ${projectData.projectName}`, "success");
+      } else {
+        console.log('No project data found');
       }
 
       // Parse and auto-execute part suggestions
@@ -297,6 +337,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       );
 
       if (suggestions && suggestions.length > 0) {
+        console.log('Found suggestions:', suggestions);
         // Auto-add suggested parts to wishlist
         for (const part of suggestions) {
           await handleAddToInventory(part, ItemStatus.WANT);
@@ -305,6 +346,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           `Auto-added ${suggestions.length} suggested parts to wishlist`,
           "success"
         );
+      } else {
+        console.log('No suggestions found');
       }
 
       // Parse and auto-execute component moves
@@ -344,7 +387,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       }
     } catch (error) {
       console.error("Error auto-executing AI suggestions:", error);
-      // Don't show error toast for auto-execution failures to avoid spam
+      addToast('Error processing AI suggestions', 'error');
     }
   };
 
