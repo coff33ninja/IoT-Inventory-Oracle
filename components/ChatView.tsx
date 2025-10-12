@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ChatMessage, ItemStatus, AiSuggestedPart, Project, InventoryItem } from "../types";
+import {
+  ChatMessage,
+  ItemStatus,
+  AiSuggestedPart,
+  Project,
+  InventoryItem,
+} from "../types";
 import {
   getAiChatStream,
   analyzeProjectComplexity,
@@ -520,8 +526,10 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       );
 
       if (inventoryActions) {
-        const actionsArray = Array.isArray(inventoryActions) ? inventoryActions : [inventoryActions];
-        
+        const actionsArray = Array.isArray(inventoryActions)
+          ? inventoryActions
+          : [inventoryActions];
+
         for (const action of actionsArray) {
           if (action.action === "add_inventory") {
             await handleAddInventoryItem(action);
@@ -529,12 +537,20 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
             handleInventoryUpdate(action);
           }
         }
+
+        const addCount = actionsArray.filter(a => a.action === 'add_inventory').length;
+        const updateCount = actionsArray.filter(a => a.action === 'update_inventory').length;
         
-        const actionCount = actionsArray.length;
-        addToast(
-          `Processed ${actionCount} inventory ${actionCount === 1 ? 'action' : 'actions'}`,
-          "success"
-        );
+        let message = '';
+        if (addCount > 0 && updateCount > 0) {
+          message = `Added ${addCount} item${addCount === 1 ? '' : 's'}, updated ${updateCount} item${updateCount === 1 ? '' : 's'}`;
+        } else if (addCount > 0) {
+          message = `Added ${addCount} item${addCount === 1 ? '' : 's'} to inventory`;
+        } else if (updateCount > 0) {
+          message = `Updated ${updateCount} item${updateCount === 1 ? '' : 's'} in inventory`;
+        }
+        
+        addToast(message, "success");
       }
 
       // Parse and auto-execute price checks
@@ -1111,7 +1127,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
   }) => {
     try {
       const statusEnum = addData.status as ItemStatus;
-      
+
       const newItem: any = {
         name: addData.itemName,
         quantity: addData.quantity,
@@ -1134,7 +1150,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       };
 
       await addItem(newItem);
-      addToast(`Added ${addData.itemName} (qty: ${addData.quantity})`, "success");
+      // Individual toast removed - summary toast will be shown instead
     } catch (error) {
       console.error("Failed to add inventory item:", error);
       addToast(`Failed to add ${addData.itemName}`, "error");
@@ -2104,53 +2120,86 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                       {inventoryActions && (
                         <div className="bg-primary/50 p-3 rounded-lg">
                           <p className="font-semibold text-text-primary text-sm flex items-center gap-2">
-                            📦 Inventory Actions ({Array.isArray(inventoryActions) ? inventoryActions.length : 1})
+                            📦 Inventory Actions (
+                            {Array.isArray(inventoryActions)
+                              ? inventoryActions.length
+                              : 1}
+                            )
                           </p>
-                          {(Array.isArray(inventoryActions) ? inventoryActions : [inventoryActions]).map((action, index) => (
-                            <div key={index} className="mt-2 p-2 bg-secondary/50 rounded">
+                          {(Array.isArray(inventoryActions)
+                            ? inventoryActions
+                            : [inventoryActions]
+                          ).map((action, index) => (
+                            <div
+                              key={index}
+                              className="mt-2 p-2 bg-secondary/50 rounded">
                               <p className="text-xs font-medium text-text-primary">
-                                {action.action === 'add_inventory' ? '➕ Add' : '✏️ Update'}: {action.itemName}
+                                {action.action === "add_inventory"
+                                  ? "➕ Add"
+                                  : "✏️ Update"}
+                                : {action.itemName}
                               </p>
                               <p className="text-xs text-text-secondary mt-1">
                                 {action.reason}
                               </p>
-                              {action.action === 'add_inventory' && (
+                              {action.action === "add_inventory" && (
                                 <div className="mt-1 text-xs text-text-secondary">
                                   <div className="flex justify-between">
                                     <span>Quantity:</span>
-                                    <span className="text-text-primary">{action.quantity}</span>
+                                    <span className="text-text-primary">
+                                      {action.quantity}
+                                    </span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span>Status:</span>
-                                    <span className="text-text-primary">{action.status}</span>
+                                    <span className="text-text-primary">
+                                      {action.status}
+                                    </span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span>Location:</span>
-                                    <span className="text-text-primary">{action.location}</span>
+                                    <span className="text-text-primary">
+                                      {action.location}
+                                    </span>
                                   </div>
                                 </div>
                               )}
-                              {action.action === 'update_inventory' && action.updates && (
-                                <div className="mt-1 text-xs text-text-secondary">
-                                  {Object.entries(action.updates).map(([key, value]) => (
-                                    <div key={key} className="flex justify-between">
-                                      <span className="capitalize">{key}:</span>
-                                      <span className="text-text-primary">{String(value)}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
+                              {action.action === "update_inventory" &&
+                                action.updates && (
+                                  <div className="mt-1 text-xs text-text-secondary">
+                                    {Object.entries(action.updates).map(
+                                      ([key, value]) => (
+                                        <div
+                                          key={key}
+                                          className="flex justify-between">
+                                          <span className="capitalize">
+                                            {key}:
+                                          </span>
+                                          <span className="text-text-primary">
+                                            {String(value)}
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
                             </div>
                           ))}
                           <div className="flex items-center space-x-2 mt-3">
                             <button
                               type="button"
                               onClick={async () => {
-                                const actionsArray = Array.isArray(inventoryActions) ? inventoryActions : [inventoryActions];
+                                const actionsArray = Array.isArray(
+                                  inventoryActions
+                                )
+                                  ? inventoryActions
+                                  : [inventoryActions];
                                 for (const action of actionsArray) {
                                   if (action.action === "add_inventory") {
                                     await handleAddInventoryItem(action);
-                                  } else if (action.action === "update_inventory") {
+                                  } else if (
+                                    action.action === "update_inventory"
+                                  ) {
                                     handleInventoryUpdate(action);
                                   }
                                 }

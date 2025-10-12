@@ -6,7 +6,7 @@ interface InventoryContextType {
   inventory: InventoryItem[];
   projects: Project[];
   setInventory: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
-  addItem: (item: InventoryItem) => Promise<void>;
+  addItem: (item: Omit<InventoryItem, 'id'>) => Promise<void>;
   updateItem: (item: InventoryItem) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
   checkoutItems: (itemsToCheckout: {id: string; quantity: number}[]) => Promise<void>;
@@ -61,7 +61,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     loadData();
   }, []);
 
-  const addItem = async (item: InventoryItem) => {
+  const addItem = async (item: Omit<InventoryItem, 'id'>) => {
     try {
       const newItem = await apiClient.addItem(item);
       setInventory(prev => [newItem, ...prev.filter(i => i.id !== newItem.id)]);

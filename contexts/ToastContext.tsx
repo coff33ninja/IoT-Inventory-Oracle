@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { ToastMessage, ToastType, ToastContextType } from '../types';
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -7,20 +7,28 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  const addToast = (message: string, type: ToastType) => {
-    const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(toast => toast.id !== id));
-    }, 5000); // Auto-dismiss after 5 seconds
-  };
-  
   const removeToast = (id: number) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
+  const addToast = (message: string, type: ToastType) => {
+    const id = Date.now() + Math.random(); // Ensure unique ID
+    const newToast = { id, message, type };
+    
+    setToasts(prev => {
+      const updated = [...prev, newToast];
+      // Limit to maximum 5 toasts at once
+      return updated.length > 5 ? updated.slice(-5) : updated;
+    });
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      removeToast(id);
+    }, 5000);
+  };
+
   return (
-    <ToastContext.Provider value={{ addToast }}>
+    <ToastContext.Provider value={{ addToast, removeToast }}>
       {children}
       <div className="fixed top-5 right-5 z-[100] space-y-2">
         {toasts.map(toast => (
@@ -29,7 +37,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 toast.type === 'error' ? 'bg-danger' : 'bg-accent'
             }`}>
                 <span>{toast.message}</span>
-                <button onClick={() => removeToast(toast.id)} className="ml-4 p-1 rounded-md hover:bg-white/20">
+                <button onClick={() => removeToast(toast.id)} className="ml-4 p-1 rounded-md hover:bg-white/20" aria-label="Close notification">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>

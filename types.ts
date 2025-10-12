@@ -122,6 +122,7 @@ export interface ToastMessage {
 
 export interface ToastContextType {
   addToast: (message: string, type: ToastType) => void;
+  removeToast: (id: number) => void;
 }
 
 export interface AiSuggestedPart {
