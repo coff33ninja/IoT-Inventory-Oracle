@@ -1089,7 +1089,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto w-full">
+    <div className="flex flex-col h-full max-w-4xl mx-auto w-full relative">
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
