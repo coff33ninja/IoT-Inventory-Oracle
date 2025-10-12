@@ -1,6 +1,5 @@
 # IoT Inventory Oracle 🚀
 
-> **Repository Owner**: [IdeaGazm](https://github.com/IdeaGazm)  
 > **Current Version**: v1.0.0-beta (Released: October 12, 2025)
 
 A comprehensive, AI-powered inventory management system for makers, developers, and tech enthusiasts. Manage electronics components, computer hardware, tools, and general items with intelligent project management, conversational AI assistance, and smart component relationships.

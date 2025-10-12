@@ -19,7 +19,7 @@ type ActiveTab = 'insights' | 'market' | 'usage';
 
 const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({ isOpen, onClose, item }) => {
   const { updateItemIntelligence } = useInventory();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('insights');
   const [aiInsights, setAiInsights] = useState<AiInsights | null>(null);
@@ -60,7 +60,7 @@ const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({ isOpen, onC
     if (isOpen && item) {
       fetchData();
     }
-  }, [isOpen, item, fetchData]);
+  }, [isOpen, item]);
 
   if (!isOpen || !item) return null;
 
