@@ -105,6 +105,10 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
   };
 
   if (!isOpen) return null;
+
+  console.log('AddProjectModal rendering with enhanced fields:', {
+    name, description, longDescription, category, difficulty, estimatedTime
+  });
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
