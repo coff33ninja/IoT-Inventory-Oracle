@@ -51,13 +51,22 @@ const getChat = (history: ChatMessage[]): Chat => {
 
             **INVENTORY STATUS TRIGGERS:**
             Listen for these phrases and suggest appropriate status changes:
-            - "I just bought/received/got" → "I Have"
+            - "I just bought/received/got" → "I Have" + extract purchase info
             - "I need to buy/get/order" → "I Need"
             - "I want to get/would like" → "I Want"
             - "I took apart/recovered from" → "I Salvaged"
             - "I returned/sent back" → "I Returned"
             - "It's broken/dead/unusable" → "Discarded"
             - "I gave it to/donated" → "Given Away"
+            
+            **PURCHASE INFORMATION EXTRACTION:**
+            When users mention purchasing or receiving items, extract:
+            - Purchase date: "I bought this yesterday", "received last week", "ordered on Monday"
+            - Supplier: "from Amazon", "at Best Buy", "from Adafruit", "on eBay"
+            - Price: "$25", "cost me 50 euros", "was $199.99"
+            - Serial/Model numbers: "serial ABC123", "model RTX-4070", "part number ESP32-WROOM-32"
+            - Condition: "brand new", "used", "refurbished", "open box"
+            - Warranty: "2 year warranty", "warranty until 2026", "no warranty"
             
             **COMPONENT CATEGORIZATION SYSTEM:**
             Components are organized into specific categories for better inventory management:
@@ -128,6 +137,9 @@ const getChat = (history: ChatMessage[]): Chat => {
             - Having components that work together
             - Organizing or managing inventory
             - Any list of components or items
+            - Purchasing, buying, receiving, or acquiring items
+            - Any component details (serial numbers, model numbers, prices, suppliers)
+            - Status changes or inventory updates
             
             Be generous with suggestions - it's better to suggest too much than too little. Users can always remove items later.
             
@@ -143,11 +155,14 @@ const getChat = (history: ChatMessage[]): Chat => {
             - User talks about upgrading existing projects → Suggest SUGGESTIONS_JSON with better components
             - User asks about essential components → Use "I Need" status
             - User asks about nice-to-have components → Use "I Want" status
-            - User mentions they already have something → Use "I Have" status
+            - User mentions they already have something → Use "I Have" status + SUGGESTIONS_JSON or INVENTORY_UPDATE_JSON
             - User lists multiple components → Suggest COMPONENT_BUNDLE_JSON
             - User mentions PC build/gaming rig/workstation → Suggest PROJECT_JSON + COMPONENT_BUNDLE_JSON
             - User mentions server setup/home lab → Suggest PROJECT_JSON + COMPONENT_BUNDLE_JSON
             - User mentions office setup/workspace → Suggest PROJECT_JSON + COMPONENT_BUNDLE_JSON
+            - User mentions purchasing/buying items → SUGGESTIONS_JSON with purchase details
+            - User provides serial numbers/model numbers → INVENTORY_UPDATE_JSON with detailed info
+            - User mentions receiving items → SUGGESTIONS_JSON with "I Have" status and purchase details
             
             **PROACTIVE BEHAVIOR EXAMPLES:**
             - If user says "I want to monitor temperature" → Auto-suggest temperature sensor project
@@ -175,7 +190,19 @@ const getChat = (history: ChatMessage[]): Chat => {
             - **For Part Suggestions (AUTO-POPULATED):**
             \`\`\`json
             /// SUGGESTIONS_JSON_START ///
-            [{"name": "Part Name", "supplier": "Supplier", "price": "Price", "link": "URL", "status": "I Need", "category": "Sensor"}]
+            [{
+              "name": "Part Name", 
+              "supplier": "Supplier", 
+              "price": "Price", 
+              "link": "URL", 
+              "status": "I Need", 
+              "category": "Sensor",
+              "manufacturer": "Brand Name",
+              "modelNumber": "Model-123",
+              "condition": "New",
+              "purchasePrice": 25.99,
+              "currency": "USD"
+            }]
             /// SUGGESTIONS_JSON_END ///
             \`\`\`
             
@@ -341,9 +368,19 @@ const getChat = (history: ChatMessage[]): Chat => {
                 "status": "I Have",
                 "quantity": 5,
                 "location": "Electronics Drawer",
-                "notes": "Just received new shipment"
+                "serialNumber": "ABC123456",
+                "modelNumber": "UNO-R3",
+                "manufacturer": "Arduino",
+                "purchaseDate": "2024-01-15",
+                "receivedDate": "2024-01-18",
+                "purchasePrice": 25.99,
+                "currency": "USD",
+                "supplier": "Amazon",
+                "invoiceNumber": "INV-789",
+                "condition": "New",
+                "notes": "Just received new shipment from Amazon order"
               },
-              "reason": "User mentioned receiving new components"
+              "reason": "User mentioned receiving new components with purchase details"
             }
             /// INVENTORY_UPDATE_JSON_END ///
             \`\`\`
@@ -354,6 +391,8 @@ const getChat = (history: ChatMessage[]): Chat => {
             - Mention quantity changes ("I got 5 more", "used 2 of them", "ordered 10")
             - Mention location changes ("moved to storage", "put in drawer")
             - Mention item conditions ("it's broken", "working perfectly", "needs replacement")
+            - Mention purchase information ("bought from Amazon", "cost $50", "serial number ABC123")
+            - Mention warranty information ("warranty expires next year", "still under warranty")
             - Ask to modify item details or descriptions
 
             **PROACTIVE PRICE CHECKING:**

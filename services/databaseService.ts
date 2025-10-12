@@ -27,9 +27,24 @@ class DatabaseService {
         imageUrl TEXT,
         createdAt TEXT NOT NULL,
         source TEXT,
-        lastRefreshed TEXT
+        lastRefreshed TEXT,
+        serialNumber TEXT,
+        modelNumber TEXT,
+        manufacturer TEXT,
+        purchaseDate TEXT,
+        receivedDate TEXT,
+        purchasePrice REAL,
+        currency TEXT,
+        supplier TEXT,
+        invoiceNumber TEXT,
+        warrantyExpiry TEXT,
+        condition TEXT,
+        notes TEXT
       )
     `);
+
+    // Add new columns to existing tables (migration)
+    this.migrateDatabase();
 
     // Create AI insights table
     this.db.exec(`
@@ -155,8 +170,10 @@ class DatabaseService {
 
     const stmt = this.db.prepare(`
       INSERT INTO inventory_items 
-      (id, name, quantity, location, status, category, description, imageUrl, createdAt, source, lastRefreshed)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, name, quantity, location, status, category, description, imageUrl, createdAt, source, lastRefreshed,
+       serialNumber, modelNumber, manufacturer, purchaseDate, receivedDate, purchasePrice, currency, 
+       supplier, invoiceNumber, warrantyExpiry, condition, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -170,7 +187,19 @@ class DatabaseService {
       newItem.imageUrl || null,
       newItem.createdAt,
       newItem.source || null,
-      newItem.lastRefreshed || null
+      newItem.lastRefreshed || null,
+      newItem.serialNumber || null,
+      newItem.modelNumber || null,
+      newItem.manufacturer || null,
+      newItem.purchaseDate || null,
+      newItem.receivedDate || null,
+      newItem.purchasePrice || null,
+      newItem.currency || null,
+      newItem.supplier || null,
+      newItem.invoiceNumber || null,
+      newItem.warrantyExpiry || null,
+      newItem.condition || null,
+      newItem.notes || null
     );
 
     // Add AI insights if present
@@ -190,7 +219,10 @@ class DatabaseService {
     const stmt = this.db.prepare(`
       UPDATE inventory_items 
       SET name = ?, quantity = ?, location = ?, status = ?, category = ?, 
-          description = ?, imageUrl = ?, source = ?, lastRefreshed = ?
+          description = ?, imageUrl = ?, source = ?, lastRefreshed = ?,
+          serialNumber = ?, modelNumber = ?, manufacturer = ?, purchaseDate = ?, 
+          receivedDate = ?, purchasePrice = ?, currency = ?, supplier = ?, 
+          invoiceNumber = ?, warrantyExpiry = ?, condition = ?, notes = ?
       WHERE id = ?
     `);
 
@@ -204,6 +236,18 @@ class DatabaseService {
       item.imageUrl || null,
       item.source || null,
       item.lastRefreshed || null,
+      item.serialNumber || null,
+      item.modelNumber || null,
+      item.manufacturer || null,
+      item.purchaseDate || null,
+      item.receivedDate || null,
+      item.purchasePrice || null,
+      item.currency || null,
+      item.supplier || null,
+      item.invoiceNumber || null,
+      item.warrantyExpiry || null,
+      item.condition || null,
+      item.notes || null,
       item.id
     );
 
@@ -326,7 +370,19 @@ class DatabaseService {
       imageUrl: dbItem.imageUrl,
       createdAt: dbItem.createdAt,
       source: dbItem.source,
-      lastRefreshed: dbItem.lastRefreshed
+      lastRefreshed: dbItem.lastRefreshed,
+      serialNumber: dbItem.serialNumber,
+      modelNumber: dbItem.modelNumber,
+      manufacturer: dbItem.manufacturer,
+      purchaseDate: dbItem.purchaseDate,
+      receivedDate: dbItem.receivedDate,
+      purchasePrice: dbItem.purchasePrice,
+      currency: dbItem.currency,
+      supplier: dbItem.supplier,
+      invoiceNumber: dbItem.invoiceNumber,
+      warrantyExpiry: dbItem.warrantyExpiry,
+      condition: dbItem.condition as any,
+      notes: dbItem.notes
     };
 
     // Load AI insights
@@ -383,8 +439,10 @@ class DatabaseService {
   addItemWithId(item: InventoryItem): void {
     const stmt = this.db.prepare(`
       INSERT INTO inventory_items 
-      (id, name, quantity, location, status, category, description, imageUrl, createdAt, source, lastRefreshed)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, name, quantity, location, status, category, description, imageUrl, createdAt, source, lastRefreshed,
+       serialNumber, modelNumber, manufacturer, purchaseDate, receivedDate, purchasePrice, currency, 
+       supplier, invoiceNumber, warrantyExpiry, condition, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -398,7 +456,19 @@ class DatabaseService {
       item.imageUrl || null,
       item.createdAt,
       item.source || null,
-      item.lastRefreshed || null
+      item.lastRefreshed || null,
+      item.serialNumber || null,
+      item.modelNumber || null,
+      item.manufacturer || null,
+      item.purchaseDate || null,
+      item.receivedDate || null,
+      item.purchasePrice || null,
+      item.currency || null,
+      item.supplier || null,
+      item.invoiceNumber || null,
+      item.warrantyExpiry || null,
+      item.condition || null,
+      item.notes || null
     );
 
     // Add AI insights if present
@@ -716,6 +786,39 @@ class DatabaseService {
 
   deleteBundle(bundleId: string): void {
     this.db.prepare('DELETE FROM component_bundles WHERE id = ?').run(bundleId);
+  }
+
+  // Database migration for new columns
+  private migrateDatabase() {
+    try {
+      // Check if new columns exist, if not add them
+      const columns = [
+        'serialNumber TEXT',
+        'modelNumber TEXT', 
+        'manufacturer TEXT',
+        'purchaseDate TEXT',
+        'receivedDate TEXT',
+        'purchasePrice REAL',
+        'currency TEXT',
+        'supplier TEXT',
+        'invoiceNumber TEXT',
+        'warrantyExpiry TEXT',
+        'condition TEXT',
+        'notes TEXT'
+      ];
+
+      columns.forEach(column => {
+        try {
+          const columnName = column.split(' ')[0];
+          this.db.exec(`ALTER TABLE inventory_items ADD COLUMN ${column}`);
+          console.log(`Added column: ${columnName}`);
+        } catch (error) {
+          // Column already exists, ignore error
+        }
+      });
+    } catch (error) {
+      console.log('Database migration completed or not needed');
+    }
   }
 
   close(): void {

@@ -40,6 +40,19 @@ export interface InventoryItem {
   relatedComponents?: ComponentRelationship[]; // Components that work with this one
   parentComponentId?: string; // If this is a sub-component (e.g., shield for a board)
   childComponentIds?: string[]; // If this has sub-components
+  // Enhanced tracking fields
+  serialNumber?: string; // Serial number or unique identifier
+  modelNumber?: string; // Model/part number
+  manufacturer?: string; // Manufacturer/brand name
+  purchaseDate?: string; // Date purchased (ISO string)
+  receivedDate?: string; // Date received (ISO string)
+  purchasePrice?: number; // Price paid for the item
+  currency?: string; // Currency code (USD, EUR, etc.)
+  supplier?: string; // Where it was purchased from
+  invoiceNumber?: string; // Invoice/order number
+  warrantyExpiry?: string; // Warranty expiration date (ISO string)
+  condition?: 'New' | 'Used' | 'Refurbished' | 'Damaged' | 'Unknown'; // Item condition
+  notes?: string; // Additional notes about the item
 }
 
 export interface Project {
@@ -118,6 +131,11 @@ export interface AiSuggestedPart {
   link: string;
   status?: string; // AI-suggested status: "I Need", "I Want", or "I Have"
   category?: string; // AI-suggested category for better organization
+  manufacturer?: string; // Brand/manufacturer name
+  modelNumber?: string; // Model/part number
+  condition?: string; // New, Used, Refurbished, etc.
+  purchasePrice?: number; // Numeric price value
+  currency?: string; // Currency code (USD, EUR, etc.)
 }
 
 export interface HomeAssistantEntity {
