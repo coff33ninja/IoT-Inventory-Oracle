@@ -110,22 +110,28 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           // Load messages for active conversation
           const conversationMessages = await apiClient.getConversationMessages(activeConversationId);
           setMessages(conversationMessages);
-        } else if (allConversations.length === 0) {
-          // Create first conversation if none exist
+        } else {
+          // Create first conversation if none exist or no active conversation
           const { id } = await apiClient.createConversation("New Chat");
           setCurrentConversationId(id);
-          setConversations([...allConversations, { 
+          const newConversation = { 
             id, 
             title: "New Chat", 
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             isActive: true,
             messageCount: 0
-          }]);
+          };
+          setConversations([newConversation, ...allConversations]);
+          console.log('Created new conversation:', id);
         }
       } catch (error) {
         console.error('Failed to initialize chat:', error);
         addToast('Failed to load chat history', 'error');
+        // Fallback: create a local conversation ID for this session
+        const fallbackId = `local-${Date.now()}`;
+        setCurrentConversationId(fallbackId);
+        console.log('Using fallback conversation ID:', fallbackId);
       }
     };
     
@@ -185,9 +191,27 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     }
 
     // Ensure we have a current conversation
-    if (!currentConversationId) {
-      await createNewConversation();
-      return; // The function will be called again after conversation is created
+    let conversationId = currentConversationId;
+    if (!conversationId) {
+      console.log('No current conversation, creating new one...');
+      try {
+        const { id } = await apiClient.createConversation("New Chat");
+        conversationId = id;
+        setCurrentConversationId(id);
+        const newConversation = { 
+          id, 
+          title: "New Chat", 
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          isActive: true,
+          messageCount: 0
+        };
+        setConversations(prev => [newConversation, ...prev.map(c => ({ ...c, isActive: false }))]);
+      } catch (error) {
+        console.error('Failed to create conversation:', error);
+        addToast('Failed to create conversation', 'error');
+        return;
+      }
     }
 
     const userMessage: ChatMessage = { role: "user", content: messageContent };
@@ -198,10 +222,10 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
 
     try {
       // Save user message to database
-      await apiClient.addMessage(currentConversationId, userMessage);
+      await apiClient.addMessage(conversationId, userMessage);
 
       // Get conversation context for better AI memory
-      const conversationContext = await apiClient.getConversationContext(currentConversationId);
+      const conversationContext = await apiClient.getConversationContext(conversationId);
 
       const stream = await getAiChatStream(
         messageContent,
@@ -262,13 +286,13 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         groundingChunks,
         suggestedProject: projectData
       };
-      await apiClient.addMessage(currentConversationId, finalModelMessage);
+      await apiClient.addMessage(conversationId, finalModelMessage);
 
       // Auto-generate conversation title if this is the first exchange
       if (messages.length === 0) {
         try {
-          const { title } = await apiClient.generateConversationTitle(currentConversationId);
-          await updateConversationTitle(currentConversationId, title);
+          const { title } = await apiClient.generateConversationTitle(conversationId);
+          await updateConversationTitle(conversationId, title);
         } catch (error) {
           console.error('Failed to generate conversation title:', error);
         }
@@ -304,10 +328,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       return; // Skip auto-execution if disabled
     }
 
-    if (!currentConversationId) {
-      console.log('No current conversation, skipping auto-execution');
-      return;
-    }
+    // Note: We don't need to check currentConversationId here since auto-execution
+    // doesn't require database operations - it just updates the UI state
 
     try {
       // Parse and auto-execute project suggestions
