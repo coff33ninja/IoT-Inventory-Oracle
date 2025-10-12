@@ -1,8 +1,11 @@
 # IoT Inventory Oracle 🚀
 
+> **Repository Owner**: [IdeaGazm](https://github.com/IdeaGazm)  
+> **Current Version**: v1.0.0-beta (Released: October 12, 2025)
+
 A comprehensive, AI-powered inventory management system for makers, developers, and tech enthusiasts. Manage electronics components, computer hardware, tools, and general items with intelligent project management, conversational AI assistance, and smart component relationships.
 
-## ✨ Latest Features (v4.0) - Smart Component Relationships & Universal Inventory
+## ✨ Latest Features (v1.0.0-beta) - Complete Feature Release
 
 ### 🔗 Smart Component Relationships
 - **Intelligent Component Linking**: AI recognizes when components work together
@@ -67,7 +70,15 @@ A comprehensive, AI-powered inventory management system for makers, developers, 
 - **CLI Tools**: Command-line interface for power users and automation
 - **Data Integrity**: Foreign key constraints and relationship management
 
-![IoT Inventory Oracle Screenshot](https://storage.googleapis.com/aistudio-ux-team-public/sdk-pro-samples/iot-oracle-screenshot.png)
+## 📚 Documentation
+
+For comprehensive documentation, guides, and examples, visit our **[Documentation Hub](./docs/README.md)**:
+
+- **[Getting Started Guide](./docs/getting-started.md)** - Quick setup and first steps
+- **[User Guide](./docs/user-guide.md)** - Complete feature walkthrough  
+- **[API Reference](./docs/api-reference.md)** - Developer documentation
+- **[Changelog](./docs/changelog.md)** - Version history and updates
+- **[Roadmap](./docs/roadmap.md)** - Future plans and features
 
 ## 🎯 Core Features
 
@@ -256,300 +267,78 @@ npm run cli projects show "2025-10-11T23:45:25.501Z"
 - **Project IDs**: Use the full project ID from the list command for detailed views
 - **Search**: Search works across names, descriptions, categories, and project components
 
-## 🛠️ Setup and Installation
+## � Quick Start
 
 ### Prerequisites
+- **Node.js** v16+ (v18+ recommended)
+- **Modern web browser** with ES Modules support
+- **Google Gemini API Key** - Get yours at [Google AI Studio](https://makersuite.google.com/app/apikey)
 
-1. **Node.js** (v16 or higher) and **npm** or **yarn**
-2. **Modern web browser** with ES Modules support
-3. **Google Gemini API Key** - Get yours at [Google AI Studio](https://makersuite.google.com/app/apikey)
+### Installation
 
-### Quick Start
+```bash
+# Clone the repository
+git clone https://github.com/IdeaGazm/IoT_Oracle.git
+cd IoT_Oracle
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd iot-inventory-oracle
-   ```
+# Install dependencies
+npm install
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+# Configure environment
+cp .env.example .env
+# Edit .env and add your Gemini API key
 
-3. **Configure environment variables**
-   ```bash
-   # Copy the example environment file
-   cp .env.example .env
-   
-   # Edit .env and add your Gemini API key
-   # Replace 'your_gemini_api_key_here' with your actual API key
-   ```
-
-4. **Start both server and client**
-   ```bash
-   # Start both API server and React app
-   npm run dev:full
-   
-   # Or start them separately:
-   npm run server  # API server on http://localhost:3001
-   npm run dev     # React app on http://localhost:3000
-   ```
-
-5. **Open your browser** and navigate to `http://localhost:3000`
-
-### Architecture
-- **API Server**: `http://localhost:3001` - Handles database operations
-- **React App**: `http://localhost:3000` - User interface
-- **CLI Tools**: Direct database access for advanced operations
-
-### Environment Configuration
-
-The app uses environment variables for configuration. Create a `.env` file in the root directory:
-
-```env
-# Required: Google Gemini API Key
-VITE_API_KEY=your_actual_gemini_api_key_here
-
-# Optional: Home Assistant integration (can also be set via Settings UI)
-VITE_HOME_ASSISTANT_URL=http://your-home-assistant-ip:8123
-VITE_HOME_ASSISTANT_TOKEN=your_long_lived_access_token_here
+# Start the application
+npm run dev:full
 ```
 
-**Important Security Notes:**
-- Never commit your `.env` file to version control
-- The `.env` file is already in `.gitignore` for protection
-- Keep your API keys secure and rotate them regularly
-- Use different API keys for development and production
+Open `http://localhost:3000` in your browser to get started!
 
-### Getting Your Gemini API Key
+For detailed setup instructions, see our **[Getting Started Guide](./docs/getting-started.md)**.
 
-1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy the generated key to your `.env` file
+## 🌟 What Makes This Special
 
-## 🧠 AI Capabilities Deep Dive
-
-### Conversational Management
-The AI assistant can understand and execute complex operations through natural language:
-
-**Project Operations:**
-```
-User: "I finished testing my weather station, mark it complete and set progress to 100%"
-AI: Updates project status, progress, and adds completion notes automatically
-```
-
-**Inventory Operations:**
-```
-User: "I just received my Adafruit order - 3 ESP32s, 10 sensors, put them in storage"
-AI: Updates quantities, sets status to "I Have", updates locations
-```
-
-**Cross-System Intelligence:**
-- Remembers your project history across conversations
-- Suggests component moves between projects
-- Analyzes compatibility and optimization opportunities
-- Provides market intelligence and sourcing recommendations
-
-### AI-Generated Content
-All AI-generated content is automatically saved:
-- **Project Instructions**: Step-by-step build guides with code
-- **Component Insights**: Technical descriptions and project ideas
-- **Market Data**: Real-time pricing from multiple suppliers
-- **Project Analysis**: Complexity assessment and sub-project suggestions
-
-### Smart Automation
-- **Auto-Categorization**: New components get proper categories automatically
-- **Status Intelligence**: AI understands "I bought", "I need", "it's broken" naturally
-- **Project Breakdown**: Complex projects automatically split into sub-projects
-- **Component Allocation**: Smart suggestions for optimal component usage
-
-### Deployment
-
-For production deployment:
-
-1. **Build the application**
-   ```bash
-   npm run build
-   # or
-   yarn build
-   ```
-
-2. **Set environment variables** in your hosting platform
-3. **Deploy the `dist` folder** to your web server
-
-Popular deployment options:
-- **Vercel**: Automatic deployments with environment variable support
-- **Netlify**: Easy static site hosting with build integration
-- **GitHub Pages**: Free hosting for public repositories
-- **Self-hosted**: Any web server that can serve static files
-
-## 📖 How to Use
-
-### 🤖 Chat Assistant - The Heart of the System
-The AI assistant understands natural language and can manage your entire inventory and projects:
-
-**Project Management Examples:**
-- *"Mark my Arduino weather station as completed"*
-- *"Set my gaming PC build to 75% progress"*
-- *"Create a new smart home project with ESP32 and sensors"*
-- *"Generate step-by-step instructions for my server setup"*
-
-**Inventory Management Examples:**
-- *"I just bought 5 ESP32s, put them in my electronics drawer"*
-- *"I got an Intel i7 CPU and ASUS motherboard, they work together"*
-- *"I need to order more resistors and a new graphics card"*
-- *"My old hard drive failed, mark it as discarded"*
-
-**Technical Assistance:**
-- *"What can I build with an ESP32 and BME280 sensor?"*
-- *"Help me plan a gaming PC build with RTX 4070"*
-- *"Write me Arduino code to read a DHT22 sensor"*
-- *"Find suppliers for Raspberry Pi 5 and compatible accessories"*
-- *"Check if my CPU is compatible with this motherboard"*
-
-### 📦 Inventory Management
-1. **Adding Components**: Click the `+` button or tell the AI *"I just got new components"*
-2. **AI Enhancement**: Use AI buttons to auto-generate descriptions and categories
-3. **Status Tracking**: Components automatically move between I Have, I Need, I Want, etc.
-4. **Component Details**: Click any item for AI insights, market data, and project usage
-5. **Smart Search**: Find components instantly with intelligent filtering
-
-### 🎯 Project Management
-1. **Three-Stage Workflow**: Projects flow from Planning → In Progress → Completed
-2. **Sub-Projects**: Complex projects automatically break into manageable phases
-3. **AI Kickstart**: Get complete build plans, code, and component lists
-4. **GitHub Integration**: Import component requirements from repositories
-5. **Progress Tracking**: Visual progress bars and milestone management
-6. **Component Allocation**: See which inventory items are used in which projects
-
-### 🏠 Home Assistant Integration
-1. **Configuration**: Go to Settings and add your HA URL and Long-Lived Access Token
-2. **Entity Discovery**: All your HA entities appear automatically
-3. **Physical Linking**: Connect digital entities to physical components
-4. **Hardware Tracking**: Understand what hardware powers your smart home
-
-### ⚙️ Advanced Features
-- **Collapsible Sidebar**: Click the chevron to maximize workspace
-- **Chat History**: Right sidebar shows all your AI conversations
-- **CLI Tools**: Use `npm run cli` for advanced database operations
-- **Export/Import**: Backup and restore your data through Settings
-
-## 🆚 What Makes This Special
-
-### vs. Traditional Inventory Apps
-- **AI-Powered**: Natural language control instead of forms and menus
-- **Universal Support**: Electronics, computers, tools, and general items in one system
-- **Smart Relationships**: Automatically links related components and tracks compatibility
-- **Project-Centric**: Built for makers, builders, and creators who build things
+### AI-Powered Intelligence
+- **Natural Language Control**: Manage inventory and projects through conversation
+- **Smart Component Recognition**: AI understands complex component relationships
+- **Auto-Execution**: Simple updates applied automatically with confirmation
 - **Context-Aware**: Remembers your projects and suggests optimizations
 
-### vs. Simple Spreadsheets
-- **Intelligent Search**: Find components by project, compatibility, or usage
-- **Component Relationships**: Track which items work together or require each other
-- **Market Intelligence**: Real-time pricing and supplier recommendations
-- **Project Integration**: See which components are used where
-- **AI Assistance**: Get help with technical questions and build planning
+### Universal Inventory System
+- **40+ Categories**: Electronics, computer hardware, tools, and general items
+- **7 Status Types**: I Have, I Need, I Want, I Salvaged, I Returned, Discarded, Given Away
+- **Smart Relationships**: Track which components work together
+- **Component Bundles**: Group related items into logical kits
 
-### vs. Generic Project Management
-- **Hardware-Focused**: Designed for electronics, computers, and physical builds
-- **Component Allocation**: Track physical inventory usage across projects
-- **Technical AI**: Understands electronics, PC compatibility, and coding
-- **Universal Workflow**: Optimized for IoT projects, PC builds, and general making
-- **Smart Compatibility**: Checks component compatibility and suggests improvements
+### Advanced Project Management
+- **3-Stage Workflow**: Planning → In Progress → Completed
+- **Sub-Project Support**: Break complex builds into manageable phases
+- **AI-Generated Instructions**: Step-by-step guides with code examples
+- **GitHub Integration**: Import component lists from repositories
 
-## 🔧 Troubleshooting
+### Professional Architecture
+- **SQLite Database**: Reliable, ACID-compliant data storage
+- **CLI Tools**: Command-line interface for power users
+- **TypeScript**: Full type safety throughout the application
+- **Modern Stack**: React 19, Vite, Tailwind CSS 4, Express.js
 
-### Common Issues
+## 📊 Key Statistics
 
-**"VITE_API_KEY environment variable not set" Error**
-- Ensure you've created a `.env` file in the root directory
-- Verify your API key is correctly set as `VITE_API_KEY=your_key_here`
-- Restart both server and client after adding environment variables
-
-**AI Chat Not Responding**
-- Check that your Gemini API key is valid and has quota remaining
-- Verify the API key has the necessary permissions for the Gemini API
-- Check browser console and server logs for detailed error messages
-- Try refreshing the page to reset the AI context
-
-**Server Connection Issues**
-- Ensure both server (port 3001) and client (port 3000) are running
-- Check that `npm run dev:full` started both processes successfully
-- Verify no firewall is blocking the local ports
-- Try `npm run server` and `npm run dev` separately to isolate issues
-
-**Database/CLI Issues**
-- Ensure SQLite database has proper permissions
-- Try `npm run cli stats` to test database connectivity
-- Check that the `inventory.db` file exists and is not corrupted
-- Restart the server if database locks occur
-
-**Home Assistant Integration Issues**
-- Ensure your Home Assistant URL is accessible from your browser
-- Verify your Long-Lived Access Token has the required permissions
-- Check that CORS is properly configured in Home Assistant if needed
-- Test the connection in Settings before using the integration
-
-### Performance Tips
-- **Large Inventories**: Use the CLI for bulk operations
-- **Slow AI Responses**: Check your internet connection and API quota
-- **Memory Usage**: Restart the browser if the app becomes sluggish
-- **Database Performance**: Use the CLI `stats` command to monitor database size
-
-### Getting Help
-- Check browser console (F12) for client-side errors
-- Check server terminal for API and database errors
-- Verify all environment variables are properly set
-- Test with a fresh `.env` file if issues persist
-- Use the CLI tools to verify database integrity
-
-## 🗺️ Roadmap
-
-### 🚀 Coming Soon
-- **Mobile App**: Native iOS/Android app with offline sync
-- **Team Collaboration**: Share inventories and projects with team members
-- **Advanced Analytics**: Predictive analytics for component needs
-- **Integration Hub**: Connect with more services (Notion, Airtable, etc.)
-- **Voice Control**: Voice commands for hands-free inventory management
-
-### 🔮 Future Vision
-- **AR Integration**: Point your phone at components for instant identification
-- **Supply Chain Intelligence**: Predict component shortages and price changes
-- **Community Features**: Share projects and component reviews with other makers
-- **Advanced Automation**: Automated ordering based on project requirements
-- **Multi-Location Support**: Manage inventories across multiple workshops/locations
-
-## 📊 Project Stats
-
-- **Categories**: 40+ categorized component types (electronics, computers, tools, general)
-- **Project Templates**: IoT projects, PC builds, server setups, office configurations
-- **AI Capabilities**: 9 different JSON action types for intelligent automation
-- **Component Relationships**: Smart linking system with 5 relationship types
-- **Storage**: SQLite database + Markdown files for optimal performance
-- **UI Components**: 25+ React components with full TypeScript support
-- **CLI Commands**: Comprehensive command-line interface for power users
-- **TypeScript**: Strict mode enabled with comprehensive type safety
+- **40+ Component Categories** covering all maker needs
+- **7 Inventory Status Types** for complete lifecycle tracking
+- **5 Relationship Types** for smart component linking
+- **25+ React Components** with full TypeScript support
+- **9 AI Action Types** for intelligent automation
+- **CLI Tools** for advanced database operations
 
 ## 🤝 Contributing
 
-We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation:
+We welcome contributions from the maker community! See our **[Contributing Guide](./docs/contributing.md)** for details on:
 
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes** with proper TypeScript types
-4. **Test thoroughly** with both UI and CLI
-5. **Submit a pull request** with a clear description
-
-### Development Guidelines
-- Follow TypeScript best practices
-- Add proper error handling
-- Update tests for new features
-- Document AI prompt changes
-- Test with real hardware when possible
+- Code contributions and development setup
+- Bug reports and feature requests  
+- Documentation improvements
+- Community guidelines
 
 ## 📄 License
 
@@ -558,13 +347,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - **Google Gemini AI** for powering the intelligent features
-- **React Team** for the excellent framework
-- **Tailwind CSS** for the beautiful, responsive design
+- **React Team** for the excellent framework and ecosystem
+- **Tailwind CSS** for the beautiful, responsive design system
 - **SQLite** for reliable, embedded database functionality
-- **The Maker Community** for inspiration and feedback
+- **The Maker Community** for inspiration, feedback, and contributions
 
 ---
 
+**Repository**: [IdeaGazm/IoT_Oracle](https://github.com/IdeaGazm/IoT_Oracle)  
+**Version**: v1.0.0-beta (October 12, 2025)  
 **Built with ❤️ for the IoT maker community**
 
 *Transform your electronics workshop from chaos to organized productivity with AI-powered intelligence.*

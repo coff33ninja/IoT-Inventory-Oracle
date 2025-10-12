@@ -1977,7 +1977,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                             </button>
                           </div>
                           <div className="mt-2 text-xs text-text-secondary">
-                            {Object.entries(projectUpdateAction.updates).map(
+                            {projectUpdateAction.updates && Object.entries(projectUpdateAction.updates).map(
                               ([key, value]) => (
                                 <div key={key} className="flex justify-between">
                                   <span className="capitalize">{key}:</span>
@@ -2007,7 +2007,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                             </button>
                           </div>
                           <div className="mt-2 text-xs text-text-secondary">
-                            {Object.entries(inventoryUpdateAction.updates).map(([key, value]) => (
+                            {inventoryUpdateAction.updates && Object.entries(inventoryUpdateAction.updates).map(([key, value]) => (
                               <div key={key} className="flex justify-between">
                                 <span className="capitalize">{key}:</span>
                                 <span className="text-text-primary">{value}</span>
