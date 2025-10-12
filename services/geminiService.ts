@@ -454,3 +454,136 @@ export const analyzeGithubRepo = async (repoUrl: string): Promise<{ name: string
         throw new Error("Failed to get component list from AI for the GitHub repository.");
     }
 }
+
+// Project AI categorization and enhancement functions
+export const suggestProjectCategory = async (projectName: string, description: string): Promise<string> => {
+    try {
+        const prompt = `Categorize the following IoT/electronics project: "${projectName}" with description: "${description}".
+        Choose the single best category from this list:
+        - Home Automation
+        - Robotics
+        - Sensors & Monitoring
+        - LED & Lighting
+        - Audio & Sound
+        - Communication
+        - Power Management
+        - Security & Surveillance
+        - Weather Station
+        - Smart Garden
+        - Wearable Tech
+        - Educational/Learning
+        - Art & Interactive
+        - Miscellaneous
+
+        Your response must be ONLY the category name, with no extra text or explanation.`;
+        
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+        });
+        
+        return response.text.trim();
+
+    } catch(error) {
+        console.error("Gemini project category suggestion failed:", error);
+        throw new Error("Failed to suggest project category from AI.");
+    }
+};
+
+export const enhanceProjectDescription = async (projectName: string, currentDescription: string): Promise<string> => {
+    try {
+        const prompt = `Enhance the following IoT/electronics project description to be more detailed and informative:
+        
+        Project Name: "${projectName}"
+        Current Description: "${currentDescription}"
+        
+        Provide a comprehensive description that includes:
+        - What the project does
+        - Key features and capabilities
+        - Potential use cases
+        - Technical highlights
+        
+        Keep it concise but informative (2-3 sentences maximum).`;
+        
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+        });
+        
+        return response.text.trim();
+
+    } catch(error) {
+        console.error("Gemini project description enhancement failed:", error);
+        throw new Error("Failed to enhance project description from AI.");
+    }
+};
+
+export const suggestProjectImprovements = async (projectName: string, description: string, components: any[]): Promise<{
+    suggestions: string[];
+    additionalComponents: { name: string; reason: string }[];
+    optimizations: string[];
+}> => {
+    try {
+        const componentList = components.map(c => `${c.quantity}x ${c.name}`).join(', ');
+        
+        const prompt = `Analyze this IoT/electronics project and suggest improvements:
+        
+        Project: "${projectName}"
+        Description: "${description}"
+        Current Components: ${componentList}
+        
+        Provide suggestions in the following areas:
+        1. General project improvements
+        2. Additional components that could enhance functionality
+        3. Optimization opportunities
+        
+        Your response MUST be only a single, raw JSON object with this structure:
+        {
+            "suggestions": ["improvement 1", "improvement 2"],
+            "additionalComponents": [{"name": "component name", "reason": "why it's useful"}],
+            "optimizations": ["optimization 1", "optimization 2"]
+        }`;
+        
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        suggestions: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING }
+                        },
+                        additionalComponents: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    name: { type: Type.STRING },
+                                    reason: { type: Type.STRING }
+                                },
+                                required: ["name", "reason"]
+                            }
+                        },
+                        optimizations: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING }
+                        }
+                    },
+                    required: ["suggestions", "additionalComponents", "optimizations"]
+                }
+            }
+        });
+        
+        const jsonString = response.text.trim();
+        const parsedJson = JSON.parse(jsonString);
+        
+        return parsedJson;
+
+    } catch(error) {
+        console.error("Gemini project improvement suggestions failed:", error);
+        throw new Error("Failed to get project improvement suggestions from AI.");
+    }
+};

@@ -7,6 +7,7 @@ import { RefreshIcon } from './icons/RefreshIcon';
 import { SpinnerIcon } from './icons/SpinnerIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { EditIcon } from './icons/EditIcon';
+import { suggestProjectImprovements } from '../services/geminiService';
 
 interface ProjectCardProps {
     project: Project;
@@ -23,6 +24,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onAiKickstart
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(project.name);
     const [editedDescription, setEditedDescription] = useState(project.description);
+    const [showImprovements, setShowImprovements] = useState(false);
+    const [improvements, setImprovements] = useState<any>(null);
+    const [isLoadingImprovements, setIsLoadingImprovements] = useState(false);
 
     const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNotes(e.target.value);
@@ -54,6 +58,24 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onAiKickstart
         setEditedName(project.name);
         setEditedDescription(project.description);
         setIsEditing(false);
+    };
+
+    const handleGetImprovements = async () => {
+        setIsLoadingImprovements(true);
+        try {
+            const improvementData = await suggestProjectImprovements(
+                project.name, 
+                project.description, 
+                project.components
+            );
+            setImprovements(improvementData);
+            setShowImprovements(true);
+        } catch (error) {
+            console.error('Failed to get project improvements:', error);
+            alert('Failed to get improvement suggestions. Please try again.');
+        } finally {
+            setIsLoadingImprovements(false);
+        }
     };
 
     const handleDelete = () => {
@@ -206,14 +228,80 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onAiKickstart
                     />
                 </div>
             </div>
-            <div className="p-4 bg-primary/50 rounded-b-lg">
-                <button 
-                    onClick={() => onAiKickstart(project)}
-                    className="w-full bg-accent hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors flex items-center justify-center space-x-2"
-                >
-                    <SparklesIcon />
-                    <span>AI Kickstart</span>
-                </button>
+            <div className="p-4 bg-primary/50 rounded-b-lg space-y-2">
+                <div className="flex space-x-2">
+                    <button 
+                        onClick={() => onAiKickstart(project)}
+                        className="flex-1 bg-accent hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors flex items-center justify-center space-x-2"
+                    >
+                        <SparklesIcon />
+                        <span>AI Kickstart</span>
+                    </button>
+                    <button 
+                        onClick={handleGetImprovements}
+                        disabled={isLoadingImprovements}
+                        className="flex-1 bg-highlight hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+                    >
+                        {isLoadingImprovements ? <SpinnerIcon /> : <SparklesIcon />}
+                        <span>{isLoadingImprovements ? 'Analyzing...' : 'Improve'}</span>
+                    </button>
+                </div>
+                
+                {showImprovements && improvements && (
+                    <div className="mt-4 p-3 bg-secondary rounded-lg border border-border-color">
+                        <div className="flex justify-between items-center mb-2">
+                            <h4 className="text-sm font-semibold text-text-primary">AI Improvement Suggestions</h4>
+                            <button 
+                                onClick={() => setShowImprovements(false)}
+                                className="text-text-secondary hover:text-text-primary"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        
+                        {improvements.suggestions.length > 0 && (
+                            <div className="mb-3">
+                                <h5 className="text-xs font-medium text-text-secondary mb-1">General Improvements:</h5>
+                                <ul className="text-xs text-text-primary space-y-1">
+                                    {improvements.suggestions.map((suggestion: string, index: number) => (
+                                        <li key={index} className="flex items-start">
+                                            <span className="text-highlight mr-1">•</span>
+                                            {suggestion}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        
+                        {improvements.additionalComponents.length > 0 && (
+                            <div className="mb-3">
+                                <h5 className="text-xs font-medium text-text-secondary mb-1">Suggested Components:</h5>
+                                <ul className="text-xs text-text-primary space-y-1">
+                                    {improvements.additionalComponents.map((comp: any, index: number) => (
+                                        <li key={index} className="flex items-start">
+                                            <span className="text-accent mr-1">+</span>
+                                            <span><strong>{comp.name}</strong> - {comp.reason}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        
+                        {improvements.optimizations.length > 0 && (
+                            <div>
+                                <h5 className="text-xs font-medium text-text-secondary mb-1">Optimizations:</h5>
+                                <ul className="text-xs text-text-primary space-y-1">
+                                    {improvements.optimizations.map((opt: string, index: number) => (
+                                        <li key={index} className="flex items-start">
+                                            <span className="text-yellow-400 mr-1">⚡</span>
+                                            {opt}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

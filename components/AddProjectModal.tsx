@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Project } from '../types';
+import { suggestProjectCategory, enhanceProjectDescription } from '../services/geminiService';
+import { SparklesIcon } from './icons/SparklesIcon';
+import { SpinnerIcon } from './icons/SpinnerIcon';
 
 interface AddProjectModalProps {
   isOpen: boolean;
@@ -34,14 +37,52 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [componentsText, setComponentsText] = useState('');
+  const [category, setCategory] = useState('');
+  const [isSuggestingCategory, setIsSuggestingCategory] = useState(false);
+  const [isEnhancingDescription, setIsEnhancingDescription] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
         setName('');
         setDescription('');
         setComponentsText('');
+        setCategory('');
     }
   }, [isOpen]);
+
+  const handleSuggestCategory = async () => {
+    if (!name.trim()) {
+        alert("Please enter a project name first.");
+        return;
+    }
+    setIsSuggestingCategory(true);
+    try {
+        const suggestedCategory = await suggestProjectCategory(name, description);
+        setCategory(suggestedCategory);
+    } catch (error) {
+        console.error('Failed to suggest category:', error);
+        alert('Failed to suggest category. Please try again.');
+    } finally {
+        setIsSuggestingCategory(false);
+    }
+  };
+
+  const handleEnhanceDescription = async () => {
+    if (!name.trim()) {
+        alert("Please enter a project name first.");
+        return;
+    }
+    setIsEnhancingDescription(true);
+    try {
+        const enhancedDescription = await enhanceProjectDescription(name, description);
+        setDescription(enhancedDescription);
+    } catch (error) {
+        console.error('Failed to enhance description:', error);
+        alert('Failed to enhance description. Please try again.');
+    } finally {
+        setIsEnhancingDescription(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +98,7 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
         description,
         components,
         status: 'In Progress',
-        notes: `Manually created on ${new Date().toLocaleDateString()}.`,
+        notes: `Manually created on ${new Date().toLocaleDateString()}. ${category ? `Category: ${category}` : ''}`,
     };
 
     onSave(newProject);
@@ -77,6 +118,7 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
             <button
               onClick={onClose}
               className="text-text-secondary hover:text-text-primary transition-colors"
+              title="Close modal"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -95,7 +137,12 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
               />
             </div>
              <div>
-                <label htmlFor="project-description" className="block text-sm font-medium text-text-secondary">Description</label>
+                <div className="flex justify-between items-center">
+                    <label htmlFor="project-description" className="block text-sm font-medium text-text-secondary">Description</label>
+                    <button type="button" onClick={handleEnhanceDescription} disabled={isEnhancingDescription || !name} className="text-xs text-accent hover:text-blue-400 flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isEnhancingDescription ? <><SpinnerIcon /> <span className="ml-1">Enhancing...</span></> : <><SparklesIcon /> <span className="ml-1">Enhance with AI</span></>}
+                    </button>
+                </div>
                 <textarea 
                   id="project-description" 
                   value={description}
@@ -103,6 +150,22 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
                   rows={2} 
                   placeholder="A short description of the project's goals."
                   className="mt-1 block w-full bg-primary border border-border-color rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm" />
+            </div>
+            <div>
+                <div className="flex justify-between items-center">
+                    <label htmlFor="project-category" className="block text-sm font-medium text-text-secondary">Category</label>
+                    <button type="button" onClick={handleSuggestCategory} disabled={isSuggestingCategory || !name} className="text-xs text-accent hover:text-blue-400 flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isSuggestingCategory ? <><SpinnerIcon /> <span className="ml-1">Suggesting...</span></> : <><SparklesIcon /> <span className="ml-1">Suggest with AI</span></>}
+                    </button>
+                </div>
+                <input 
+                  type="text" 
+                  id="project-category" 
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="e.g., Home Automation, Robotics, Sensors & Monitoring"
+                  className="mt-1 block w-full bg-primary border border-border-color rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm" 
+                />
             </div>
              <div>
                 <label htmlFor="project-components" className="block text-sm font-medium text-text-secondary">Initial Components</label>
