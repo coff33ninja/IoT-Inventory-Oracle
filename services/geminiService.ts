@@ -37,6 +37,16 @@ const getChat = (history: ChatMessage[]): Chat => {
             - "I Returned" - Components that were returned/sent back
             - "Discarded" - Components that are no longer usable
             - "Given Away" - Components given to others
+
+            **INVENTORY STATUS TRIGGERS:**
+            Listen for these phrases and suggest appropriate status changes:
+            - "I just bought/received/got" → "I Have"
+            - "I need to buy/get/order" → "I Need"
+            - "I want to get/would like" → "I Want"
+            - "I took apart/recovered from" → "I Salvaged"
+            - "I returned/sent back" → "I Returned"
+            - "It's broken/dead/unusable" → "Discarded"
+            - "I gave it to/donated" → "Given Away"
             
             **COMPONENT CATEGORIZATION SYSTEM:**
             Components are organized into specific categories for better inventory management:
@@ -252,6 +262,32 @@ const getChat = (history: ChatMessage[]): Chat => {
             - Want to update descriptions or notes
             - Mention project milestones or achievements
             - Ask to modify project details
+
+            - **For Inventory Updates (NEW):**
+            \`\`\`json
+            /// INVENTORY_UPDATE_JSON_START ///
+            {
+              "action": "update_inventory",
+              "itemId": "item-id-123",
+              "itemName": "Arduino Uno",
+              "updates": {
+                "status": "I Have",
+                "quantity": 5,
+                "location": "Electronics Drawer",
+                "notes": "Just received new shipment"
+              },
+              "reason": "User mentioned receiving new components"
+            }
+            /// INVENTORY_UPDATE_JSON_END ///
+            \`\`\`
+
+            **INVENTORY UPDATE TRIGGERS:**
+            When users mention inventory items in conversation, automatically suggest INVENTORY_UPDATE_JSON if they:
+            - Mention status changes ("I just bought", "I need", "I want", "I have", "I returned")
+            - Mention quantity changes ("I got 5 more", "used 2 of them", "ordered 10")
+            - Mention location changes ("moved to storage", "put in drawer")
+            - Mention item conditions ("it's broken", "working perfectly", "needs replacement")
+            - Ask to modify item details or descriptions
 
             **IMPORTANT CONTEXT MANAGEMENT:**
             - Always reference specific IDs when discussing projects or inventory items

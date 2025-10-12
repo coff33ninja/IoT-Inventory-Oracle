@@ -485,7 +485,33 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
 
       if (projectUpdateAction) {
         handleProjectUpdate(projectUpdateAction);
-        addToast(`Updated project: ${projectUpdateAction.projectName}`, "success");
+        addToast(
+          `Updated project: ${projectUpdateAction.projectName}`,
+          "success"
+        );
+      }
+
+      // Parse and auto-execute inventory updates
+      const { jsonData: inventoryUpdateAction } = parseJsonBlock<{
+        action: string;
+        itemId: string;
+        itemName: string;
+        updates: {
+          status?: string;
+          quantity?: number;
+          location?: string;
+          notes?: string;
+        };
+        reason: string;
+      }>(
+        responseContent,
+        "/// INVENTORY_UPDATE_JSON_START ///",
+        "/// INVENTORY_UPDATE_JSON_END ///"
+      );
+
+      if (inventoryUpdateAction) {
+        handleInventoryUpdate(inventoryUpdateAction);
+        addToast(`Updated inventory: ${inventoryUpdateAction.itemName}`, "success");
       }
     } catch (error) {
       console.error("Error auto-executing AI suggestions:", error);
@@ -916,17 +942,26 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     const updatedProject = { ...project };
     let changes: string[] = [];
 
-    if (updateData.updates.status && updateData.updates.status !== project.status) {
+    if (
+      updateData.updates.status &&
+      updateData.updates.status !== project.status
+    ) {
       updatedProject.status = updateData.updates.status as any;
       changes.push(`status to "${updateData.updates.status}"`);
     }
 
-    if (updateData.updates.progress !== undefined && updateData.updates.progress !== project.progress) {
+    if (
+      updateData.updates.progress !== undefined &&
+      updateData.updates.progress !== project.progress
+    ) {
       updatedProject.progress = updateData.updates.progress;
       changes.push(`progress to ${updateData.updates.progress}%`);
     }
 
-    if (updateData.updates.description && updateData.updates.description !== project.description) {
+    if (
+      updateData.updates.description &&
+      updateData.updates.description !== project.description
+    ) {
       updatedProject.description = updateData.updates.description;
       changes.push("description");
     }
@@ -941,13 +976,67 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     if (changes.length > 0) {
       updatedProject.updatedAt = new Date().toISOString();
       updateProject(updatedProject);
+
+      addToast(`Updated ${project.name}: ${changes.join(", ")}`, "success");
+    } else {
+      addToast("No changes needed for project", "info");
+    }
+  };
+
+  const handleInventoryUpdate = (updateData: {
+    action: string;
+    itemId: string;
+    itemName: string;
+    updates: {
+      status?: string;
+      quantity?: number;
+      location?: string;
+      notes?: string;
+    };
+    reason: string;
+  }) => {
+    const item = inventory.find((i) => i.id === updateData.itemId);
+
+    if (!item) {
+      addToast(`Could not find inventory item: ${updateData.itemName}`, "error");
+      return;
+    }
+
+    // Build the updated item object
+    const updatedItem = { ...item };
+    let changes: string[] = [];
+
+    if (updateData.updates.status && updateData.updates.status !== item.status) {
+      updatedItem.status = updateData.updates.status as any;
+      changes.push(`status to "${updateData.updates.status}"`);
+    }
+
+    if (updateData.updates.quantity !== undefined && updateData.updates.quantity !== item.quantity) {
+      updatedItem.quantity = updateData.updates.quantity;
+      changes.push(`quantity to ${updateData.updates.quantity}`);
+    }
+
+    if (updateData.updates.location && updateData.updates.location !== item.location) {
+      updatedItem.location = updateData.updates.location;
+      changes.push(`location to "${updateData.updates.location}"`);
+    }
+
+    if (updateData.updates.notes) {
+      const timestamp = new Date().toLocaleString();
+      const newNote = `\n\n[${timestamp}] AI Update: ${updateData.updates.notes}`;
+      updatedItem.description = (item.description || "") + newNote;
+      changes.push("notes");
+    }
+
+    if (changes.length > 0) {
+      updateItem(updatedItem);
       
       addToast(
-        `Updated ${project.name}: ${changes.join(", ")}`,
+        `Updated ${item.name}: ${changes.join(", ")}`,
         "success"
       );
     } else {
-      addToast("No changes needed for project", "info");
+      addToast("No changes needed for inventory item", "info");
     }
   };
 
@@ -1273,23 +1362,25 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
               "/// TEMPLATE_JSON_START ///",
               "/// TEMPLATE_JSON_END ///"
             );
-            const { displayContent: contentAfterAnalysis, jsonData: analysisAction } =
-              parseJsonBlock<{
-                action: string;
-                issues: Array<{ type: string; message: string }>;
-                suggestions: Array<{
-                  type: string;
-                  component: string;
-                  alternative?: string;
-                  quantity?: number;
-                  reason: string;
-                }>;
-              }>(
-                contentAfterTemplate,
-                "/// ANALYSIS_JSON_START ///",
-                "/// ANALYSIS_JSON_END ///"
-              );
-            const { displayContent, jsonData: projectUpdateAction } =
+            const {
+              displayContent: contentAfterAnalysis,
+              jsonData: analysisAction,
+            } = parseJsonBlock<{
+              action: string;
+              issues: Array<{ type: string; message: string }>;
+              suggestions: Array<{
+                type: string;
+                component: string;
+                alternative?: string;
+                quantity?: number;
+                reason: string;
+              }>;
+            }>(
+              contentAfterTemplate,
+              "/// ANALYSIS_JSON_START ///",
+              "/// ANALYSIS_JSON_END ///"
+            );
+            const { displayContent: contentAfterProjectUpdate, jsonData: projectUpdateAction } =
               parseJsonBlock<{
                 action: string;
                 projectId: string;
@@ -1305,6 +1396,23 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                 contentAfterAnalysis,
                 "/// PROJECT_UPDATE_JSON_START ///",
                 "/// PROJECT_UPDATE_JSON_END ///"
+              );
+            const { displayContent, jsonData: inventoryUpdateAction } =
+              parseJsonBlock<{
+                action: string;
+                itemId: string;
+                itemName: string;
+                updates: {
+                  status?: string;
+                  quantity?: number;
+                  location?: string;
+                  notes?: string;
+                };
+                reason: string;
+              }>(
+                contentAfterProjectUpdate,
+                "/// INVENTORY_UPDATE_JSON_START ///",
+                "/// INVENTORY_UPDATE_JSON_END ///"
               );
 
             return (
@@ -1334,7 +1442,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                     transferAction ||
                     templateAction ||
                     analysisAction ||
-                    projectUpdateAction) && (
+                    projectUpdateAction ||
+                    inventoryUpdateAction) && (
                     <div className="mt-4 pt-3 border-t border-border-color space-y-3">
                       <h4 className="text-sm font-semibold text-text-secondary">
                         Interactive Actions:
@@ -1503,7 +1612,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                       {projectUpdateAction && (
                         <div className="bg-primary/50 p-3 rounded-lg">
                           <p className="font-semibold text-text-primary text-sm flex items-center gap-2">
-                            <ProjectsIcon /> Update: {projectUpdateAction.projectName}
+                            <ProjectsIcon /> Update:{" "}
+                            {projectUpdateAction.projectName}
                           </p>
                           <p className="text-xs text-text-secondary mt-1">
                             {projectUpdateAction.reason}
@@ -1511,13 +1621,45 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                           <div className="flex items-center space-x-2 mt-2">
                             <button
                               type="button"
-                              onClick={() => handleProjectUpdate(projectUpdateAction)}
+                              onClick={() =>
+                                handleProjectUpdate(projectUpdateAction)
+                              }
                               className="text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
                               Apply Updates
                             </button>
                           </div>
                           <div className="mt-2 text-xs text-text-secondary">
-                            {Object.entries(projectUpdateAction.updates).map(([key, value]) => (
+                            {Object.entries(projectUpdateAction.updates).map(
+                              ([key, value]) => (
+                                <div key={key} className="flex justify-between">
+                                  <span className="capitalize">{key}:</span>
+                                  <span className="text-text-primary">
+                                    {value}
+                                  </span>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {inventoryUpdateAction && (
+                        <div className="bg-primary/50 p-3 rounded-lg">
+                          <p className="font-semibold text-text-primary text-sm flex items-center gap-2">
+                            📦 Update: {inventoryUpdateAction.itemName}
+                          </p>
+                          <p className="text-xs text-text-secondary mt-1">
+                            {inventoryUpdateAction.reason}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <button
+                              type="button"
+                              onClick={() => handleInventoryUpdate(inventoryUpdateAction)}
+                              className="text-xs bg-green-500/20 text-green-400 hover:bg-green-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
+                              Apply Updates
+                            </button>
+                          </div>
+                          <div className="mt-2 text-xs text-text-secondary">
+                            {Object.entries(inventoryUpdateAction.updates).map(([key, value]) => (
                               <div key={key} className="flex justify-between">
                                 <span className="capitalize">{key}:</span>
                                 <span className="text-text-primary">{value}</span>
