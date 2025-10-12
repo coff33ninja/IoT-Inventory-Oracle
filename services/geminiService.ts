@@ -1,5 +1,16 @@
-import { GoogleGenAI, Chat, GenerateContentResponse, Content, Type } from "@google/genai";
-import { InventoryItem, ChatMessage, AiInsights, MarketDataItem } from "../types";
+import {
+  GoogleGenAI,
+  Chat,
+  GenerateContentResponse,
+  Content,
+  Type,
+} from "@google/genai";
+import {
+  InventoryItem,
+  ChatMessage,
+  AiInsights,
+  MarketDataItem,
+} from "../types";
 
 if (!import.meta.env.VITE_API_KEY) {
   throw new Error("VITE_API_KEY environment variable not set");
@@ -7,19 +18,19 @@ if (!import.meta.env.VITE_API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
-const model = 'gemini-2.5-flash';
+const model = "gemini-2.5-flash";
 
 const getChat = (history: ChatMessage[]): Chat => {
-    const formattedHistory: Content[] = history.map(msg => ({
-        role: msg.role,
-        parts: [{ text: msg.content }]
-    }));
-    
-    return ai.chats.create({
-        model: model,
-        history: formattedHistory,
-        config: {
-            systemInstruction: `You are an expert IoT project assistant and inventory manager called 'IoT Oracle'. 
+  const formattedHistory: Content[] = history.map((msg) => ({
+    role: msg.role,
+    parts: [{ text: msg.content }],
+  }));
+
+  return ai.chats.create({
+    model: model,
+    history: formattedHistory,
+    config: {
+      systemInstruction: `You are an expert IoT project assistant and inventory manager called 'IoT Oracle'. 
             Your primary role is to help users manage their electronics components inventory and plan their projects.
             
             Current Inventory & Project Context:
@@ -298,107 +309,131 @@ const getChat = (history: ChatMessage[]): Chat => {
             Interaction Style:
             Be concise, helpful, and professional. Format your responses for clarity using markdown. Maintain conversation continuity by referencing previous discussions when relevant.
             `,
-            tools: [{googleSearch: {}}],
-        },
-    });
-}
+      tools: [{ googleSearch: {} }],
+    },
+  });
+};
 
 // Enhanced context management for better cross-conversation memory
 interface ContextSummary {
-    recentProjects: Array<{id: string, name: string, status: string, componentCount: number}>;
-    recentOperations: Array<{type: 'move' | 'create' | 'update', entity: string, details: string}>;
-    activeDiscussion: string | null;
+  recentProjects: Array<{
+    id: string;
+    name: string;
+    status: string;
+    componentCount: number;
+  }>;
+  recentOperations: Array<{
+    type: "move" | "create" | "update";
+    entity: string;
+    details: string;
+  }>;
+  activeDiscussion: string | null;
 }
 
-const createContextSummary = (history: ChatMessage[], projects: any[]): ContextSummary => {
-    const recentProjects = projects.slice(-5).map(p => ({
-        id: p.id,
-        name: p.name,
-        status: p.status,
-        componentCount: p.components.length
-    }));
+const createContextSummary = (
+  history: ChatMessage[],
+  projects: any[]
+): ContextSummary => {
+  const recentProjects = projects.slice(-5).map((p) => ({
+    id: p.id,
+    name: p.name,
+    status: p.status,
+    componentCount: p.components.length,
+  }));
 
-    // Extract recent operations from chat history
-    const recentOperations: ContextSummary['recentOperations'] = [];
-    const recentMessages = history.slice(-10);
-    
-    for (const msg of recentMessages) {
-        if (msg.content.includes('moved') || msg.content.includes('transferred')) {
-            recentOperations.push({
-                type: 'move',
-                entity: 'item',
-                details: msg.content.substring(0, 100) + '...'
-            });
-        }
-        if (msg.content.includes('created project') || msg.content.includes('new project')) {
-            recentOperations.push({
-                type: 'create',
-                entity: 'project',
-                details: msg.content.substring(0, 100) + '...'
-            });
-        }
+  // Extract recent operations from chat history
+  const recentOperations: ContextSummary["recentOperations"] = [];
+  const recentMessages = history.slice(-10);
+
+  for (const msg of recentMessages) {
+    if (msg.content.includes("moved") || msg.content.includes("transferred")) {
+      recentOperations.push({
+        type: "move",
+        entity: "item",
+        details: msg.content.substring(0, 100) + "...",
+      });
     }
-
-    // Determine active discussion topic
-    let activeDiscussion = null;
-    const lastUserMessage = [...history].reverse().find(m => m.role === 'user');
-    if (lastUserMessage) {
-        if (lastUserMessage.content.toLowerCase().includes('project')) {
-            activeDiscussion = 'project_management';
-        } else if (lastUserMessage.content.toLowerCase().includes('move') || 
-                   lastUserMessage.content.toLowerCase().includes('transfer')) {
-            activeDiscussion = 'item_management';
-        }
+    if (
+      msg.content.includes("created project") ||
+      msg.content.includes("new project")
+    ) {
+      recentOperations.push({
+        type: "create",
+        entity: "project",
+        details: msg.content.substring(0, 100) + "...",
+      });
     }
+  }
 
-    return { recentProjects, recentOperations, activeDiscussion };
+  // Determine active discussion topic
+  let activeDiscussion = null;
+  const lastUserMessage = [...history].reverse().find((m) => m.role === "user");
+  if (lastUserMessage) {
+    if (lastUserMessage.content.toLowerCase().includes("project")) {
+      activeDiscussion = "project_management";
+    } else if (
+      lastUserMessage.content.toLowerCase().includes("move") ||
+      lastUserMessage.content.toLowerCase().includes("transfer")
+    ) {
+      activeDiscussion = "item_management";
+    }
+  }
+
+  return { recentProjects, recentOperations, activeDiscussion };
 };
 
-const pruneHistory = (history: ChatMessage[], maxMessages: number = 20): ChatMessage[] => {
-    if (history.length <= maxMessages) return history;
-    
-    // Keep first 2 messages (usually contain important context)
-    // Keep last maxMessages-2 messages (recent conversation)
-    const start = history.slice(0, 2);
-    const end = history.slice(-(maxMessages - 2));
-    
-    // Add a summary message to bridge the gap
-    const summaryMessage: ChatMessage = {
-        role: 'model',
-        content: '[Context Summary: Previous conversation covered project planning and component management. Continuing from recent discussion...]'
-    };
-    
-    return [...start, summaryMessage, ...end];
+const pruneHistory = (
+  history: ChatMessage[],
+  maxMessages: number = 20
+): ChatMessage[] => {
+  if (history.length <= maxMessages) return history;
+
+  // Keep first 2 messages (usually contain important context)
+  // Keep last maxMessages-2 messages (recent conversation)
+  const start = history.slice(0, 2);
+  const end = history.slice(-(maxMessages - 2));
+
+  // Add a summary message to bridge the gap
+  const summaryMessage: ChatMessage = {
+    role: "model",
+    content:
+      "[Context Summary: Previous conversation covered project planning and component management. Continuing from recent discussion...]",
+  };
+
+  return [...start, summaryMessage, ...end];
 };
 
 export const getAiChatStream = async (
-    message: string,
-    history: ChatMessage[],
-    fullInventory: InventoryItem[],
-    projects: any[] = [],
-    conversationContext?: any
+  message: string,
+  history: ChatMessage[],
+  fullInventory: InventoryItem[],
+  projects: any[] = [],
+  conversationContext?: any
 ): Promise<AsyncGenerator<GenerateContentResponse>> => {
-    
-    // Prune history to manage context limits while preserving key information
-    const prunedHistory = pruneHistory(history);
-    const contextSummary = createContextSummary(history, projects);
-    
-    const chat = getChat(prunedHistory);
-    
-    // Organize inventory by status for better AI understanding
-    const inventoryByStatus = fullInventory.reduce((acc, item) => {
-      if (!acc[item.status]) acc[item.status] = [];
-      acc[item.status].push(`${item.quantity}x ${item.name}`);
-      return acc;
-    }, {} as Record<string, string[]>);
+  // Prune history to manage context limits while preserving key information
+  const prunedHistory = pruneHistory(history);
+  const contextSummary = createContextSummary(history, projects);
 
-    const inventoryContext = `
+  const chat = getChat(prunedHistory);
+
+  // Organize inventory by status for better AI understanding
+  const inventoryByStatus = fullInventory.reduce((acc, item) => {
+    if (!acc[item.status]) acc[item.status] = [];
+    acc[item.status].push(`${item.quantity}x ${item.name}`);
+    return acc;
+  }, {} as Record<string, string[]>);
+
+  const inventoryContext = `
       Here is the user's current inventory organized by status:
       
-      COMPONENTS THEY HAVE: ${inventoryByStatus['I Have']?.join(', ') || 'None'}
-      COMPONENTS THEY NEED: ${inventoryByStatus['I Need']?.join(', ') || 'None'}  
-      COMPONENTS THEY WANT: ${inventoryByStatus['I Want']?.join(', ') || 'None'}
-      SALVAGED COMPONENTS: ${inventoryByStatus['I Salvaged']?.join(', ') || 'None'}
+      COMPONENTS THEY HAVE: ${inventoryByStatus["I Have"]?.join(", ") || "None"}
+      COMPONENTS THEY NEED: ${
+        inventoryByStatus["I Need"]?.join(", ") || "None"
+      }  
+      COMPONENTS THEY WANT: ${inventoryByStatus["I Want"]?.join(", ") || "None"}
+      SALVAGED COMPONENTS: ${
+        inventoryByStatus["I Salvaged"]?.join(", ") || "None"
+      }
       
       Full inventory details:
       ${JSON.stringify(fullInventory, null, 2)}
@@ -409,66 +444,83 @@ export const getAiChatStream = async (
       - For enhancement components or future projects, use "I Want" status
     `;
 
-    const projectContext = projects.length > 0 ? `
+  const projectContext =
+    projects.length > 0
+      ? `
       Here are the user's current projects:
-      ${JSON.stringify(projects.map(p => ({
+      ${JSON.stringify(
+        projects.map((p) => ({
           id: p.id,
           name: p.name,
           status: p.status,
           components: p.components,
-          description: p.description
-      })), null, 2)}
-    ` : '';
+          description: p.description,
+        })),
+        null,
+        2
+      )}
+    `
+      : "";
 
-    let contextSummaryText = `
+  let contextSummaryText = `
       CONVERSATION CONTEXT:
-      - Recent Projects: ${contextSummary.recentProjects.map(p => `${p.name} (${p.status}, ${p.componentCount} components)`).join(', ')}
-      - Recent Operations: ${contextSummary.recentOperations.map(op => `${op.type} ${op.entity}: ${op.details}`).join('; ')}
-      - Active Discussion: ${contextSummary.activeDiscussion || 'general'}
+      - Recent Projects: ${contextSummary.recentProjects
+        .map((p) => `${p.name} (${p.status}, ${p.componentCount} components)`)
+        .join(", ")}
+      - Recent Operations: ${contextSummary.recentOperations
+        .map((op) => `${op.type} ${op.entity}: ${op.details}`)
+        .join("; ")}
+      - Active Discussion: ${contextSummary.activeDiscussion || "general"}
       
       IMPORTANT: You can reference specific projects and inventory items by their IDs. When suggesting moves or transfers between projects, always specify the exact project IDs and item IDs involved.
     `;
 
-    // Add persistent conversation context if available
-    if (conversationContext) {
-      contextSummaryText += `
+  // Add persistent conversation context if available
+  if (conversationContext) {
+    contextSummaryText += `
       
       PERSISTENT MEMORY:
-      - Previous Summary: ${conversationContext.summary || 'None'}
-      - Recent Topics: ${conversationContext.recentTopics?.join(', ') || 'None'}
-      - Components Discussed: ${conversationContext.mentionedComponents?.join(', ') || 'None'}
-      - Projects Mentioned: ${conversationContext.discussedProjects?.join(', ') || 'None'}
+      - Previous Summary: ${conversationContext.summary || "None"}
+      - Recent Topics: ${conversationContext.recentTopics?.join(", ") || "None"}
+      - Components Discussed: ${
+        conversationContext.mentionedComponents?.join(", ") || "None"
+      }
+      - Projects Mentioned: ${
+        conversationContext.discussedProjects?.join(", ") || "None"
+      }
       `;
-    }
+  }
 
-    const fullPrompt = `${contextSummaryText}\n\n${inventoryContext}\n\n${projectContext}\n\nUser's request: ${message}`;
-    
-    try {
-        const response = await chat.sendMessageStream({ message: fullPrompt });
-        return response;
-    } catch (error) {
-        console.error("Gemini API call failed:", error);
-        throw new Error("Failed to get a response from the AI.");
-    }
+  const fullPrompt = `${contextSummaryText}\n\n${inventoryContext}\n\n${projectContext}\n\nUser's request: ${message}`;
+
+  try {
+    const response = await chat.sendMessageStream({ message: fullPrompt });
+    return response;
+  } catch (error) {
+    console.error("Gemini API call failed:", error);
+    throw new Error("Failed to get a response from the AI.");
+  }
 };
 
-export const generateDescription = async (itemName: string): Promise<string> => {
-    try {
-        const prompt = `Provide a concise, one-sentence technical description for the following electronics component: "${itemName}". Focus on its primary function and key specifications.`;
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: prompt,
-        });
-        return response.text.trim();
-    } catch(error) {
-        console.error("Gemini description generation failed:", error);
-        throw new Error("Failed to generate description from AI.");
-    }
+export const generateDescription = async (
+  itemName: string
+): Promise<string> => {
+  try {
+    const prompt = `Provide a concise, one-sentence technical description for the following electronics component: "${itemName}". Focus on its primary function and key specifications.`;
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+    });
+    return response.text.trim();
+  } catch (error) {
+    console.error("Gemini description generation failed:", error);
+    throw new Error("Failed to generate description from AI.");
+  }
 };
 
 export const suggestCategory = async (itemName: string): Promise<string> => {
-    try {
-        const prompt = `Categorize the following electronic component: "${itemName}".
+  try {
+    const prompt = `Categorize the following electronic component: "${itemName}".
         Choose the single best category from this list:
         - Microcontroller
         - Development Board
@@ -497,22 +549,23 @@ export const suggestCategory = async (itemName: string): Promise<string> => {
         - Miscellaneous
 
         Your response must be ONLY the category name, with no extra text or explanation.`;
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: prompt,
-        });
-        
-        return response.text.trim();
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+    });
 
-    } catch(error) {
-        console.error("Gemini category suggestion failed:", error);
-        throw new Error("Failed to suggest category from AI.");
-    }
+    return response.text.trim();
+  } catch (error) {
+    console.error("Gemini category suggestion failed:", error);
+    throw new Error("Failed to suggest category from AI.");
+  }
 };
 
-export const getComponentIntelligence = async (itemName: string): Promise<{ aiInsights: AiInsights, marketData: MarketDataItem[] }> => {
-    try {
-        const prompt = `
+export const getComponentIntelligence = async (
+  itemName: string
+): Promise<{ aiInsights: AiInsights; marketData: MarketDataItem[] }> => {
+  try {
+    const prompt = `
             Analyze the electronics component "${itemName}".
             1. Provide a detailed technical paragraph about the component, including its primary uses, key features, and common applications in IoT projects.
             2. Suggest 2-3 innovative project ideas that prominently feature this component.
@@ -532,52 +585,55 @@ export const getComponentIntelligence = async (itemName: string): Promise<{ aiIn
               ]
             }
         `;
-        
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                // responseMimeType and responseSchema are not compatible with tools
-                tools: [{googleSearch: {}}],
-            }
-        });
 
-        let jsonString = response.text.trim();
-        // Clean potential markdown wrappers just in case the model adds them
-        if (jsonString.startsWith('```json')) {
-            jsonString = jsonString.substring(7, jsonString.length - 3).trim();
-        } else if (jsonString.startsWith('```')) {
-            jsonString = jsonString.substring(3, jsonString.length - 3).trim();
-        }
-        
-        const parsedJson = JSON.parse(jsonString);
-        
-        const result = {
-            aiInsights: {
-                detailedDescription: parsedJson.detailedDescription,
-                projectIdeas: parsedJson.projectIdeas
-            },
-            marketData: parsedJson.marketData
-        };
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        // responseMimeType and responseSchema are not compatible with tools
+        tools: [{ googleSearch: {} }],
+      },
+    });
 
-        if (!result.aiInsights || !result.marketData) {
-            throw new Error("Parsed JSON from AI is missing required fields.");
-        }
-
-        return result;
-
-    } catch (error) {
-        console.error("Gemini component intelligence failed:", error);
-        if (error instanceof SyntaxError) {
-             throw new Error("Failed to parse the AI's JSON response for component intelligence.");
-        }
-        throw new Error("Failed to get component intelligence from AI.");
+    let jsonString = response.text.trim();
+    // Clean potential markdown wrappers just in case the model adds them
+    if (jsonString.startsWith("```json")) {
+      jsonString = jsonString.substring(7, jsonString.length - 3).trim();
+    } else if (jsonString.startsWith("```")) {
+      jsonString = jsonString.substring(3, jsonString.length - 3).trim();
     }
+
+    const parsedJson = JSON.parse(jsonString);
+
+    const result = {
+      aiInsights: {
+        detailedDescription: parsedJson.detailedDescription,
+        projectIdeas: parsedJson.projectIdeas,
+      },
+      marketData: parsedJson.marketData,
+    };
+
+    if (!result.aiInsights || !result.marketData) {
+      throw new Error("Parsed JSON from AI is missing required fields.");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Gemini component intelligence failed:", error);
+    if (error instanceof SyntaxError) {
+      throw new Error(
+        "Failed to parse the AI's JSON response for component intelligence."
+      );
+    }
+    throw new Error("Failed to get component intelligence from AI.");
+  }
 };
 
-export const analyzeGithubRepo = async (repoUrl: string): Promise<{ name: string; quantity: number }[]> => {
-    try {
-        const prompt = `
+export const analyzeGithubRepo = async (
+  repoUrl: string
+): Promise<{ name: string; quantity: number }[]> => {
+  try {
+    const prompt = `
             Analyze the public GitHub repository at ${repoUrl}.
             Examine its code, especially files like 'platformio.ini', 'Cargo.toml', '.ino' sketches, 'requirements.txt', or 'package.json' to identify the physical electronic hardware components required to build the project.
             List only the physical components (like sensors, microcontrollers, motors, shields), not abstract software libraries.
@@ -585,47 +641,53 @@ export const analyzeGithubRepo = async (repoUrl: string): Promise<{ name: string
             The JSON object should be an array where each item represents a component and has a 'name' (string) and 'quantity' (integer).
         `;
 
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            name: { type: Type.STRING },
-                            quantity: { type: Type.INTEGER },
-                        },
-                        required: ["name", "quantity"],
-                    },
-                },
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              quantity: { type: Type.INTEGER },
             },
-        });
-        
-        const jsonString = response.text.trim();
-        const parsedJson = JSON.parse(jsonString);
+            required: ["name", "quantity"],
+          },
+        },
+      },
+    });
 
-        if (!Array.isArray(parsedJson)) {
-            throw new Error("AI response was not a JSON array.");
-        }
-        
-        return parsedJson;
+    const jsonString = response.text.trim();
+    const parsedJson = JSON.parse(jsonString);
 
-    } catch (error) {
-        console.error("Gemini GitHub analysis failed:", error);
-        if (error instanceof SyntaxError) {
-             throw new Error("Failed to parse the AI's JSON response for GitHub analysis.");
-        }
-        throw new Error("Failed to get component list from AI for the GitHub repository.");
+    if (!Array.isArray(parsedJson)) {
+      throw new Error("AI response was not a JSON array.");
     }
-}
+
+    return parsedJson;
+  } catch (error) {
+    console.error("Gemini GitHub analysis failed:", error);
+    if (error instanceof SyntaxError) {
+      throw new Error(
+        "Failed to parse the AI's JSON response for GitHub analysis."
+      );
+    }
+    throw new Error(
+      "Failed to get component list from AI for the GitHub repository."
+    );
+  }
+};
 
 // Project AI categorization and enhancement functions
-export const suggestProjectCategory = async (projectName: string, description: string): Promise<string> => {
-    try {
-        const prompt = `Categorize the following IoT/electronics project: "${projectName}" with description: "${description}".
+export const suggestProjectCategory = async (
+  projectName: string,
+  description: string
+): Promise<string> => {
+  try {
+    const prompt = `Categorize the following IoT/electronics project: "${projectName}" with description: "${description}".
         Choose the single best category from this list:
         - Home Automation
         - Robotics
@@ -643,23 +705,25 @@ export const suggestProjectCategory = async (projectName: string, description: s
         - Miscellaneous
 
         Your response must be ONLY the category name, with no extra text or explanation.`;
-        
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: prompt,
-        });
-        
-        return response.text.trim();
 
-    } catch(error) {
-        console.error("Gemini project category suggestion failed:", error);
-        throw new Error("Failed to suggest project category from AI.");
-    }
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+    });
+
+    return response.text.trim();
+  } catch (error) {
+    console.error("Gemini project category suggestion failed:", error);
+    throw new Error("Failed to suggest project category from AI.");
+  }
 };
 
-export const enhanceProjectDescription = async (projectName: string, currentDescription: string): Promise<string> => {
-    try {
-        const prompt = `Enhance the following IoT/electronics project description to be more detailed and informative:
+export const enhanceProjectDescription = async (
+  projectName: string,
+  currentDescription: string
+): Promise<string> => {
+  try {
+    const prompt = `Enhance the following IoT/electronics project description to be more detailed and informative:
         
         Project Name: "${projectName}"
         Current Description: "${currentDescription}"
@@ -671,29 +735,34 @@ export const enhanceProjectDescription = async (projectName: string, currentDesc
         - Technical highlights
         
         Keep it concise but informative (2-3 sentences maximum).`;
-        
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: prompt,
-        });
-        
-        return response.text.trim();
 
-    } catch(error) {
-        console.error("Gemini project description enhancement failed:", error);
-        throw new Error("Failed to enhance project description from AI.");
-    }
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+    });
+
+    return response.text.trim();
+  } catch (error) {
+    console.error("Gemini project description enhancement failed:", error);
+    throw new Error("Failed to enhance project description from AI.");
+  }
 };
 
-export const suggestProjectImprovements = async (projectName: string, description: string, components: any[]): Promise<{
-    suggestions: string[];
-    additionalComponents: { name: string; reason: string }[];
-    optimizations: string[];
+export const suggestProjectImprovements = async (
+  projectName: string,
+  description: string,
+  components: any[]
+): Promise<{
+  suggestions: string[];
+  additionalComponents: { name: string; reason: string }[];
+  optimizations: string[];
 }> => {
-    try {
-        const componentList = components.map(c => `${c.quantity}x ${c.name}`).join(', ');
-        
-        const prompt = `Analyze this IoT/electronics project and suggest improvements:
+  try {
+    const componentList = components
+      .map((c) => `${c.quantity}x ${c.name}`)
+      .join(", ");
+
+    const prompt = `Analyze this IoT/electronics project and suggest improvements:
         
         Project: "${projectName}"
         Description: "${description}"
@@ -710,61 +779,68 @@ export const suggestProjectImprovements = async (projectName: string, descriptio
             "additionalComponents": [{"name": "component name", "reason": "why it's useful"}],
             "optimizations": ["optimization 1", "optimization 2"]
         }`;
-        
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        suggestions: {
-                            type: Type.ARRAY,
-                            items: { type: Type.STRING }
-                        },
-                        additionalComponents: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    name: { type: Type.STRING },
-                                    reason: { type: Type.STRING }
-                                },
-                                required: ["name", "reason"]
-                            }
-                        },
-                        optimizations: {
-                            type: Type.ARRAY,
-                            items: { type: Type.STRING }
-                        }
-                    },
-                    required: ["suggestions", "additionalComponents", "optimizations"]
-                }
-            }
-        });
-        
-        const jsonString = response.text.trim();
-        const parsedJson = JSON.parse(jsonString);
-        
-        return parsedJson;
 
-    } catch(error) {
-        console.error("Gemini project improvement suggestions failed:", error);
-        throw new Error("Failed to get project improvement suggestions from AI.");
-    }
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            suggestions: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+            additionalComponents: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  reason: { type: Type.STRING },
+                },
+                required: ["name", "reason"],
+              },
+            },
+            optimizations: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+          },
+          required: ["suggestions", "additionalComponents", "optimizations"],
+        },
+      },
+    });
+
+    const jsonString = response.text.trim();
+    const parsedJson = JSON.parse(jsonString);
+
+    return parsedJson;
+  } catch (error) {
+    console.error("Gemini project improvement suggestions failed:", error);
+    throw new Error("Failed to get project improvement suggestions from AI.");
+  }
 };
 
-export const generateProjectInstructions = async (projectName: string, description: string, components: any[]): Promise<{
+export const generateProjectInstructions = async (
+  projectName: string,
+  description: string,
+  components: any[]
+): Promise<
+  {
     title: string;
     description: string;
     code?: string;
     tips?: string[];
-}[]> => {
-    try {
-        const componentList = components.map(c => `${c.quantity}x ${c.name}`).join(', ');
-        
-        const prompt = `Generate detailed step-by-step instructions for this IoT/electronics project:
+  }[]
+> => {
+  try {
+    const componentList = components
+      .map((c) => `${c.quantity}x ${c.name}`)
+      .join(", ");
+
+    const prompt = `Generate detailed step-by-step instructions for this IoT/electronics project:
         
         Project: "${projectName}"
         Description: "${description}"
@@ -792,56 +868,58 @@ export const generateProjectInstructions = async (projectName: string, descripti
                 "tips": ["tip 1", "tip 2"]
             }
         ]`;
-        
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            title: { type: Type.STRING },
-                            description: { type: Type.STRING },
-                            code: { type: Type.STRING },
-                            tips: {
-                                type: Type.ARRAY,
-                                items: { type: Type.STRING }
-                            }
-                        },
-                        required: ["title", "description"]
-                    }
-                }
-            }
-        });
-        
-        const jsonString = response.text.trim();
-        const parsedJson = JSON.parse(jsonString);
-        
-        return parsedJson;
 
-    } catch(error) {
-        console.error("Gemini project instructions generation failed:", error);
-        throw new Error("Failed to generate project instructions from AI.");
-    }
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              description: { type: Type.STRING },
+              code: { type: Type.STRING },
+              tips: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
+            },
+            required: ["title", "description"],
+          },
+        },
+      },
+    });
+
+    const jsonString = response.text.trim();
+    const parsedJson = JSON.parse(jsonString);
+
+    return parsedJson;
+  } catch (error) {
+    console.error("Gemini project instructions generation failed:", error);
+    throw new Error("Failed to generate project instructions from AI.");
+  }
 };
 
-export const analyzeProjectComplexity = async (projectName: string, description: string): Promise<{
-    isComplex: boolean;
-    suggestedSubProjects: {
-        name: string;
-        description: string;
-        phase: number;
-        estimatedTime: string;
-        components: string[];
-        dependencies: string[];
-    }[];
-    reasoning: string;
+export const analyzeProjectComplexity = async (
+  projectName: string,
+  description: string
+): Promise<{
+  isComplex: boolean;
+  suggestedSubProjects: {
+    name: string;
+    description: string;
+    phase: number;
+    estimatedTime: string;
+    components: string[];
+    dependencies: string[];
+  }[];
+  reasoning: string;
 }> => {
-    try {
-        const prompt = `Analyze this IoT/electronics project for complexity and suggest sub-project breakdown:
+  try {
+    const prompt = `Analyze this IoT/electronics project for complexity and suggest sub-project breakdown:
         
         Project: "${projectName}"
         Description: "${description}"
@@ -871,51 +949,57 @@ export const analyzeProjectComplexity = async (projectName: string, description:
             ],
             "reasoning": "Explanation of why this breakdown makes sense"
         }`;
-        
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        isComplex: { type: Type.BOOLEAN },
-                        suggestedSubProjects: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    name: { type: Type.STRING },
-                                    description: { type: Type.STRING },
-                                    phase: { type: Type.INTEGER },
-                                    estimatedTime: { type: Type.STRING },
-                                    components: {
-                                        type: Type.ARRAY,
-                                        items: { type: Type.STRING }
-                                    },
-                                    dependencies: {
-                                        type: Type.ARRAY,
-                                        items: { type: Type.STRING }
-                                    }
-                                },
-                                required: ["name", "description", "phase", "estimatedTime", "components", "dependencies"]
-                            }
-                        },
-                        reasoning: { type: Type.STRING }
-                    },
-                    required: ["isComplex", "suggestedSubProjects", "reasoning"]
-                }
-            }
-        });
-        
-        const jsonString = response.text.trim();
-        const parsedJson = JSON.parse(jsonString);
-        
-        return parsedJson;
 
-    } catch(error) {
-        console.error("Gemini project complexity analysis failed:", error);
-        throw new Error("Failed to analyze project complexity from AI.");
-    }
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            isComplex: { type: Type.BOOLEAN },
+            suggestedSubProjects: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  phase: { type: Type.INTEGER },
+                  estimatedTime: { type: Type.STRING },
+                  components: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                  },
+                  dependencies: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                  },
+                },
+                required: [
+                  "name",
+                  "description",
+                  "phase",
+                  "estimatedTime",
+                  "components",
+                  "dependencies",
+                ],
+              },
+            },
+            reasoning: { type: Type.STRING },
+          },
+          required: ["isComplex", "suggestedSubProjects", "reasoning"],
+        },
+      },
+    });
+
+    const jsonString = response.text.trim();
+    const parsedJson = JSON.parse(jsonString);
+
+    return parsedJson;
+  } catch (error) {
+    console.error("Gemini project complexity analysis failed:", error);
+    throw new Error("Failed to analyze project complexity from AI.");
+  }
 };

@@ -1,89 +1,110 @@
 # IoT Inventory Oracle 🚀
 
-A comprehensive inventory management system for IoT makers and electronics enthusiasts, powered by advanced AI assistance and smart project management capabilities.
+A comprehensive, AI-powered inventory management system for IoT makers and electronics enthusiasts. Features intelligent project management, conversational AI assistance, and seamless integration between your physical components and digital projects.
 
-## ✨ Latest Features (v2.1) - Modern Storage System
+## ✨ Latest Features (v3.0) - AI-Powered Project & Inventory Management
 
-### 🗄️ Advanced Data Storage
-- **SQLite Database**: Fast, reliable inventory storage with proper indexing and relationships
-- **Markdown Projects**: Human-readable project files with rich metadata and documentation
-- **File-Based Architecture**: No more localStorage limitations - proper data persistence
-- **Data Integrity**: Foreign key constraints and transaction support
+### 🤖 Conversational AI Management
+- **Natural Language Control**: Manage projects and inventory through chat
+  - *"Mark my Arduino project as completed"*
+  - *"I just bought 5 ESP32s, put them in my electronics drawer"*
+  - *"Set weather station to 75% progress"*
+- **Auto-Execution**: AI automatically applies simple updates with confirmation
+- **Smart Context**: AI remembers your projects and components across conversations
+- **Interactive Actions**: Manual confirmation buttons for complex changes
 
-### 🛠️ Developer Tools
-- **CLI Interface**: Comprehensive command-line tools for power users and automation
-- **Database Analytics**: Advanced querying and reporting capabilities
-- **Markdown Documentation**: Projects stored as readable markdown files with frontmatter
-- **Search Performance**: Indexed database searches across all data
+### 🎯 Advanced Project Management
+- **3-Stage Workflow**: Planning → In Progress → Completed
+- **Sub-Project Support**: Break complex projects into manageable phases
+- **AI-Generated Instructions**: Step-by-step guides with code examples
+- **Auto-Save AI Content**: Instructions, insights, and descriptions persist automatically
+- **GitHub Integration**: Import component lists from repositories
+- **Project Templates**: Pre-built templates for common IoT projects
 
-### 📊 Enhanced Analytics
-- **Real-time Statistics**: Fast aggregation queries for inventory insights
-- **Rich Project Documentation**: Markdown format with code snippets and diagrams
-- **Global Search**: Search across inventory and projects simultaneously
-- **Status Tracking**: Detailed breakdowns by category, status, and usage
+### 📦 Smart Inventory System
+- **7 Status Categories**: I Have, I Need, I Want, I Salvaged, I Returned, Discarded, Given Away
+- **AI Categorization**: 25+ specific categories (Resistor, Capacitor, LED, Motor, etc.)
+- **Allocation Tracking**: See which components are used in which projects
+- **Market Intelligence**: AI-powered price comparison and sourcing
+- **Component Analysis**: Compatibility checking and optimization suggestions
 
-### 🧠 Enhanced AI Context Management
-- **Persistent Memory**: AI remembers your projects and components across conversations
-- **Cross-Project Operations**: Move components between projects with one-click
-- **Smart Suggestions**: AI analyzes compatibility and suggests optimal component allocation
-- **Context-Aware Recommendations**: Maintains conversation continuity for better assistance
+### 🎨 Modern User Interface
+- **Collapsible Sidebar**: Icon-only mode for more workspace
+- **Chat History Sidebar**: Dedicated right panel for conversation management
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- **Dark Theme**: Professional dark interface optimized for long sessions
+- **Interactive Components**: Drag-and-drop, one-click actions, smart forms
 
-### 📋 Project Templates System
-- **Pre-built Templates**: Smart home, weather station, security systems, and more
-- **Difficulty Ratings**: Beginner, Intermediate, and Advanced project classifications
-- **Component Matching**: AI suggests templates based on your available components
-- **Guided Instructions**: Step-by-step build guides with code snippets
-
-### 🔍 Smart Search & Discovery
-- **Universal Search**: Find components, projects, and categories instantly
-- **Intelligent Filtering**: Search by name, category, description, or project usage
-- **Quick Navigation**: Jump directly to items or projects from search results
-
----
-
-A smart inventory management application for IoT projects, powered by Google's Gemini API. Track components you have, need, or want, and chat with an AI assistant to plan projects, find parts, and get coding support.
+### 🗄️ Enterprise-Grade Storage
+- **SQLite Database**: Fast, reliable inventory storage with ACID transactions
+- **Markdown Projects**: Human-readable project files with rich metadata
+- **File-Based Architecture**: No localStorage limitations - proper data persistence
+- **CLI Tools**: Command-line interface for power users and automation
+- **Data Integrity**: Foreign key constraints and relationship management
 
 ![IoT Inventory Oracle Screenshot](https://storage.googleapis.com/aistudio-ux-team-public/sdk-pro-samples/iot-oracle-screenshot.png)
 
-## ✨ Core Features
+## 🎯 Core Features
 
-### 🎯 Smart Inventory Management
-*   **Detailed Component Tracking**: Record electronic components with status tracking (Have, Need, Want, Salvaged, etc.)
-*   **AI-Enhanced Cataloging**: Auto-generate descriptions and suggest categories for new components
-*   **Advanced Analytics**: View inventory value, utilization rates, and component distribution
-*   **Smart Alerts**: Get notified about low stock items and potential duplicates
+### 🤖 Conversational AI Assistant
+- **Natural Language Management**: Control projects and inventory through chat
+- **Context-Aware Intelligence**: AI remembers your components and projects across sessions
+- **Auto-Execution**: Simple updates applied automatically with smart confirmation
+- **Interactive Actions**: Manual buttons for complex operations with preview
+- **Code Generation**: Complete Arduino/ESP32/Raspberry Pi code with explanations
+- **Real-time Sourcing**: Find components online with pricing from multiple suppliers
+- **Project Suggestions**: Get project ideas based on your available components
 
-### 🤖 AI-Powered Assistant
-*   **Persistent Context**: AI remembers your projects and components across conversations
-*   **Project Suggestions**: Get project ideas based on your available components
-*   **Cross-Project Management**: Move components between projects with AI guidance
-*   **Component Analysis**: Compatibility checking and optimization suggestions
-*   **Code Generation**: Complete Arduino/ESP32/Raspberry Pi code with explanations
-*   **Real-time Sourcing**: Find components online with pricing from multiple suppliers
+### 📦 Advanced Inventory Management
+- **7 Status Categories**: I Have, I Need, I Want, I Salvaged, I Returned, Discarded, Given Away
+- **25+ Component Categories**: Resistor, Capacitor, LED, Motor, Sensor, Microcontroller, etc.
+- **AI-Enhanced Cataloging**: Auto-generate descriptions and suggest categories
+- **Allocation Tracking**: See which components are allocated to which projects
+- **Market Intelligence**: AI-powered price comparison and supplier recommendations
+- **Smart Analytics**: Inventory value, utilization rates, and distribution insights
 
-### 📋 Advanced Project Management
-*   **Project Templates**: Pre-built templates for common IoT projects (Smart Home, Weather Station, etc.)
-*   **GitHub Integration**: Import component lists from public repositories automatically
-*   **Readiness Analysis**: See which projects are ready to build vs missing components
-*   **Interactive Operations**: One-click component moves and inventory transfers
-*   **AI Kickstart**: Get detailed build plans, circuit diagrams, and starter code
+### 🎯 Intelligent Project Management
+- **3-Stage Workflow**: Planning → In Progress → Completed with progress tracking
+- **Sub-Project Support**: Break complex projects into manageable phases with dependencies
+- **AI-Generated Content**: Instructions, insights, and enhanced descriptions auto-saved
+- **GitHub Integration**: Import component lists from public repositories
+- **Project Templates**: Pre-built templates for Smart Home, Weather Station, Security, etc.
+- **Readiness Analysis**: See which projects can be built immediately vs missing components
+- **Cross-Project Operations**: Move components between projects with AI guidance
 
 ### 🏠 Home Assistant Integration
-*   **Entity Linking**: Connect HA entities to physical components in your inventory
-*   **Bridge Digital & Physical**: Understand the hardware behind your smart home setup
-*   **Real-time Monitoring**: View your Home Assistant entities alongside component data
+- **Entity Linking**: Connect HA entities to physical components in your inventory
+- **Bridge Digital & Physical**: Understand the hardware behind your smart home setup
+- **Real-time Monitoring**: View your Home Assistant entities alongside component data
+- **Configuration Management**: Track which physical components power your automations
 
-### 📊 Analytics & Insights
-*   **Inventory Dashboard**: Comprehensive analytics with visual charts and metrics
-*   **Project Readiness**: Track which projects can be built immediately
-*   **Cost Analysis**: Monitor total inventory value and spending by category
-*   **Utilization Tracking**: See how well you're using your component collection
+### 🎨 Modern User Experience
+- **Collapsible Sidebar**: Icon-only mode for maximum workspace efficiency
+- **Chat History Sidebar**: Dedicated right panel for conversation management
+- **Responsive Design**: Seamless experience across desktop, tablet, and mobile
+- **Dark Theme**: Professional interface optimized for extended use
+- **Interactive Components**: Drag-and-drop, one-click actions, smart forms
+- **Real-time Updates**: Instant UI feedback with server synchronization
 
 ## 🚀 Tech Stack
 
-*   **Frontend**: [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/)
-*   **AI**: [Google Gemini API (`@google/genai`)](https://ai.google.dev/docs)
-*   **Core Libraries**: No bundler! The app uses modern browser features like **ES Modules** and **Import Maps** for a fast, buildless development experience.
+### Frontend
+- **React 19**: Latest React with concurrent features and improved performance
+- **TypeScript**: Full type safety across the entire application
+- **Tailwind CSS 4**: Modern utility-first CSS framework with latest features
+- **Vite**: Lightning-fast build tool with HMR and ES modules
+
+### Backend & AI
+- **Express.js**: RESTful API server with CORS and middleware support
+- **SQLite + better-sqlite3**: High-performance embedded database with ACID transactions
+- **Google Gemini API**: Advanced AI with function calling and structured outputs
+- **Gray Matter**: Markdown processing for human-readable project documentation
+
+### Architecture
+- **Client-Server**: React SPA communicating with Express API
+- **File-Based Storage**: Markdown projects + SQLite inventory for optimal performance
+- **CLI Tools**: Direct database access for power users and automation
+- **Modern ES Modules**: Fast development with native browser module support
 
 ## 🗄️ Storage Architecture
 
@@ -280,6 +301,42 @@ VITE_HOME_ASSISTANT_TOKEN=your_long_lived_access_token_here
 3. Click "Create API Key"
 4. Copy the generated key to your `.env` file
 
+## 🧠 AI Capabilities Deep Dive
+
+### Conversational Management
+The AI assistant can understand and execute complex operations through natural language:
+
+**Project Operations:**
+```
+User: "I finished testing my weather station, mark it complete and set progress to 100%"
+AI: Updates project status, progress, and adds completion notes automatically
+```
+
+**Inventory Operations:**
+```
+User: "I just received my Adafruit order - 3 ESP32s, 10 sensors, put them in storage"
+AI: Updates quantities, sets status to "I Have", updates locations
+```
+
+**Cross-System Intelligence:**
+- Remembers your project history across conversations
+- Suggests component moves between projects
+- Analyzes compatibility and optimization opportunities
+- Provides market intelligence and sourcing recommendations
+
+### AI-Generated Content
+All AI-generated content is automatically saved:
+- **Project Instructions**: Step-by-step build guides with code
+- **Component Insights**: Technical descriptions and project ideas
+- **Market Data**: Real-time pricing from multiple suppliers
+- **Project Analysis**: Complexity assessment and sub-project suggestions
+
+### Smart Automation
+- **Auto-Categorization**: New components get proper categories automatically
+- **Status Intelligence**: AI understands "I bought", "I need", "it's broken" naturally
+- **Project Breakdown**: Complex projects automatically split into sub-projects
+- **Component Allocation**: Smart suggestions for optimal component usage
+
 ### Deployment
 
 For production deployment:
@@ -302,33 +359,73 @@ Popular deployment options:
 
 ## 📖 How to Use
 
-1.  **Inventory View**:
-    *   Click the **`+`** button to add a new component. Use the AI features in the modal to auto-generate descriptions and suggest categories.
-    *   Click on any item in the table to open the **Component Detail Modal**, which provides AI-powered insights and market data.
-    *   Use the tabs (`I Have`, `I Want`, `I Need`, etc.) to filter your view.
-    *   To start a project, select checkboxes next to items in the "I Have" tab and click the **"Checkout"** button.
+### 🤖 Chat Assistant - The Heart of the System
+The AI assistant understands natural language and can manage your entire inventory and projects:
 
-2.  **Projects View**:
-    *   Here you'll find all the projects you've created.
-    *   **Link GitHub Repo**: Click this to associate a project with a public GitHub repository. The AI can then sync the required components.
-    *   **AI Kickstart**: Click this to send the project's component list to the chat assistant, asking for a detailed plan, code, and guidance.
+**Project Management Examples:**
+- *"Mark my Arduino weather station as completed"*
+- *"Set my LED strip project to 75% progress"*
+- *"Create a new smart home project with ESP32 and sensors"*
+- *"Generate step-by-step instructions for my temperature monitor"*
 
-3.  **Home Assistant View**:
-    *   First, go to **Settings** and enter your Home Assistant URL and a Long-Lived Access Token.
-    *   Once configured, this view will populate with all your HA entities.
-    *   Click **"Link to Inventory"** on any entity card to associate it with a specific component from your stock.
+**Inventory Management Examples:**
+- *"I just bought 5 ESP32s, put them in my electronics drawer"*
+- *"I need to order more resistors"*
+- *"I salvaged LEDs from my old project"*
+- *"My sensor is broken, mark it as discarded"*
 
-4.  **Chat Assistant**:
-    *   The heart of the application. Ask it anything!
-    *   Examples:
-        *   _"What can I build with an ESP32 and a BME280 sensor?"_
-        *   _"Find me a supplier for a Raspberry Pi 5."_
-        *   _"Write me a simple MicroPython script to read a DHT22 sensor."_
-        *   _"I'm starting a new project to monitor my 3D printer. What components will I need?"_
+**Technical Assistance:**
+- *"What can I build with an ESP32 and BME280 sensor?"*
+- *"Write me Arduino code to read a DHT22 sensor"*
+- *"Find suppliers for Raspberry Pi 5"*
+- *"Help me troubleshoot my I2C communication issues"*
 
-5.  **Settings**:
-    *   Configure your Home Assistant connection.
-    *   Use the **Import/Export** functions to manage your inventory data.
+### 📦 Inventory Management
+1. **Adding Components**: Click the `+` button or tell the AI *"I just got new components"*
+2. **AI Enhancement**: Use AI buttons to auto-generate descriptions and categories
+3. **Status Tracking**: Components automatically move between I Have, I Need, I Want, etc.
+4. **Component Details**: Click any item for AI insights, market data, and project usage
+5. **Smart Search**: Find components instantly with intelligent filtering
+
+### 🎯 Project Management
+1. **Three-Stage Workflow**: Projects flow from Planning → In Progress → Completed
+2. **Sub-Projects**: Complex projects automatically break into manageable phases
+3. **AI Kickstart**: Get complete build plans, code, and component lists
+4. **GitHub Integration**: Import component requirements from repositories
+5. **Progress Tracking**: Visual progress bars and milestone management
+6. **Component Allocation**: See which inventory items are used in which projects
+
+### 🏠 Home Assistant Integration
+1. **Configuration**: Go to Settings and add your HA URL and Long-Lived Access Token
+2. **Entity Discovery**: All your HA entities appear automatically
+3. **Physical Linking**: Connect digital entities to physical components
+4. **Hardware Tracking**: Understand what hardware powers your smart home
+
+### ⚙️ Advanced Features
+- **Collapsible Sidebar**: Click the chevron to maximize workspace
+- **Chat History**: Right sidebar shows all your AI conversations
+- **CLI Tools**: Use `npm run cli` for advanced database operations
+- **Export/Import**: Backup and restore your data through Settings
+
+## 🆚 What Makes This Special
+
+### vs. Traditional Inventory Apps
+- **AI-Powered**: Natural language control instead of forms and menus
+- **Project-Centric**: Built for makers who build things, not just store parts
+- **Context-Aware**: Remembers your projects and suggests optimizations
+- **Auto-Categorization**: No manual data entry - AI handles the tedious work
+
+### vs. Simple Spreadsheets
+- **Intelligent Search**: Find components by project, compatibility, or usage
+- **Market Intelligence**: Real-time pricing and supplier recommendations
+- **Project Integration**: See which components are used where
+- **AI Assistance**: Get help with technical questions and project planning
+
+### vs. Generic Project Management
+- **Hardware-Focused**: Designed specifically for electronics and IoT projects
+- **Component Allocation**: Track physical inventory usage across projects
+- **Technical AI**: Understands electronics, compatibility, and coding
+- **Maker Workflow**: Optimized for the build-test-iterate cycle
 
 ## 🔧 Troubleshooting
 
@@ -337,26 +434,101 @@ Popular deployment options:
 **"VITE_API_KEY environment variable not set" Error**
 - Ensure you've created a `.env` file in the root directory
 - Verify your API key is correctly set as `VITE_API_KEY=your_key_here`
-- Restart the development server after adding environment variables
+- Restart both server and client after adding environment variables
 
-**AI Chat Not Working**
+**AI Chat Not Responding**
 - Check that your Gemini API key is valid and has quota remaining
 - Verify the API key has the necessary permissions for the Gemini API
-- Check browser console for detailed error messages
+- Check browser console and server logs for detailed error messages
+- Try refreshing the page to reset the AI context
+
+**Server Connection Issues**
+- Ensure both server (port 3001) and client (port 3000) are running
+- Check that `npm run dev:full` started both processes successfully
+- Verify no firewall is blocking the local ports
+- Try `npm run server` and `npm run dev` separately to isolate issues
+
+**Database/CLI Issues**
+- Ensure SQLite database has proper permissions
+- Try `npm run cli stats` to test database connectivity
+- Check that the `inventory.db` file exists and is not corrupted
+- Restart the server if database locks occur
 
 **Home Assistant Integration Issues**
 - Ensure your Home Assistant URL is accessible from your browser
 - Verify your Long-Lived Access Token has the required permissions
 - Check that CORS is properly configured in Home Assistant if needed
+- Test the connection in Settings before using the integration
 
-**Development Server Won't Start**
-- Ensure Node.js version is 16 or higher: `node --version`
-- Clear node_modules and reinstall: `rm -rf node_modules && npm install`
-- Check for port conflicts (default is 3000)
+### Performance Tips
+- **Large Inventories**: Use the CLI for bulk operations
+- **Slow AI Responses**: Check your internet connection and API quota
+- **Memory Usage**: Restart the browser if the app becomes sluggish
+- **Database Performance**: Use the CLI `stats` command to monitor database size
 
 ### Getting Help
-
-- Check the browser console for error messages
+- Check browser console (F12) for client-side errors
+- Check server terminal for API and database errors
 - Verify all environment variables are properly set
-- Ensure your API keys are valid and have sufficient quota
-- Try clearing browser cache and localStorage
+- Test with a fresh `.env` file if issues persist
+- Use the CLI tools to verify database integrity
+
+## 🗺️ Roadmap
+
+### 🚀 Coming Soon
+- **Mobile App**: Native iOS/Android app with offline sync
+- **Team Collaboration**: Share inventories and projects with team members
+- **Advanced Analytics**: Predictive analytics for component needs
+- **Integration Hub**: Connect with more services (Notion, Airtable, etc.)
+- **Voice Control**: Voice commands for hands-free inventory management
+
+### 🔮 Future Vision
+- **AR Integration**: Point your phone at components for instant identification
+- **Supply Chain Intelligence**: Predict component shortages and price changes
+- **Community Features**: Share projects and component reviews with other makers
+- **Advanced Automation**: Automated ordering based on project requirements
+- **Multi-Location Support**: Manage inventories across multiple workshops/locations
+
+## 📊 Project Stats
+
+- **Components**: 25+ categorized component types
+- **Project Templates**: Smart Home, Weather Station, Security, Robotics, and more
+- **AI Capabilities**: 7 different JSON action types for intelligent automation
+- **Storage**: SQLite database + Markdown files for optimal performance
+- **UI Components**: 20+ React components with full TypeScript support
+- **CLI Commands**: Comprehensive command-line interface for power users
+
+## 🤝 Contributing
+
+We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** with proper TypeScript types
+4. **Test thoroughly** with both UI and CLI
+5. **Submit a pull request** with a clear description
+
+### Development Guidelines
+- Follow TypeScript best practices
+- Add proper error handling
+- Update tests for new features
+- Document AI prompt changes
+- Test with real hardware when possible
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Google Gemini AI** for powering the intelligent features
+- **React Team** for the excellent framework
+- **Tailwind CSS** for the beautiful, responsive design
+- **SQLite** for reliable, embedded database functionality
+- **The Maker Community** for inspiration and feedback
+
+---
+
+**Built with ❤️ for the IoT maker community**
+
+*Transform your electronics workshop from chaos to organized productivity with AI-powered intelligence.*
