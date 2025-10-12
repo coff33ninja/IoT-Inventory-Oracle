@@ -38,6 +38,18 @@ const getChat = (history: ChatMessage[]): Chat => {
             - "Discarded" - Components that are no longer usable
             - "Given Away" - Components given to others
             
+            **COMPONENT CATEGORIZATION SYSTEM:**
+            Components are organized into specific categories for better inventory management:
+            - Microcontroller, Development Board, Single-Board Computer
+            - Sensor, Actuator, Display, Power Supply
+            - Resistor, Capacitor, Inductor (passive components)
+            - Transistor, Diode, IC/Chip (active components)
+            - LED, Switch/Button, Motor, Speaker/Audio
+            - Battery, Module/Shield, Cable/Wire
+            - Tool, Enclosure/Case, Breadboard/PCB
+            
+            When suggesting components, ALWAYS consider proper categorization to help users organize their inventory effectively.
+            
             **ENHANCED CAPABILITIES FOR CROSS-PROJECT MANAGEMENT:**
             
             1. **Project & Inventory Management**: You can help users move components between projects, transfer items from inventory to projects, and reorganize their setup. Always reference specific project IDs and item IDs when suggesting moves.
@@ -107,21 +119,34 @@ const getChat = (history: ChatMessage[]): Chat => {
             - **For Part Suggestions (AUTO-POPULATED):**
             \`\`\`json
             /// SUGGESTIONS_JSON_START ///
-            [{"name": "Part Name", "supplier": "Supplier", "price": "Price", "link": "URL", "status": "I Need"}]
+            [{"name": "Part Name", "supplier": "Supplier", "price": "Price", "link": "URL", "status": "I Need", "category": "Sensor"}]
             /// SUGGESTIONS_JSON_END ///
             \`\`\`
             
-            **IMPORTANT STATUS CATEGORIZATION:**
-            When suggesting parts, always include a "status" field with one of these values:
+            **IMPORTANT STATUS AND CATEGORY REQUIREMENTS:**
+            When suggesting parts, ALWAYS include both "status" and "category" fields:
+            
+            **Status Selection Guidelines:**
             - "I Need" - Essential components required for the project to work
             - "I Want" - Nice-to-have components that would enhance the project
             - "I Have" - Only if the user explicitly mentions they already own the component
             
-            **Status Selection Guidelines:**
+            **Category Selection Guidelines:**
             - Core components (microcontrollers, sensors, power supplies) → "I Need"
             - Enhancement components (displays, LEDs, cases) → "I Want" 
             - Basic components (resistors, wires, breadboards) → "I Need"
             - Advanced features (WiFi modules, cameras) → "I Want"
+            
+            **Category Assignment Examples:**
+            - "Arduino Uno" → "Development Board"
+            - "DHT22" → "Sensor"
+            - "10kΩ Resistor" → "Resistor"
+            - "16x2 LCD" → "Display"
+            - "Servo Motor" → "Motor"
+            - "LED Strip" → "LED"
+            - "12V Power Supply" → "Power Supply"
+            
+            CRITICAL: Every component suggestion MUST include a proper category for inventory organization!
 
             - **For Project Creation (AUTO-POPULATED):**
             \`\`\`json
@@ -391,10 +416,22 @@ export const suggestCategory = async (itemName: string): Promise<string> => {
         - Display
         - Power Supply
         - Connector
-        - Passive Component (e.g., resistor, capacitor)
-        - Active Component (e.g., transistor, diode)
-        - Module / Shield
-        - Cable / Wire
+        - Resistor
+        - Capacitor
+        - Inductor
+        - Transistor
+        - Diode
+        - IC/Chip
+        - LED
+        - Switch/Button
+        - Motor
+        - Speaker/Audio
+        - Battery
+        - Module/Shield
+        - Cable/Wire
+        - Tool
+        - Enclosure/Case
+        - Breadboard/PCB
         - Miscellaneous
 
         Your response must be ONLY the category name, with no extra text or explanation.`;

@@ -65,7 +65,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
       setIsEditing(false);
       addToast("Project updated successfully!", "success");
     } catch (error) {
-      console.error('Failed to save project:', error);
+      console.error("Failed to save project:", error);
       addToast("Failed to save project changes", "error");
     }
   };

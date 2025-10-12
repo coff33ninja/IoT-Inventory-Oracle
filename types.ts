@@ -113,6 +113,7 @@ export interface AiSuggestedPart {
   price: string;
   link: string;
   status?: string; // AI-suggested status: "I Need", "I Want", or "I Have"
+  category?: string; // AI-suggested category for better organization
 }
 
 export interface HomeAssistantEntity {
