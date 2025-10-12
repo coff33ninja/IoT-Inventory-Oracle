@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ChatMessage, ItemStatus, AiSuggestedPart, Project } from "../types";
+import { ChatMessage, ItemStatus, AiSuggestedPart, Project, InventoryItem } from "../types";
 import {
   getAiChatStream,
   analyzeProjectComplexity,
@@ -513,27 +513,26 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       }
 
       // Parse and auto-execute inventory updates
-      const { jsonData: inventoryUpdateAction } = parseJsonBlock<{
-        action: string;
-        itemId: string;
-        itemName: string;
-        updates: {
-          status?: string;
-          quantity?: number;
-          location?: string;
-          notes?: string;
-        };
-        reason: string;
-      }>(
+      const { jsonData: inventoryActions } = parseJsonBlock<any>(
         responseContent,
         "/// INVENTORY_UPDATE_JSON_START ///",
         "/// INVENTORY_UPDATE_JSON_END ///"
       );
 
-      if (inventoryUpdateAction) {
-        handleInventoryUpdate(inventoryUpdateAction);
+      if (inventoryActions) {
+        const actionsArray = Array.isArray(inventoryActions) ? inventoryActions : [inventoryActions];
+        
+        for (const action of actionsArray) {
+          if (action.action === "add_inventory") {
+            await handleAddInventoryItem(action);
+          } else if (action.action === "update_inventory") {
+            handleInventoryUpdate(action);
+          }
+        }
+        
+        const actionCount = actionsArray.length;
         addToast(
-          `Updated inventory: ${inventoryUpdateAction.itemName}`,
+          `Processed ${actionCount} inventory ${actionCount === 1 ? 'action' : 'actions'}`,
           "success"
         );
       }
@@ -1086,6 +1085,59 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       addToast(`Updated ${project.name}: ${changes.join(", ")}`, "success");
     } else {
       addToast("No changes needed for project", "info");
+    }
+  };
+
+  const handleAddInventoryItem = async (addData: {
+    action: string;
+    itemName: string;
+    quantity: number;
+    location: string;
+    status: string;
+    category?: string;
+    condition?: string;
+    notes?: string;
+    serialNumber?: string;
+    modelNumber?: string;
+    manufacturer?: string;
+    purchaseDate?: string;
+    receivedDate?: string;
+    purchasePrice?: number;
+    currency?: string;
+    supplier?: string;
+    invoiceNumber?: string;
+    warrantyExpiry?: string;
+    reason: string;
+  }) => {
+    try {
+      const statusEnum = addData.status as ItemStatus;
+      
+      const newItem: any = {
+        name: addData.itemName,
+        quantity: addData.quantity,
+        location: addData.location,
+        status: statusEnum,
+        category: addData.category,
+        condition: addData.condition as any,
+        notes: addData.notes,
+        serialNumber: addData.serialNumber,
+        modelNumber: addData.modelNumber,
+        manufacturer: addData.manufacturer,
+        purchaseDate: addData.purchaseDate,
+        receivedDate: addData.receivedDate,
+        purchasePrice: addData.purchasePrice,
+        currency: addData.currency,
+        supplier: addData.supplier,
+        invoiceNumber: addData.invoiceNumber,
+        warrantyExpiry: addData.warrantyExpiry,
+        createdAt: new Date().toISOString(),
+      };
+
+      await addItem(newItem);
+      addToast(`Added ${addData.itemName} (qty: ${addData.quantity})`, "success");
+    } catch (error) {
+      console.error("Failed to add inventory item:", error);
+      addToast(`Failed to add ${addData.itemName}`, "error");
     }
   };
 
@@ -1799,19 +1851,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
             );
             const {
               displayContent: contentAfterInventoryUpdate,
-              jsonData: inventoryUpdateAction,
-            } = parseJsonBlock<{
-              action: string;
-              itemId: string;
-              itemName: string;
-              updates: {
-                status?: string;
-                quantity?: number;
-                location?: string;
-                notes?: string;
-              };
-              reason: string;
-            }>(
+              jsonData: inventoryActions,
+            } = parseJsonBlock<any>(
               contentAfterProjectUpdate,
               "/// INVENTORY_UPDATE_JSON_START ///",
               "/// INVENTORY_UPDATE_JSON_END ///"
@@ -1857,7 +1898,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                     templateAction ||
                     analysisAction ||
                     projectUpdateAction ||
-                    inventoryUpdateAction ||
+                    inventoryActions ||
                     priceCheckAction) && (
                     <div className="mt-4 pt-3 border-t border-border-color space-y-3">
                       <h4 className="text-sm font-semibold text-text-secondary">
@@ -2060,38 +2101,63 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                           </div>
                         </div>
                       )}
-                      {inventoryUpdateAction && (
+                      {inventoryActions && (
                         <div className="bg-primary/50 p-3 rounded-lg">
                           <p className="font-semibold text-text-primary text-sm flex items-center gap-2">
-                            📦 Update: {inventoryUpdateAction.itemName}
+                            📦 Inventory Actions ({Array.isArray(inventoryActions) ? inventoryActions.length : 1})
                           </p>
-                          <p className="text-xs text-text-secondary mt-1">
-                            {inventoryUpdateAction.reason}
-                          </p>
-                          <div className="flex items-center space-x-2 mt-2">
+                          {(Array.isArray(inventoryActions) ? inventoryActions : [inventoryActions]).map((action, index) => (
+                            <div key={index} className="mt-2 p-2 bg-secondary/50 rounded">
+                              <p className="text-xs font-medium text-text-primary">
+                                {action.action === 'add_inventory' ? '➕ Add' : '✏️ Update'}: {action.itemName}
+                              </p>
+                              <p className="text-xs text-text-secondary mt-1">
+                                {action.reason}
+                              </p>
+                              {action.action === 'add_inventory' && (
+                                <div className="mt-1 text-xs text-text-secondary">
+                                  <div className="flex justify-between">
+                                    <span>Quantity:</span>
+                                    <span className="text-text-primary">{action.quantity}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Status:</span>
+                                    <span className="text-text-primary">{action.status}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Location:</span>
+                                    <span className="text-text-primary">{action.location}</span>
+                                  </div>
+                                </div>
+                              )}
+                              {action.action === 'update_inventory' && action.updates && (
+                                <div className="mt-1 text-xs text-text-secondary">
+                                  {Object.entries(action.updates).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between">
+                                      <span className="capitalize">{key}:</span>
+                                      <span className="text-text-primary">{String(value)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          <div className="flex items-center space-x-2 mt-3">
                             <button
                               type="button"
-                              onClick={() =>
-                                handleInventoryUpdate(inventoryUpdateAction)
-                              }
+                              onClick={async () => {
+                                const actionsArray = Array.isArray(inventoryActions) ? inventoryActions : [inventoryActions];
+                                for (const action of actionsArray) {
+                                  if (action.action === "add_inventory") {
+                                    await handleAddInventoryItem(action);
+                                  } else if (action.action === "update_inventory") {
+                                    handleInventoryUpdate(action);
+                                  }
+                                }
+                              }}
                               className="text-xs bg-green-500/20 text-green-400 hover:bg-green-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
-                              Apply Updates
+                              Apply All Actions
                             </button>
-                          </div>
-                          <div className="mt-2 text-xs text-text-secondary">
-                            {inventoryUpdateAction.updates &&
-                              Object.entries(inventoryUpdateAction.updates).map(
-                                ([key, value]) => (
-                                  <div
-                                    key={key}
-                                    className="flex justify-between">
-                                    <span className="capitalize">{key}:</span>
-                                    <span className="text-text-primary">
-                                      {value}
-                                    </span>
-                                  </div>
-                                )
-                              )}
                           </div>
                         </div>
                       )}

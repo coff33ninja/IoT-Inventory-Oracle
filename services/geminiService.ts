@@ -367,38 +367,66 @@ const getChat = (history: ChatMessage[]): Chat => {
             - Mention project milestones or achievements
             - Ask to modify project details
 
-            - **For Inventory Updates (NEW):**
+            - **For Adding New Inventory Items:**
             \`\`\`json
             /// INVENTORY_UPDATE_JSON_START ///
             [
               {
-                "action": "update_inventory",
+                "action": "add_inventory",
                 "itemName": "DDR4 4GB RAM Stick",
-                "updates": {
-                  "status": "I Have",
-                  "quantity": 3,
-                  "location": "PC Build Storage",
-                  "condition": "Used",
-                  "notes": "From current PC build"
-                },
+                "quantity": 3,
+                "location": "PC Build Storage",
+                "status": "I Have",
+                "category": "RAM/Memory",
+                "condition": "Used",
+                "notes": "From current PC build",
                 "reason": "User mentioned having 3 DDR4 4GB sticks"
               },
               {
-                "action": "update_inventory", 
-                "itemName": "Samsung 20 inch Monitor",
-                "updates": {
-                  "status": "I Have",
-                  "quantity": 2,
-                  "location": "Desk Setup",
-                  "condition": "Used",
-                  "notes": "Current dual monitor setup"
-                },
+                "action": "add_inventory",
+                "itemName": "Samsung 20 inch Monitor", 
+                "quantity": 2,
+                "location": "Desk Setup",
+                "status": "I Have",
+                "category": "Monitor/Display",
+                "condition": "Used",
+                "notes": "Current dual monitor setup",
                 "reason": "User mentioned having 2 Samsung 20 inch screens"
               }
             ]
             /// INVENTORY_UPDATE_JSON_END ///
             \`\`\`
+            
+            - **For Updating Existing Inventory Items:**
+            \`\`\`json
+            /// INVENTORY_UPDATE_JSON_START ///
+            {
+              "action": "update_inventory",
+              "itemId": "existing-item-id",
+              "itemName": "Arduino Uno",
+              "updates": {
+                "quantity": 5,
+                "location": "Electronics Drawer",
+                "notes": "Added 2 more from recent purchase"
+              },
+              "reason": "User mentioned getting more Arduino boards"
+            }
+            /// INVENTORY_UPDATE_JSON_END ///
+            \`\`\`
 
+            **INVENTORY ACTION RULES:**
+            
+            **Use "add_inventory" when:**
+            - User mentions NEW components they have/want/need that aren't in their inventory yet
+            - User lists their current setup or components for the first time
+            - User mentions buying/receiving new items that don't exist in inventory
+            - User describes their PC build, workshop setup, or component collection
+            
+            **Use "update_inventory" when:**
+            - User mentions changes to EXISTING inventory items (quantity, location, status)
+            - User wants to modify details of items already in their inventory
+            - User mentions using, moving, or changing existing components
+            
             **INVENTORY UPDATE TRIGGERS:**
             When users mention inventory items in conversation, automatically suggest INVENTORY_UPDATE_JSON if they:
             - Mention status changes ("I just bought", "I need", "I want", "I have", "I returned")
@@ -409,11 +437,12 @@ const getChat = (history: ChatMessage[]): Chat => {
             - Mention warranty information ("warranty expires next year", "still under warranty")
             - Ask to modify item details or descriptions
             - List multiple identical components ("3 DDR4 sticks", "2 monitors", "5 sensors")
+            - Describe their current PC/setup components for the first time
             
             **QUANTITY PARSING EXAMPLES:**
             User: "I have 3 DDR4 4GB sticks and 2 Samsung monitors"
-            → Create entry for "DDR4 4GB RAM Stick" with quantity: 3
-            → Create entry for "Samsung Monitor" with quantity: 2
+            → Create entry for "DDR4 4GB RAM Stick" with quantity: 3 (action: "add_inventory")
+            → Create entry for "Samsung Monitor" with quantity: 2 (action: "add_inventory")
             NOT 3 separate DDR4 entries and 2 separate monitor entries!
 
             **PROACTIVE PRICE CHECKING:**
