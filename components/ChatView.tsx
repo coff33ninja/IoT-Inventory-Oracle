@@ -38,9 +38,7 @@ const parseJsonBlock = <T,>(
 
   // Also try without code blocks (direct markers)
   if (!match) {
-    regex = new RegExp(
-      startMarker + "([\\s\\S]*?)" + endMarker
-    );
+    regex = new RegExp(startMarker + "([\\s\\S]*?)" + endMarker);
     match = content.match(regex);
   }
 
@@ -52,7 +50,10 @@ const parseJsonBlock = <T,>(
   const jsonString = match[1].trim();
   const displayContent = content.replace(match[0], "").trim();
 
-  console.log(`Found JSON block for ${startMarker}:`, jsonString.substring(0, 100) + '...');
+  console.log(
+    `Found JSON block for ${startMarker}:`,
+    jsonString.substring(0, 100) + "..."
+  );
 
   try {
     const jsonData = JSON.parse(jsonString) as T;
@@ -60,7 +61,7 @@ const parseJsonBlock = <T,>(
     return { displayContent, jsonData };
   } catch (e) {
     console.error(`Failed to parse JSON for marker ${startMarker}:`, e);
-    console.error('JSON string was:', jsonString);
+    console.error("JSON string was:", jsonString);
     return { displayContent: content, jsonData: null }; // Return original content on error
   }
 };
@@ -88,10 +89,12 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     const saved = localStorage.getItem("iot-auto-populate");
     return saved !== null ? JSON.parse(saved) : true;
   });
-  
+
   // Chat history state
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<
+    string | null
+  >(null);
   const [showConversationList, setShowConversationList] = useState(false);
 
   // Initialize conversations and load active conversation
@@ -101,40 +104,43 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         // Load all conversations
         const allConversations = await apiClient.getAllConversations();
         setConversations(allConversations);
-        
+
         // Get active conversation
-        const { activeConversationId } = await apiClient.getActiveConversation();
-        
+        const { activeConversationId } =
+          await apiClient.getActiveConversation();
+
         if (activeConversationId) {
           setCurrentConversationId(activeConversationId);
           // Load messages for active conversation
-          const conversationMessages = await apiClient.getConversationMessages(activeConversationId);
+          const conversationMessages = await apiClient.getConversationMessages(
+            activeConversationId
+          );
           setMessages(conversationMessages);
         } else {
           // Create first conversation if none exist or no active conversation
           const { id } = await apiClient.createConversation("New Chat");
           setCurrentConversationId(id);
-          const newConversation = { 
-            id, 
-            title: "New Chat", 
+          const newConversation = {
+            id,
+            title: "New Chat",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             isActive: true,
-            messageCount: 0
+            messageCount: 0,
           };
           setConversations([newConversation, ...allConversations]);
-          console.log('Created new conversation:', id);
+          console.log("Created new conversation:", id);
         }
       } catch (error) {
-        console.error('Failed to initialize chat:', error);
-        addToast('Failed to load chat history', 'error');
+        console.error("Failed to initialize chat:", error);
+        addToast("Failed to load chat history", "error");
         // Fallback: create a local conversation ID for this session
         const fallbackId = `local-${Date.now()}`;
         setCurrentConversationId(fallbackId);
-        console.log('Using fallback conversation ID:', fallbackId);
+        console.log("Using fallback conversation ID:", fallbackId);
       }
     };
-    
+
     initializeChat();
   }, [addToast]);
 
@@ -193,23 +199,26 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     // Ensure we have a current conversation
     let conversationId = currentConversationId;
     if (!conversationId) {
-      console.log('No current conversation, creating new one...');
+      console.log("No current conversation, creating new one...");
       try {
         const { id } = await apiClient.createConversation("New Chat");
         conversationId = id;
         setCurrentConversationId(id);
-        const newConversation = { 
-          id, 
-          title: "New Chat", 
+        const newConversation = {
+          id,
+          title: "New Chat",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           isActive: true,
-          messageCount: 0
+          messageCount: 0,
         };
-        setConversations(prev => [newConversation, ...prev.map(c => ({ ...c, isActive: false }))]);
+        setConversations((prev) => [
+          newConversation,
+          ...prev.map((c) => ({ ...c, isActive: false })),
+        ]);
       } catch (error) {
-        console.error('Failed to create conversation:', error);
-        addToast('Failed to create conversation', 'error');
+        console.error("Failed to create conversation:", error);
+        addToast("Failed to create conversation", "error");
         return;
       }
     }
@@ -225,7 +234,9 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       await apiClient.addMessage(conversationId, userMessage);
 
       // Get conversation context for better AI memory
-      const conversationContext = await apiClient.getConversationContext(conversationId);
+      const conversationContext = await apiClient.getConversationContext(
+        conversationId
+      );
 
       const stream = await getAiChatStream(
         messageContent,
@@ -244,7 +255,10 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
 
       let fullResponse = "";
       let groundingChunks: any[] = [];
-      let projectData: { projectName: string; components: { name: string; quantity: number }[] } | null = null;
+      let projectData: {
+        projectName: string;
+        components: { name: string; quantity: number }[];
+      } | null = null;
 
       for await (const chunk of stream) {
         fullResponse += chunk.text;
@@ -260,7 +274,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           "/// PROJECT_JSON_START ///",
           "/// PROJECT_JSON_END ///"
         );
-        
+
         if (jsonData) {
           projectData = jsonData;
         }
@@ -284,17 +298,19 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         role: "model",
         content: fullResponse,
         groundingChunks,
-        suggestedProject: projectData
+        suggestedProject: projectData,
       };
       await apiClient.addMessage(conversationId, finalModelMessage);
 
       // Auto-generate conversation title if this is the first exchange
       if (messages.length === 0) {
         try {
-          const { title } = await apiClient.generateConversationTitle(conversationId);
+          const { title } = await apiClient.generateConversationTitle(
+            conversationId
+          );
           await updateConversationTitle(conversationId, title);
         } catch (error) {
-          console.error('Failed to generate conversation title:', error);
+          console.error("Failed to generate conversation title:", error);
         }
       }
 
@@ -319,12 +335,12 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     const isEnabled =
       autoPopulateEnabled !== null ? JSON.parse(autoPopulateEnabled) : true;
 
-    console.log('Auto-populate enabled:', isEnabled);
-    console.log('Response content length:', responseContent.length);
-    console.log('Current conversation ID:', currentConversationId);
+    console.log("Auto-populate enabled:", isEnabled);
+    console.log("Response content length:", responseContent.length);
+    console.log("Current conversation ID:", currentConversationId);
 
     if (!isEnabled) {
-      console.log('Auto-population disabled, skipping');
+      console.log("Auto-population disabled, skipping");
       return; // Skip auto-execution if disabled
     }
 
@@ -343,12 +359,12 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       );
 
       if (projectData) {
-        console.log('Found project data:', projectData);
+        console.log("Found project data:", projectData);
         // Auto-create project if AI suggests one
         handleCreateProject(projectData.components, projectData.projectName);
         addToast(`Auto-created project: ${projectData.projectName}`, "success");
       } else {
-        console.log('No project data found');
+        console.log("No project data found");
       }
 
       // Parse and auto-execute part suggestions
@@ -359,47 +375,47 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       );
 
       if (suggestions && suggestions.length > 0) {
-        console.log('Found suggestions:', suggestions);
+        console.log("Found suggestions:", suggestions);
         // Auto-add suggested parts with AI-determined status
         let needCount = 0;
         let wantCount = 0;
         let haveCount = 0;
-        
+
         for (const part of suggestions) {
           let status: ItemStatus;
-          
+
           // Use AI-suggested status or default to WANT
           switch (part.status) {
-            case 'I Need':
+            case "I Need":
               status = ItemStatus.NEED;
               needCount++;
               break;
-            case 'I Have':
+            case "I Have":
               status = ItemStatus.HAVE;
               haveCount++;
               break;
-            case 'I Want':
+            case "I Want":
             default:
               status = ItemStatus.WANT;
               wantCount++;
               break;
           }
-          
+
           await handleAddToInventory(part, status);
         }
-        
+
         // Create detailed toast message
         const statusParts = [];
         if (needCount > 0) statusParts.push(`${needCount} to Required`);
         if (wantCount > 0) statusParts.push(`${wantCount} to Wishlist`);
         if (haveCount > 0) statusParts.push(`${haveCount} to Inventory`);
-        
+
         addToast(
-          `Auto-added ${suggestions.length} parts: ${statusParts.join(', ')}`,
+          `Auto-added ${suggestions.length} parts: ${statusParts.join(", ")}`,
           "success"
         );
       } else {
-        console.log('No suggestions found');
+        console.log("No suggestions found");
       }
 
       // Parse and auto-execute component moves
@@ -439,14 +455,11 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       }
     } catch (error) {
       console.error("Error auto-executing AI suggestions:", error);
-      addToast('Error processing AI suggestions', 'error');
+      addToast("Error processing AI suggestions", "error");
     }
   };
 
-  const handleAddToInventory = (
-    part: AiSuggestedPart,
-    status: ItemStatus
-  ) => {
+  const handleAddToInventory = (part: AiSuggestedPart, status: ItemStatus) => {
     const newItem = {
       id: "", // Will be generated by context
       name: part.name,
@@ -458,13 +471,15 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       imageUrl: undefined,
     };
     addItem(newItem);
-    const statusName = status === ItemStatus.NEED ? "Required" : 
-                      status === ItemStatus.WANT ? "Wishlist" : 
-                      status === ItemStatus.HAVE ? "Inventory" : status;
-    addToast(
-      `${part.name} added to "${statusName}"!`,
-      "success"
-    );
+    const statusName =
+      status === ItemStatus.NEED
+        ? "Required"
+        : status === ItemStatus.WANT
+        ? "Wishlist"
+        : status === ItemStatus.HAVE
+        ? "Inventory"
+        : status;
+    addToast(`${part.name} added to "${statusName}"!`, "success");
   };
 
   // Fix: Corrected the type for `projectData` to match what the AI returns, which lacks an 'id'.
@@ -781,44 +796,56 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         isActive: true,
-        messageCount: 0
+        messageCount: 0,
       };
-      
-      setConversations(prev => [newConversation, ...prev.map(c => ({ ...c, isActive: false }))]);
+
+      setConversations((prev) => [
+        newConversation,
+        ...prev.map((c) => ({ ...c, isActive: false })),
+      ]);
       setCurrentConversationId(id);
       setMessages([]);
       setShowConversationList(false);
-      addToast('New conversation started', 'success');
+      addToast("New conversation started", "success");
     } catch (error) {
-      console.error('Failed to create conversation:', error);
-      addToast('Failed to create new conversation', 'error');
+      console.error("Failed to create conversation:", error);
+      addToast("Failed to create new conversation", "error");
     }
   };
 
   const switchConversation = async (conversationId: string) => {
     try {
       await apiClient.switchToConversation(conversationId);
-      const conversationMessages = await apiClient.getConversationMessages(conversationId);
-      
+      const conversationMessages = await apiClient.getConversationMessages(
+        conversationId
+      );
+
       setCurrentConversationId(conversationId);
       setMessages(conversationMessages);
-      setConversations(prev => prev.map(c => ({ ...c, isActive: c.id === conversationId })));
+      setConversations((prev) =>
+        prev.map((c) => ({ ...c, isActive: c.id === conversationId }))
+      );
       setShowConversationList(false);
-      
-      const conversation = conversations.find(c => c.id === conversationId);
-      addToast(`Switched to: ${conversation?.title || 'Conversation'}`, 'success');
+
+      const conversation = conversations.find((c) => c.id === conversationId);
+      addToast(
+        `Switched to: ${conversation?.title || "Conversation"}`,
+        "success"
+      );
     } catch (error) {
-      console.error('Failed to switch conversation:', error);
-      addToast('Failed to switch conversation', 'error');
+      console.error("Failed to switch conversation:", error);
+      addToast("Failed to switch conversation", "error");
     }
   };
 
   const deleteConversation = async (conversationId: string) => {
     try {
       await apiClient.deleteConversation(conversationId);
-      const updatedConversations = conversations.filter(c => c.id !== conversationId);
+      const updatedConversations = conversations.filter(
+        (c) => c.id !== conversationId
+      );
       setConversations(updatedConversations);
-      
+
       if (conversationId === currentConversationId) {
         if (updatedConversations.length > 0) {
           await switchConversation(updatedConversations[0].id);
@@ -826,22 +853,27 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
           await createNewConversation();
         }
       }
-      
-      addToast('Conversation deleted', 'success');
+
+      addToast("Conversation deleted", "success");
     } catch (error) {
-      console.error('Failed to delete conversation:', error);
-      addToast('Failed to delete conversation', 'error');
+      console.error("Failed to delete conversation:", error);
+      addToast("Failed to delete conversation", "error");
     }
   };
 
-  const updateConversationTitle = async (conversationId: string, newTitle: string) => {
+  const updateConversationTitle = async (
+    conversationId: string,
+    newTitle: string
+  ) => {
     try {
       await apiClient.updateConversationTitle(conversationId, newTitle);
-      setConversations(prev => prev.map(c => 
-        c.id === conversationId ? { ...c, title: newTitle } : c
-      ));
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === conversationId ? { ...c, title: newTitle } : c
+        )
+      );
     } catch (error) {
-      console.error('Failed to update conversation title:', error);
+      console.error("Failed to update conversation title:", error);
     }
   };
 
@@ -857,20 +889,36 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
               type="button"
               onClick={() => setShowConversationList(!showConversationList)}
               className="p-2 text-text-secondary hover:text-text-primary transition-colors rounded-md hover:bg-secondary"
-              title="Chat History"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              title="Chat History">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
               </svg>
             </button>
             <button
               type="button"
               onClick={createNewConversation}
               className="p-2 text-text-secondary hover:text-text-primary transition-colors rounded-md hover:bg-secondary"
-              title="New Chat"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              title="New Chat">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
             </button>
           </div>
@@ -894,17 +942,17 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
               <div
                 key={conversation.id}
                 className={`p-3 border-b border-border-color last:border-b-0 hover:bg-primary cursor-pointer ${
-                  conversation.isActive ? 'bg-primary' : ''
+                  conversation.isActive ? "bg-primary" : ""
                 }`}
-                onClick={() => switchConversation(conversation.id)}
-              >
+                onClick={() => switchConversation(conversation.id)}>
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text-primary truncate">
                       {conversation.title}
                     </p>
                     <p className="text-xs text-text-secondary">
-                      {new Date(conversation.updatedAt).toLocaleDateString()} • {conversation.messageCount} messages
+                      {new Date(conversation.updatedAt).toLocaleDateString()} •{" "}
+                      {conversation.messageCount} messages
                     </p>
                   </div>
                   <button
@@ -914,10 +962,18 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                       deleteConversation(conversation.id);
                     }}
                     className="ml-2 p-1 text-text-secondary hover:text-danger transition-colors"
-                    title="Delete conversation"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    title="Delete conversation">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
                     </svg>
                   </button>
                 </div>

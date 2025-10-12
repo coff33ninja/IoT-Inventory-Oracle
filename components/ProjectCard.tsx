@@ -16,6 +16,7 @@ interface ProjectCardProps {
   onDelete: (project: Project) => void;
   onLinkRepo: (project: Project) => void;
   onSyncRepo: (project: Project) => void;
+  onClick?: (project: Project) => void;
   isSyncing: boolean;
 }
 
@@ -26,6 +27,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   onDelete,
   onLinkRepo,
   onSyncRepo,
+  onClick,
   isSyncing,
 }) => {
   const [notes, setNotes] = useState(project.notes || "");
@@ -110,7 +112,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   );
 
   return (
-    <div className="bg-secondary border border-border-color rounded-lg shadow-md transition-all hover:shadow-lg hover:border-accent/50 flex flex-col">
+    <div 
+      className="bg-secondary border border-border-color rounded-lg shadow-md transition-all hover:shadow-lg hover:border-accent/50 flex flex-col cursor-pointer"
+      onClick={() => onClick?.(project)}
+    >
       <div className="p-4 border-b border-border-color">
         <div className="flex justify-between items-start">
           <div className="flex-1 mr-4">

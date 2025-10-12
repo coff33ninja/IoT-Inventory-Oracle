@@ -6,6 +6,7 @@ import { ProjectCard } from './ProjectCard';
 import LinkGithubModal from './LinkGithubModal';
 import { analyzeGithubRepo } from '../services/geminiService';
 import AddProjectModal from './AddProjectModal';
+import ProjectDetailView from './ProjectDetailView';
 import { PlusIcon } from './icons/PlusIcon';
 
 interface ProjectsViewProps {
@@ -20,6 +21,7 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
   const [projectToLink, setProjectToLink] = useState<Project | null>(null);
   const [syncingProjectId, setSyncingProjectId] = useState<string | null>(null);
   const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const handleOpenLinkModal = (project: Project) => {
     setProjectToLink(project);
@@ -116,6 +118,7 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
                             onDelete={handleDeleteProject}
                             onLinkRepo={handleOpenLinkModal}
                             onSyncRepo={handleSyncRepo}
+                            onClick={setSelectedProject}
                             isSyncing={syncingProjectId === project.id}
                         />
                     ))}
@@ -144,6 +147,14 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
             onClose={() => setIsAddProjectModalOpen(false)}
             onSave={handleAddProject}
         />
+
+        {selectedProject && (
+            <ProjectDetailView
+                project={selectedProject}
+                onUpdate={updateProject}
+                onClose={() => setSelectedProject(null)}
+            />
+        )}
     </div>
   );
 };

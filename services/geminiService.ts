@@ -632,3 +632,76 @@ export const suggestProjectImprovements = async (projectName: string, descriptio
         throw new Error("Failed to get project improvement suggestions from AI.");
     }
 };
+
+export const generateProjectInstructions = async (projectName: string, description: string, components: any[]): Promise<{
+    title: string;
+    description: string;
+    code?: string;
+    tips?: string[];
+}[]> => {
+    try {
+        const componentList = components.map(c => `${c.quantity}x ${c.name}`).join(', ');
+        
+        const prompt = `Generate detailed step-by-step instructions for this IoT/electronics project:
+        
+        Project: "${projectName}"
+        Description: "${description}"
+        Components: ${componentList}
+        
+        Create comprehensive instructions that include:
+        1. Setup and preparation steps
+        2. Hardware assembly instructions
+        3. Software/code implementation (if applicable)
+        4. Testing and troubleshooting steps
+        5. Final assembly and deployment
+        
+        For each step, provide:
+        - A clear title
+        - Detailed description
+        - Code snippets (if applicable)
+        - Helpful tips and warnings
+        
+        Your response MUST be only a single, raw JSON array with this structure:
+        [
+            {
+                "title": "Step title",
+                "description": "Detailed step description",
+                "code": "// Optional code snippet",
+                "tips": ["tip 1", "tip 2"]
+            }
+        ]`;
+        
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            title: { type: Type.STRING },
+                            description: { type: Type.STRING },
+                            code: { type: Type.STRING },
+                            tips: {
+                                type: Type.ARRAY,
+                                items: { type: Type.STRING }
+                            }
+                        },
+                        required: ["title", "description"]
+                    }
+                }
+            }
+        });
+        
+        const jsonString = response.text.trim();
+        const parsedJson = JSON.parse(jsonString);
+        
+        return parsedJson;
+
+    } catch(error) {
+        console.error("Gemini project instructions generation failed:", error);
+        throw new Error("Failed to generate project instructions from AI.");
+    }
+};

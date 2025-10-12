@@ -39,16 +39,39 @@ export interface Project {
   id: string;
   name: string;
   description: string;
+  longDescription?: string;
+  category?: string;
+  difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+  estimatedTime?: string;
   components: {
     id: string;
     name: string;
     quantity: number;
     source?: 'manual' | 'github' | 'ai-suggested';
   }[];
+  instructions?: {
+    id: string;
+    step: number;
+    title: string;
+    description: string;
+    image?: string;
+    code?: string;
+    tips?: string[];
+  }[];
   createdAt: string;
-  status: 'In Progress' | 'Completed';
+  updatedAt?: string;
+  status: 'Planning' | 'In Progress' | 'Testing' | 'Completed' | 'On Hold';
+  progress?: number; // 0-100
   notes?: string;
   githubUrl?: string;
+  imageUrl?: string;
+  tags?: string[];
+  aiInsights?: {
+    suggestions: string[];
+    improvements: string[];
+    troubleshooting: string[];
+    relatedProjects: string[];
+  };
 }
 
 export interface ChatMessage {

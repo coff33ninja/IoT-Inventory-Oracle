@@ -96,9 +96,17 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
     const newProject: Omit<Project, 'id' | 'createdAt'> = {
         name,
         description,
+        longDescription: description, // Use description as initial long description
+        category: category || undefined,
+        difficulty: 'Intermediate', // Default difficulty
+        estimatedTime: undefined,
         components,
-        status: 'In Progress',
+        instructions: undefined,
+        updatedAt: new Date().toISOString(),
+        status: 'Planning',
+        progress: 0,
         notes: `Manually created on ${new Date().toLocaleDateString()}. ${category ? `Category: ${category}` : ''}`,
+        tags: category ? [category] : undefined,
     };
 
     onSave(newProject);
