@@ -14,6 +14,10 @@ const SettingsView: React.FC = () => {
   const [haUrl, setHaUrl] = useState(config?.url || '');
   const [haToken, setHaToken] = useState(config?.token || '');
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'testing' | 'success' | 'error'>('unknown');
+  const [autoPopulateEnabled, setAutoPopulateEnabled] = useState(() => {
+    const saved = localStorage.getItem('iot-auto-populate');
+    return saved !== null ? JSON.parse(saved) : true; // Default to enabled
+  });
   
   useEffect(() => {
     if (config?.url && config?.token) {
@@ -28,6 +32,12 @@ const SettingsView: React.FC = () => {
     }
     setConfig({ url: haUrl.trim(), token: haToken.trim() });
     addToast('Home Assistant config saved!', 'success');
+  };
+
+  const handleAutoPopulateToggle = (enabled: boolean) => {
+    setAutoPopulateEnabled(enabled);
+    localStorage.setItem('iot-auto-populate', JSON.stringify(enabled));
+    addToast(`Auto-population ${enabled ? 'enabled' : 'disabled'}!`, 'success');
   };
   
   const handleTestConnection = async () => {
@@ -112,7 +122,7 @@ const SettingsView: React.FC = () => {
       <h1 className="text-3xl font-bold text-text-primary">Settings</h1>
 
       <div className="bg-secondary p-6 rounded-lg border border-border-color">
-        <h2 className="text-xl font-semibold mb-4">API Configuration</h2>
+        <h2 className="text-xl font-semibold mb-4">AI Assistant Configuration</h2>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-text-secondary">Gemini API Key</label>
@@ -123,6 +133,26 @@ const SettingsView: React.FC = () => {
               </span>
             </div>
             <p className="mt-2 text-xs text-text-secondary">The API key is securely loaded from environment variables and is not stored in the browser.</p>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">Auto-Population Settings</label>
+            <div className="flex items-center justify-between bg-primary p-3 rounded-md border border-border-color">
+              <div>
+                <p className="text-sm font-medium">Auto-populate inventory and projects</p>
+                <p className="text-xs text-text-secondary">Automatically add AI suggestions to your inventory and create projects during conversations</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={autoPopulateEnabled}
+                  onChange={(e) => handleAutoPopulateToggle(e.target.checked)}
+                  className="sr-only peer"
+                  aria-label="Toggle auto-populate inventory and projects"
+                />
+                <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+              </label>
+            </div>
           </div>
         </div>
       </div>

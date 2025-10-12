@@ -45,6 +45,10 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
+  const [autoPopulateEnabled, setAutoPopulateEnabled] = useState(() => {
+    const saved = localStorage.getItem('iot-auto-populate');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   
   useEffect(() => {
     if (initialMessage) {
@@ -121,12 +125,76 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         ));
       }
 
+      // Auto-execute AI suggestions after the response is complete
+      await autoExecuteAiSuggestions(fullResponse);
+
     } catch (error) {
       console.error("Error sending message to AI:", error);
       const errorMessage: ChatMessage = { role: 'model', content: "Sorry, I encountered an error. Please try again." };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Auto-execute AI suggestions based on response content
+  const autoExecuteAiSuggestions = async (responseContent: string) => {
+    // Check if auto-population is enabled
+    const autoPopulateEnabled = localStorage.getItem('iot-auto-populate');
+    const isEnabled = autoPopulateEnabled !== null ? JSON.parse(autoPopulateEnabled) : true;
+    
+    if (!isEnabled) {
+      return; // Skip auto-execution if disabled
+    }
+
+    try {
+      // Parse and auto-execute project suggestions
+      const { jsonData: projectData } = parseJsonBlock<{ projectName: string; components: { name: string; quantity: number }[] }>(
+        responseContent, '/// PROJECT_JSON_START ///', '/// PROJECT_JSON_END ///'
+      );
+      
+      if (projectData) {
+        // Auto-create project if AI suggests one
+        handleCreateProject(projectData.components, projectData.projectName);
+        addToast(`Auto-created project: ${projectData.projectName}`, 'success');
+      }
+
+      // Parse and auto-execute part suggestions
+      const { jsonData: suggestions } = parseJsonBlock<AiSuggestedPart[]>(
+        responseContent, '/// SUGGESTIONS_JSON_START ///', '/// SUGGESTIONS_JSON_END ///'
+      );
+      
+      if (suggestions && suggestions.length > 0) {
+        // Auto-add suggested parts to wishlist
+        for (const part of suggestions) {
+          await handleAddToInventory(part, ItemStatus.WANT);
+        }
+        addToast(`Auto-added ${suggestions.length} suggested parts to wishlist`, 'success');
+      }
+
+      // Parse and auto-execute component moves
+      const { jsonData: moveAction } = parseJsonBlock<{ action: string; sourceProjectId: string; targetProjectId: string; componentName: string; quantity: number; reason: string }>(
+        responseContent, '/// MOVE_JSON_START ///', '/// MOVE_JSON_END ///'
+      );
+      
+      if (moveAction) {
+        handleMoveComponent(moveAction);
+        addToast(`Auto-moved component: ${moveAction.componentName}`, 'success');
+      }
+
+      // Parse and auto-execute inventory transfers
+      const { jsonData: transferAction } = parseJsonBlock<{ action: string; inventoryItemId: string; targetProjectId: string; quantity: number; reason: string }>(
+        responseContent, '/// TRANSFER_JSON_START ///', '/// TRANSFER_JSON_END ///'
+      );
+      
+      if (transferAction) {
+        handleTransferToProject(transferAction);
+        addToast(`Auto-transferred component to project`, 'success');
+      }
+
+    } catch (error) {
+      console.error('Error auto-executing AI suggestions:', error);
+      // Don't show error toast for auto-execution failures to avoid spam
     }
   };
 
@@ -341,9 +409,28 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     });
   };
 
+  // Listen for changes to auto-populate setting
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const saved = localStorage.getItem('iot-auto-populate');
+      setAutoPopulateEnabled(saved !== null ? JSON.parse(saved) : true);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto w-full">
-      <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-4 shrink-0">Chat Assistant</h1>
+      <div className="flex items-center justify-between mb-4 shrink-0">
+        <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Chat Assistant</h1>
+        {autoPopulateEnabled && (
+          <div className="flex items-center gap-2 text-xs bg-highlight/20 text-highlight px-2 py-1 rounded-full">
+            <div className="w-2 h-2 bg-highlight rounded-full animate-pulse"></div>
+            Auto-populate enabled
+          </div>
+        )}
+      </div>
       
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto pr-2 space-y-4 sm:space-y-6 pb-4">
         {messages.map((msg, index) => {
