@@ -36,6 +36,10 @@ export interface InventoryItem {
   marketData?: MarketDataItem[];
   lastRefreshed?: string;
   usedInProjects?: { projectId: string; projectName: string; quantity: number }[]; // Track project usage
+  // Component relationship fields
+  relatedComponents?: ComponentRelationship[]; // Components that work with this one
+  parentComponentId?: string; // If this is a sub-component (e.g., shield for a board)
+  childComponentIds?: string[]; // If this has sub-components
 }
 
 export interface Project {
@@ -92,7 +96,7 @@ export interface ChatMessage {
   suggestedProject?: {
     projectName: string;
     components: { name: string; quantity: number }[];
-  };
+  } | null;
 }
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -140,4 +144,22 @@ export interface HomeAssistantConfig {
 export interface EntityInventoryLink {
     entityId: string;
     inventoryId: string;
+}
+
+export interface ComponentRelationship {
+  id: string;
+  relatedComponentId: string;
+  relatedComponentName: string;
+  relationshipType: 'requires' | 'compatible_with' | 'enhances' | 'part_of' | 'contains';
+  description?: string;
+  isRequired?: boolean; // True if the related component is required for this one to function
+}
+
+export interface ComponentBundle {
+  id: string;
+  name: string;
+  description: string;
+  componentIds: string[];
+  bundleType: 'kit' | 'combo' | 'system';
+  createdAt: string;
 }

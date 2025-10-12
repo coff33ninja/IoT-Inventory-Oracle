@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { InventoryItem, ItemStatus, AiInsights, MarketDataItem } from '../types.js';
+import { InventoryItem, ItemStatus, AiInsights, MarketDataItem, ComponentRelationship } from '../types.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -81,6 +81,43 @@ class DatabaseService {
       )
     `);
 
+    // Create component relationships table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS component_relationships (
+        id TEXT PRIMARY KEY,
+        componentId TEXT NOT NULL,
+        relatedComponentId TEXT NOT NULL,
+        relationshipType TEXT NOT NULL,
+        description TEXT,
+        isRequired INTEGER DEFAULT 0,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (componentId) REFERENCES inventory_items (id) ON DELETE CASCADE,
+        FOREIGN KEY (relatedComponentId) REFERENCES inventory_items (id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create component bundles table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS component_bundles (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL,
+        bundleType TEXT NOT NULL,
+        createdAt TEXT NOT NULL
+      )
+    `);
+
+    // Create bundle components junction table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS bundle_components (
+        bundleId TEXT NOT NULL,
+        componentId TEXT NOT NULL,
+        PRIMARY KEY (bundleId, componentId),
+        FOREIGN KEY (bundleId) REFERENCES component_bundles (id) ON DELETE CASCADE,
+        FOREIGN KEY (componentId) REFERENCES inventory_items (id) ON DELETE CASCADE
+      )
+    `);
+
     // Create indexes for better performance
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_inventory_status ON inventory_items(status);
@@ -89,6 +126,9 @@ class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_chat_conversation ON chat_messages(conversationId);
       CREATE INDEX IF NOT EXISTS idx_chat_created ON chat_messages(createdAt);
       CREATE INDEX IF NOT EXISTS idx_conversation_updated ON chat_conversations(updatedAt);
+      CREATE INDEX IF NOT EXISTS idx_component_relationships ON component_relationships(componentId);
+      CREATE INDEX IF NOT EXISTS idx_related_components ON component_relationships(relatedComponentId);
+      CREATE INDEX IF NOT EXISTS idx_bundle_components ON bundle_components(bundleId);
     `);
   }
 
@@ -299,6 +339,19 @@ class DatabaseService {
     const marketData = this.getMarketData(dbItem.id);
     if (marketData.length > 0) {
       item.marketData = marketData;
+    }
+
+    // Load component relationships
+    const relationships = this.getComponentRelationships(dbItem.id);
+    if (relationships.length > 0) {
+      item.relatedComponents = relationships.map(rel => ({
+        id: rel.id,
+        relatedComponentId: rel.relatedComponentId,
+        relatedComponentName: rel.relatedComponentName,
+        relationshipType: rel.relationshipType as any,
+        description: rel.description,
+        isRequired: Boolean(rel.isRequired)
+      }));
     }
 
     return item;
@@ -565,6 +618,104 @@ class DatabaseService {
       mentionedComponents: mentionedComponents.slice(0, 10),
       discussedProjects: discussedProjects.slice(0, 5)
     };
+  }
+
+  // Component relationship operations
+  addComponentRelationship(componentId: string, relatedComponentId: string, relationshipType: string, description?: string, isRequired: boolean = false): string {
+    const id = new Date().toISOString() + '-' + Math.random().toString(36).substr(2, 9);
+    const now = new Date().toISOString();
+    
+    this.db.prepare(`
+      INSERT INTO component_relationships (id, componentId, relatedComponentId, relationshipType, description, isRequired, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(id, componentId, relatedComponentId, relationshipType, description || null, isRequired ? 1 : 0, now);
+    
+    return id;
+  }
+
+  getComponentRelationships(componentId: string): Array<{
+    id: string;
+    relatedComponentId: string;
+    relatedComponentName: string;
+    relationshipType: string;
+    description?: string;
+    isRequired: boolean;
+  }> {
+    return this.db.prepare(`
+      SELECT cr.id, cr.relatedComponentId, ii.name as relatedComponentName, 
+             cr.relationshipType, cr.description, cr.isRequired
+      FROM component_relationships cr
+      JOIN inventory_items ii ON cr.relatedComponentId = ii.id
+      WHERE cr.componentId = ?
+      ORDER BY cr.isRequired DESC, cr.relationshipType
+    `).all(componentId) as any[];
+  }
+
+  removeComponentRelationship(relationshipId: string): void {
+    this.db.prepare('DELETE FROM component_relationships WHERE id = ?').run(relationshipId);
+  }
+
+  // Component bundle operations
+  createComponentBundle(name: string, description: string, componentIds: string[], bundleType: string = 'kit'): string {
+    const id = new Date().toISOString() + '-bundle';
+    const now = new Date().toISOString();
+    
+    const transaction = this.db.transaction(() => {
+      // Create bundle
+      this.db.prepare(`
+        INSERT INTO component_bundles (id, name, description, bundleType, createdAt)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(id, name, description, bundleType, now);
+      
+      // Add components to bundle
+      const stmt = this.db.prepare(`
+        INSERT INTO bundle_components (bundleId, componentId) VALUES (?, ?)
+      `);
+      
+      componentIds.forEach(componentId => {
+        stmt.run(id, componentId);
+      });
+    });
+    
+    transaction();
+    return id;
+  }
+
+  getBundleComponents(bundleId: string): Array<{
+    id: string;
+    name: string;
+    category?: string;
+    status: string;
+  }> {
+    return this.db.prepare(`
+      SELECT ii.id, ii.name, ii.category, ii.status
+      FROM bundle_components bc
+      JOIN inventory_items ii ON bc.componentId = ii.id
+      WHERE bc.bundleId = ?
+      ORDER BY ii.name
+    `).all(bundleId) as any[];
+  }
+
+  getAllBundles(): Array<{
+    id: string;
+    name: string;
+    description: string;
+    bundleType: string;
+    createdAt: string;
+    componentCount: number;
+  }> {
+    return this.db.prepare(`
+      SELECT cb.id, cb.name, cb.description, cb.bundleType, cb.createdAt,
+             COUNT(bc.componentId) as componentCount
+      FROM component_bundles cb
+      LEFT JOIN bundle_components bc ON cb.id = bc.bundleId
+      GROUP BY cb.id, cb.name, cb.description, cb.bundleType, cb.createdAt
+      ORDER BY cb.createdAt DESC
+    `).all() as any[];
+  }
+
+  deleteBundle(bundleId: string): void {
+    this.db.prepare('DELETE FROM component_bundles WHERE id = ?').run(bundleId);
   }
 
   close(): void {

@@ -321,6 +321,48 @@ const getChat = (history: ChatMessage[]): Chat => {
             /// PRICE_CHECK_JSON_END ///
             \`\`\`
 
+            - **For Component Relationships (NEW):**
+            \`\`\`json
+            /// COMPONENT_RELATIONSHIP_JSON_START ///
+            {
+              "action": "create_component_relationship",
+              "primaryComponent": {
+                "name": "ESP12E Wi-Fi Module",
+                "category": "Microcontroller",
+                "status": "I Have"
+              },
+              "relatedComponent": {
+                "name": "NodeMCU HW-389 Ver1.0 Shield",
+                "category": "Development Board",
+                "status": "I Have"
+              },
+              "relationshipType": "requires",
+              "description": "ESP12E module requires the NodeMCU shield for development and programming",
+              "isRequired": true,
+              "createSeparateEntries": true,
+              "reason": "User mentioned ESP12E with NodeMCU shield - these should be separate but linked components"
+            }
+            /// COMPONENT_RELATIONSHIP_JSON_END ///
+            \`\`\`
+
+            - **For Component Bundles (NEW):**
+            \`\`\`json
+            /// COMPONENT_BUNDLE_JSON_START ///
+            {
+              "action": "create_component_bundle",
+              "bundleName": "ESP12E Development Kit",
+              "bundleDescription": "Complete ESP12E development setup with shield and accessories",
+              "bundleType": "kit",
+              "components": [
+                {"name": "ESP12E Wi-Fi Module", "category": "Microcontroller"},
+                {"name": "NodeMCU HW-389 Ver1.0 Shield", "category": "Development Board"},
+                {"name": "USB Cable", "category": "Cable/Wire"}
+              ],
+              "reason": "Creating a logical grouping of related components that work together"
+            }
+            /// COMPONENT_BUNDLE_JSON_END ///
+            \`\`\`
+
             **PRICE CHECK TRIGGERS:**
             When users mention pricing or sourcing, automatically suggest PRICE_CHECK_JSON if they:
             - Ask about current prices ("what does this cost now?", "how much is an ESP32?")
@@ -328,6 +370,35 @@ const getChat = (history: ChatMessage[]): Chat => {
             - Mention shopping or purchasing ("I need to order", "looking to buy")
             - Ask for price comparisons ("is this a good price?", "find cheaper alternatives")
             - Request market updates ("check current prices", "update pricing info")
+
+            **COMPONENT RELATIONSHIP TRIGGERS:**
+            When users mention components that work together, automatically suggest COMPONENT_RELATIONSHIP_JSON if they:
+            - Mention a module with its carrier board (ESP12E + NodeMCU shield)
+            - Describe components that require each other to function
+            - Ask about compatibility between components
+            - Mention shields, breakout boards, or development boards for specific chips
+            - Describe component kits or bundles they own
+            - Use phrases like "with shield", "on board", "requires", "needs", "compatible with"
+            - Mention specific model numbers that indicate related components
+
+            **COMPONENT BUNDLE TRIGGERS:**
+            When users describe multiple related components, automatically suggest COMPONENT_BUNDLE_JSON if they:
+            - Mention buying a "kit" or "starter pack"
+            - List multiple components that typically work together
+            - Describe a complete system or setup
+            - Ask about organizing related components
+            - Mention components that came together as a package
+            - Use phrases like "development kit", "starter kit", "bundle", "combo", "set"
+
+            **SMART COMPONENT RECOGNITION:**
+            Be intelligent about recognizing when users mention compound components:
+            - "ESP12E with NodeMCU HW-389" → Create separate ESP12E module + NodeMCU shield with relationship
+            - "Arduino Uno R3 with sensor shield" → Create separate Arduino + shield with relationship
+            - "Raspberry Pi 4 starter kit" → Create bundle with Pi + accessories
+            - "ESP32 development board" → Single item (integrated)
+            - "ESP32 WROOM module on breakout board" → Separate module + breakout with relationship
+
+            Always prioritize creating separate, properly linked components over single combined entries when the user mentions distinct parts that work together.
 
             **IMPORTANT CONTEXT MANAGEMENT:**
             - Always reference specific IDs when discussing projects or inventory items
@@ -540,7 +611,7 @@ export const generateDescription = async (
       model: model,
       contents: prompt,
     });
-    return response.text.trim();
+    return response.text?.trim() || "";
   } catch (error) {
     console.error("Gemini description generation failed:", error);
     throw new Error("Failed to generate description from AI.");
@@ -583,7 +654,7 @@ export const suggestCategory = async (itemName: string): Promise<string> => {
       contents: prompt,
     });
 
-    return response.text.trim();
+    return response.text?.trim() || "";
   } catch (error) {
     console.error("Gemini category suggestion failed:", error);
     throw new Error("Failed to suggest category from AI.");
@@ -623,6 +694,10 @@ export const getComponentIntelligence = async (
         tools: [{ googleSearch: {} }],
       },
     });
+
+    if (!response.text) {
+      throw new Error("AI response is empty");
+    }
 
     let jsonString = response.text.trim();
     // Clean potential markdown wrappers just in case the model adds them
@@ -689,6 +764,10 @@ export const analyzeGithubRepo = async (
       },
     });
 
+    if (!response.text) {
+      throw new Error("AI response is empty");
+    }
+
     const jsonString = response.text.trim();
     const parsedJson = JSON.parse(jsonString);
 
@@ -740,7 +819,7 @@ export const suggestProjectCategory = async (
       contents: prompt,
     });
 
-    return response.text.trim();
+    return response.text?.trim() || "";
   } catch (error) {
     console.error("Gemini project category suggestion failed:", error);
     throw new Error("Failed to suggest project category from AI.");
@@ -770,7 +849,7 @@ export const enhanceProjectDescription = async (
       contents: prompt,
     });
 
-    return response.text.trim();
+    return response.text?.trim() || "";
   } catch (error) {
     console.error("Gemini project description enhancement failed:", error);
     throw new Error("Failed to enhance project description from AI.");
@@ -841,6 +920,10 @@ export const suggestProjectImprovements = async (
         },
       },
     });
+
+    if (!response.text) {
+      throw new Error("AI response is empty");
+    }
 
     const jsonString = response.text.trim();
     const parsedJson = JSON.parse(jsonString);
@@ -921,6 +1004,10 @@ export const generateProjectInstructions = async (
         },
       },
     });
+
+    if (!response.text) {
+      throw new Error("AI response is empty");
+    }
 
     const jsonString = response.text.trim();
     const parsedJson = JSON.parse(jsonString);
@@ -1022,6 +1109,10 @@ export const analyzeProjectComplexity = async (
         },
       },
     });
+
+    if (!response.text) {
+      throw new Error("AI response is empty");
+    }
 
     const jsonString = response.text.trim();
     const parsedJson = JSON.parse(jsonString);

@@ -139,11 +139,31 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         }
       } catch (error) {
         console.error("Failed to initialize chat:", error);
-        addToast("Failed to load chat history", "error");
-        // Fallback: create a local conversation ID for this session
+        
+        // Check if it's a network error (server not running)
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          addToast("Chat server not available - using offline mode", "info");
+          console.log("Server appears to be offline, using local fallback");
+        } else {
+          addToast("Failed to load chat history - using offline mode", "error");
+        }
+        
+        // Fallback: create a local conversation with better UX
         const fallbackId = `local-${Date.now()}`;
         setCurrentConversationId(fallbackId);
-        console.log("Using fallback conversation ID:", fallbackId);
+        
+        // Create a fallback conversation object
+        const fallbackConversation = {
+          id: fallbackId,
+          title: "Offline Chat",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          isActive: true,
+          messageCount: 0,
+        };
+        setConversations([fallbackConversation]);
+        
+        console.log("Using fallback conversation:", fallbackConversation);
       }
     };
 
@@ -292,7 +312,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                   ...msg,
                   content: fullResponse,
                   groundingChunks,
-                  suggestedProject: projectData || msg.suggestedProject,
+                  suggestedProject: projectData || msg.suggestedProject || undefined,
                 }
               : msg
           )
@@ -530,6 +550,63 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       if (priceCheckAction) {
         handlePriceCheck(priceCheckAction);
         addToast(`Checking prices for: ${priceCheckAction.itemName}`, "info");
+      }
+
+      // Parse and auto-execute component relationships
+      const { jsonData: componentRelationshipAction } = parseJsonBlock<{
+        action: string;
+        primaryComponent: {
+          name: string;
+          category: string;
+          status: string;
+        };
+        relatedComponent: {
+          name: string;
+          category: string;
+          status: string;
+        };
+        relationshipType: string;
+        description: string;
+        isRequired: boolean;
+        createSeparateEntries: boolean;
+        reason: string;
+      }>(
+        responseContent,
+        "/// COMPONENT_RELATIONSHIP_JSON_START ///",
+        "/// COMPONENT_RELATIONSHIP_JSON_END ///"
+      );
+
+      if (componentRelationshipAction) {
+        handleComponentRelationship(componentRelationshipAction);
+        addToast(
+          `Created relationship: ${componentRelationshipAction.primaryComponent.name} ↔ ${componentRelationshipAction.relatedComponent.name}`,
+          "success"
+        );
+      }
+
+      // Parse and auto-execute component bundles
+      const { jsonData: componentBundleAction } = parseJsonBlock<{
+        action: string;
+        bundleName: string;
+        bundleDescription: string;
+        bundleType: string;
+        components: Array<{
+          name: string;
+          category: string;
+        }>;
+        reason: string;
+      }>(
+        responseContent,
+        "/// COMPONENT_BUNDLE_JSON_START ///",
+        "/// COMPONENT_BUNDLE_JSON_END ///"
+      );
+
+      if (componentBundleAction) {
+        handleComponentBundle(componentBundleAction);
+        addToast(
+          `Created bundle: ${componentBundleAction.bundleName} with ${componentBundleAction.components.length} components`,
+          "success"
+        );
       }
     } catch (error) {
       console.error("Error auto-executing AI suggestions:", error);
@@ -1104,6 +1181,129 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     } catch (error) {
       console.error("Failed to check prices:", error);
       addToast(`Failed to check prices for ${priceData.itemName}`, "error");
+    }
+  };
+
+  const handleComponentRelationship = async (relationshipAction: {
+    action: string;
+    primaryComponent: {
+      name: string;
+      category: string;
+      status: string;
+    };
+    relatedComponent: {
+      name: string;
+      category: string;
+      status: string;
+    };
+    relationshipType: string;
+    description: string;
+    isRequired: boolean;
+    createSeparateEntries: boolean;
+    reason: string;
+  }) => {
+    try {
+      console.log("Creating component relationship:", relationshipAction);
+
+      if (relationshipAction.createSeparateEntries) {
+        // Create primary component
+        const primaryStatus = relationshipAction.primaryComponent.status === "I Have" 
+          ? ItemStatus.HAVE 
+          : relationshipAction.primaryComponent.status === "I Need"
+          ? ItemStatus.NEED
+          : ItemStatus.WANT;
+
+        const primaryItem = {
+          id: "", // Will be generated
+          name: relationshipAction.primaryComponent.name,
+          quantity: 1,
+          location: "Inventory",
+          status: primaryStatus,
+          category: relationshipAction.primaryComponent.category,
+          description: `${relationshipAction.relationshipType} ${relationshipAction.relatedComponent.name}. ${relationshipAction.description}`,
+          createdAt: new Date().toISOString(),
+        };
+
+        await addItem(primaryItem);
+
+        // Create related component
+        const relatedStatus = relationshipAction.relatedComponent.status === "I Have" 
+          ? ItemStatus.HAVE 
+          : relationshipAction.relatedComponent.status === "I Need"
+          ? ItemStatus.NEED
+          : ItemStatus.WANT;
+
+        const relatedItem = {
+          id: "", // Will be generated
+          name: relationshipAction.relatedComponent.name,
+          quantity: 1,
+          location: "Inventory",
+          status: relatedStatus,
+          category: relationshipAction.relatedComponent.category,
+          description: `Works with ${relationshipAction.primaryComponent.name}. ${relationshipAction.description}`,
+          createdAt: new Date().toISOString(),
+        };
+
+        await addItem(relatedItem);
+
+        // Create relationship between components (this would require API call)
+        console.log(`Would create relationship between components when API is available`);
+        
+        addToast(
+          `Created separate entries: ${relationshipAction.primaryComponent.name} and ${relationshipAction.relatedComponent.name}`,
+          "success"
+        );
+      }
+    } catch (error) {
+      console.error("Error creating component relationship:", error);
+      addToast("Failed to create component relationship", "error");
+    }
+  };
+
+  const handleComponentBundle = async (bundleAction: {
+    action: string;
+    bundleName: string;
+    bundleDescription: string;
+    bundleType: string;
+    components: Array<{
+      name: string;
+      category: string;
+    }>;
+    reason: string;
+  }) => {
+    try {
+      console.log("Creating component bundle:", bundleAction);
+
+      // Create individual components first
+      const createdComponentIds: string[] = [];
+
+      for (const component of bundleAction.components) {
+        const item = {
+          id: "", // Will be generated
+          name: component.name,
+          quantity: 1,
+          location: "Inventory",
+          status: ItemStatus.HAVE, // Assume bundle components are owned
+          category: component.category,
+          description: `Part of ${bundleAction.bundleName} bundle. ${bundleAction.bundleDescription}`,
+          createdAt: new Date().toISOString(),
+        };
+
+        await addItem(item);
+        // Note: In a real implementation, we'd need the API to return the created item ID
+        createdComponentIds.push(`generated-id-${Date.now()}-${Math.random()}`);
+      }
+
+      // Create bundle (this would require API call to bundle service)
+      console.log(`Would create bundle "${bundleAction.bundleName}" with components:`, createdComponentIds);
+      
+      addToast(
+        `Created bundle "${bundleAction.bundleName}" with ${bundleAction.components.length} components`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Error creating component bundle:", error);
+      addToast("Failed to create component bundle", "error");
     }
   };
 

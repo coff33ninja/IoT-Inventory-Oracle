@@ -305,6 +305,79 @@ app.get("/", (req, res) => {
   });
 });
 
+// Component relationship endpoints
+app.post("/api/inventory/:id/relationships", (req, res) => {
+  try {
+    const { relatedComponentId, relationshipType, description, isRequired } = req.body;
+    const relationshipId = dbService.addComponentRelationship(
+      req.params.id,
+      relatedComponentId,
+      relationshipType,
+      description,
+      isRequired
+    );
+    res.status(201).json({ id: relationshipId });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to add component relationship" });
+  }
+});
+
+app.get("/api/inventory/:id/relationships", (req, res) => {
+  try {
+    const relationships = dbService.getComponentRelationships(req.params.id);
+    res.json(relationships);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch component relationships" });
+  }
+});
+
+app.delete("/api/relationships/:id", (req, res) => {
+  try {
+    dbService.removeComponentRelationship(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to remove component relationship" });
+  }
+});
+
+// Component bundle endpoints
+app.post("/api/bundles", (req, res) => {
+  try {
+    const { name, description, componentIds, bundleType } = req.body;
+    const bundleId = dbService.createComponentBundle(name, description, componentIds, bundleType);
+    res.status(201).json({ id: bundleId });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create component bundle" });
+  }
+});
+
+app.get("/api/bundles", (req, res) => {
+  try {
+    const bundles = dbService.getAllBundles();
+    res.json(bundles);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch component bundles" });
+  }
+});
+
+app.get("/api/bundles/:id/components", (req, res) => {
+  try {
+    const components = dbService.getBundleComponents(req.params.id);
+    res.json(components);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch bundle components" });
+  }
+});
+
+app.delete("/api/bundles/:id", (req, res) => {
+  try {
+    dbService.deleteBundle(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete bundle" });
+  }
+});
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.json({ status: "healthy", timestamp: new Date().toISOString() });
