@@ -100,7 +100,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
   const [currentConversationId, setCurrentConversationId] = useState<
     string | null
   >(null);
-  const [isHistorySidebarCollapsed, setIsHistorySidebarCollapsed] = useState(false);
+  const [isHistorySidebarCollapsed, setIsHistorySidebarCollapsed] =
+    useState(false);
 
   // Initialize conversations and load active conversation
   useEffect(() => {
@@ -462,6 +463,29 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
       if (transferAction) {
         handleTransferToProject(transferAction);
         addToast(`Auto-transferred component to project`, "success");
+      }
+
+      // Parse and auto-execute project updates
+      const { jsonData: projectUpdateAction } = parseJsonBlock<{
+        action: string;
+        projectId: string;
+        projectName: string;
+        updates: {
+          status?: string;
+          progress?: number;
+          description?: string;
+          notes?: string;
+        };
+        reason: string;
+      }>(
+        responseContent,
+        "/// PROJECT_UPDATE_JSON_START ///",
+        "/// PROJECT_UPDATE_JSON_END ///"
+      );
+
+      if (projectUpdateAction) {
+        handleProjectUpdate(projectUpdateAction);
+        addToast(`Updated project: ${projectUpdateAction.projectName}`, "success");
       }
     } catch (error) {
       console.error("Error auto-executing AI suggestions:", error);
@@ -869,6 +893,64 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     );
   };
 
+  const handleProjectUpdate = (updateData: {
+    action: string;
+    projectId: string;
+    projectName: string;
+    updates: {
+      status?: string;
+      progress?: number;
+      description?: string;
+      notes?: string;
+    };
+    reason: string;
+  }) => {
+    const project = projects.find((p) => p.id === updateData.projectId);
+
+    if (!project) {
+      addToast(`Could not find project: ${updateData.projectName}`, "error");
+      return;
+    }
+
+    // Build the updated project object
+    const updatedProject = { ...project };
+    let changes: string[] = [];
+
+    if (updateData.updates.status && updateData.updates.status !== project.status) {
+      updatedProject.status = updateData.updates.status as any;
+      changes.push(`status to "${updateData.updates.status}"`);
+    }
+
+    if (updateData.updates.progress !== undefined && updateData.updates.progress !== project.progress) {
+      updatedProject.progress = updateData.updates.progress;
+      changes.push(`progress to ${updateData.updates.progress}%`);
+    }
+
+    if (updateData.updates.description && updateData.updates.description !== project.description) {
+      updatedProject.description = updateData.updates.description;
+      changes.push("description");
+    }
+
+    if (updateData.updates.notes) {
+      const timestamp = new Date().toLocaleString();
+      const newNote = `\n\n[${timestamp}] AI Update: ${updateData.updates.notes}`;
+      updatedProject.notes = (project.notes || "") + newNote;
+      changes.push("notes");
+    }
+
+    if (changes.length > 0) {
+      updatedProject.updatedAt = new Date().toISOString();
+      updateProject(updatedProject);
+      
+      addToast(
+        `Updated ${project.name}: ${changes.join(", ")}`,
+        "success"
+      );
+    } else {
+      addToast("No changes needed for project", "info");
+    }
+  };
+
   const parseContent = (content: string) => {
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
     const parts = [];
@@ -1090,464 +1172,520 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
   return (
     <div className="flex h-full w-full relative">
       {/* Main Chat Area */}
-      <div className={`flex flex-col h-full transition-all duration-300 ${
-        isHistorySidebarCollapsed ? 'mr-12' : 'mr-80'
-      } flex-1`}>
-      <div className="flex items-center justify-between mb-4 shrink-0">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
-            Chat Assistant
-          </h1>
-          <div className="flex items-center gap-2">
-
-            <button
-              type="button"
-              onClick={createNewConversation}
-              className="p-2 text-text-secondary hover:text-text-primary transition-colors rounded-md hover:bg-secondary"
-              title="New Chat">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-        {autoPopulateEnabled && (
-          <div className="flex items-center gap-2 text-xs bg-highlight/20 text-highlight px-2 py-1 rounded-full">
-            <div className="w-2 h-2 bg-highlight rounded-full animate-pulse"></div>
-            Auto-populate enabled
-          </div>
-        )}
-      </div>
-
-
-
       <div
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto pr-2 space-y-4 sm:space-y-6 pb-4">
-        {messages.map((msg, index) => {
-          const {
-            displayContent: contentAfterSuggestions,
-            jsonData: suggestions,
-          } = parseJsonBlock<AiSuggestedPart[]>(
-            msg.content,
-            "/// SUGGESTIONS_JSON_START ///",
-            "/// SUGGESTIONS_JSON_END ///"
-          );
-          const { displayContent: contentAfterProject, jsonData: project } =
-            parseJsonBlock<{
-              projectName: string;
-              components: { name: string; quantity: number }[];
-            }>(
-              contentAfterSuggestions,
-              "/// PROJECT_JSON_START ///",
-              "/// PROJECT_JSON_END ///"
+        className={`flex flex-col h-full transition-all duration-300 ${
+          isHistorySidebarCollapsed ? "mr-12" : "mr-80"
+        } flex-1`}>
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
+              Chat Assistant
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={createNewConversation}
+                className="p-2 text-text-secondary hover:text-text-primary transition-colors rounded-md hover:bg-secondary"
+                title="New Chat">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          {autoPopulateEnabled && (
+            <div className="flex items-center gap-2 text-xs bg-highlight/20 text-highlight px-2 py-1 rounded-full">
+              <div className="w-2 h-2 bg-highlight rounded-full animate-pulse"></div>
+              Auto-populate enabled
+            </div>
+          )}
+        </div>
+
+        <div
+          ref={chatContainerRef}
+          className="flex-1 overflow-y-auto pr-2 space-y-4 sm:space-y-6 pb-4">
+          {messages.map((msg, index) => {
+            const {
+              displayContent: contentAfterSuggestions,
+              jsonData: suggestions,
+            } = parseJsonBlock<AiSuggestedPart[]>(
+              msg.content,
+              "/// SUGGESTIONS_JSON_START ///",
+              "/// SUGGESTIONS_JSON_END ///"
             );
-          const { displayContent: contentAfterMove, jsonData: moveAction } =
-            parseJsonBlock<{
+            const { displayContent: contentAfterProject, jsonData: project } =
+              parseJsonBlock<{
+                projectName: string;
+                components: { name: string; quantity: number }[];
+              }>(
+                contentAfterSuggestions,
+                "/// PROJECT_JSON_START ///",
+                "/// PROJECT_JSON_END ///"
+              );
+            const { displayContent: contentAfterMove, jsonData: moveAction } =
+              parseJsonBlock<{
+                action: string;
+                sourceProjectId: string;
+                targetProjectId: string;
+                componentName: string;
+                quantity: number;
+                reason: string;
+              }>(
+                contentAfterProject,
+                "/// MOVE_JSON_START ///",
+                "/// MOVE_JSON_END ///"
+              );
+            const {
+              displayContent: contentAfterTransfer,
+              jsonData: transferAction,
+            } = parseJsonBlock<{
               action: string;
-              sourceProjectId: string;
+              inventoryItemId: string;
               targetProjectId: string;
-              componentName: string;
               quantity: number;
               reason: string;
             }>(
-              contentAfterProject,
-              "/// MOVE_JSON_START ///",
-              "/// MOVE_JSON_END ///"
+              contentAfterMove,
+              "/// TRANSFER_JSON_START ///",
+              "/// TRANSFER_JSON_END ///"
             );
-          const {
-            displayContent: contentAfterTransfer,
-            jsonData: transferAction,
-          } = parseJsonBlock<{
-            action: string;
-            inventoryItemId: string;
-            targetProjectId: string;
-            quantity: number;
-            reason: string;
-          }>(
-            contentAfterMove,
-            "/// TRANSFER_JSON_START ///",
-            "/// TRANSFER_JSON_END ///"
-          );
-          const {
-            displayContent: contentAfterTemplate,
-            jsonData: templateAction,
-          } = parseJsonBlock<{
-            action: string;
-            templateId: string;
-            templateName: string;
-            matchingComponents: string[];
-            missingComponents: string[];
-            reason: string;
-          }>(
-            contentAfterTransfer,
-            "/// TEMPLATE_JSON_START ///",
-            "/// TEMPLATE_JSON_END ///"
-          );
-          const { displayContent, jsonData: analysisAction } = parseJsonBlock<{
-            action: string;
-            issues: Array<{ type: string; message: string }>;
-            suggestions: Array<{
-              type: string;
-              component: string;
-              alternative?: string;
-              quantity?: number;
+            const {
+              displayContent: contentAfterTemplate,
+              jsonData: templateAction,
+            } = parseJsonBlock<{
+              action: string;
+              templateId: string;
+              templateName: string;
+              matchingComponents: string[];
+              missingComponents: string[];
               reason: string;
-            }>;
-          }>(
-            contentAfterTemplate,
-            "/// ANALYSIS_JSON_START ///",
-            "/// ANALYSIS_JSON_END ///"
-          );
+            }>(
+              contentAfterTransfer,
+              "/// TEMPLATE_JSON_START ///",
+              "/// TEMPLATE_JSON_END ///"
+            );
+            const { displayContent: contentAfterAnalysis, jsonData: analysisAction } =
+              parseJsonBlock<{
+                action: string;
+                issues: Array<{ type: string; message: string }>;
+                suggestions: Array<{
+                  type: string;
+                  component: string;
+                  alternative?: string;
+                  quantity?: number;
+                  reason: string;
+                }>;
+              }>(
+                contentAfterTemplate,
+                "/// ANALYSIS_JSON_START ///",
+                "/// ANALYSIS_JSON_END ///"
+              );
+            const { displayContent, jsonData: projectUpdateAction } =
+              parseJsonBlock<{
+                action: string;
+                projectId: string;
+                projectName: string;
+                updates: {
+                  status?: string;
+                  progress?: number;
+                  description?: string;
+                  notes?: string;
+                };
+                reason: string;
+              }>(
+                contentAfterAnalysis,
+                "/// PROJECT_UPDATE_JSON_START ///",
+                "/// PROJECT_UPDATE_JSON_END ///"
+              );
 
-          return (
-            <div
-              key={index}
-              className={`flex items-start gap-3 sm:gap-4 ${
-                msg.role === "user" ? "justify-end" : ""
-              }`}>
-              {msg.role === "model" && (
-                <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-accent flex items-center justify-center">
-                  <BotIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                </div>
-              )}
+            return (
               <div
-                className={`max-w-[85%] sm:max-w-xl p-3 sm:p-4 rounded-xl ${
-                  msg.role === "user" ? "bg-accent text-white" : "bg-secondary"
+                key={index}
+                className={`flex items-start gap-3 sm:gap-4 ${
+                  msg.role === "user" ? "justify-end" : ""
                 }`}>
-                <div className="prose prose-invert text-text-primary prose-p:my-0 prose-pre:my-2 prose-strong:text-text-primary prose-em:text-text-primary">
-                  {parseContent(displayContent)}
-                </div>
-
-                {(suggestions ||
-                  project ||
-                  moveAction ||
-                  transferAction ||
-                  templateAction ||
-                  analysisAction) && (
-                  <div className="mt-4 pt-3 border-t border-border-color space-y-3">
-                    <h4 className="text-sm font-semibold text-text-secondary">
-                      Interactive Actions:
-                    </h4>
-                    {project && (
-                      <div className="bg-primary/50 p-3 rounded-lg">
-                        <p className="font-semibold text-text-primary text-sm flex items-center gap-2">
-                          <ProjectsIcon /> {project.projectName}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleCreateProject(
-                                project.components,
-                                project.projectName
-                              )
-                            }
-                            className="text-xs bg-highlight/20 text-highlight hover:bg-highlight/40 px-2 py-1 rounded-md transition-colors w-full text-center">
-                            Create Project
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {moveAction && (
-                      <div className="bg-primary/50 p-3 rounded-lg">
-                        <p className="font-semibold text-text-primary text-sm">
-                          Move Component
-                        </p>
-                        <p className="text-xs text-text-secondary mt-1">
-                          {moveAction.quantity}x {moveAction.componentName} from{" "}
-                          {projects.find(
-                            (p) => p.id === moveAction.sourceProjectId
-                          )?.name || "Unknown"}{" "}
-                          to{" "}
-                          {projects.find(
-                            (p) => p.id === moveAction.targetProjectId
-                          )?.name || "Unknown"}
-                        </p>
-                        <p className="text-xs text-text-secondary mt-1">
-                          {moveAction.reason}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <button
-                            type="button"
-                            onClick={() => handleMoveComponent(moveAction)}
-                            className="text-xs bg-green-500/20 text-green-400 hover:bg-green-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
-                            Execute Move
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {transferAction && (
-                      <div className="bg-primary/50 p-3 rounded-lg">
-                        <p className="font-semibold text-text-primary text-sm">
-                          Transfer from Inventory
-                        </p>
-                        <p className="text-xs text-text-secondary mt-1">
-                          {transferAction.quantity}x{" "}
-                          {inventory.find(
-                            (item) => item.id === transferAction.inventoryItemId
-                          )?.name || "Unknown"}{" "}
-                          to{" "}
-                          {projects.find(
-                            (p) => p.id === transferAction.targetProjectId
-                          )?.name || "Unknown"}
-                        </p>
-                        <p className="text-xs text-text-secondary mt-1">
-                          {transferAction.reason}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleTransferToProject(transferAction)
-                            }
-                            className="text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
-                            Execute Transfer
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {templateAction && (
-                      <div className="bg-primary/50 p-3 rounded-lg">
-                        <p className="font-semibold text-text-primary text-sm">
-                          📋 Project Template Suggestion
-                        </p>
-                        <p className="font-medium text-text-primary text-sm mt-1">
-                          {templateAction.templateName}
-                        </p>
-                        <p className="text-xs text-text-secondary mt-1">
-                          {templateAction.reason}
-                        </p>
-                        <div className="mt-2 space-y-1">
-                          {templateAction.matchingComponents.length > 0 && (
-                            <p className="text-xs text-green-400">
-                              ✓ You have:{" "}
-                              {templateAction.matchingComponents.join(", ")}
-                            </p>
-                          )}
-                          {templateAction.missingComponents.length > 0 && (
-                            <p className="text-xs text-yellow-400">
-                              ⚠ Missing:{" "}
-                              {templateAction.missingComponents.join(", ")}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              addToast("Template feature coming soon!", "info")
-                            }
-                            className="text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
-                            Use Template
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {analysisAction && (
-                      <div className="bg-primary/50 p-3 rounded-lg">
-                        <p className="font-semibold text-text-primary text-sm">
-                          🔍 Component Analysis
-                        </p>
-                        {analysisAction.issues.length > 0 && (
-                          <div className="mt-2">
-                            <p className="text-xs font-semibold text-red-400 mb-1">
-                              Issues Found:
-                            </p>
-                            {analysisAction.issues.map((issue, idx) => (
-                              <p
-                                key={idx}
-                                className="text-xs text-red-300 mb-1">
-                                • {issue.message}
-                              </p>
-                            ))}
-                          </div>
-                        )}
-                        {analysisAction.suggestions.length > 0 && (
-                          <div className="mt-2">
-                            <p className="text-xs font-semibold text-blue-400 mb-1">
-                              Suggestions:
-                            </p>
-                            {analysisAction.suggestions.map(
-                              (suggestion, idx) => (
-                                <p
-                                  key={idx}
-                                  className="text-xs text-blue-300 mb-1">
-                                  •{" "}
-                                  {suggestion.type === "alternative"
-                                    ? `Replace ${suggestion.component} with ${suggestion.alternative}`
-                                    : `Add ${suggestion.quantity}x ${suggestion.component}`}
-                                  : {suggestion.reason}
-                                </p>
-                              )
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {suggestions?.map((part, partIdx) => (
-                      <div
-                        key={partIdx}
-                        className="bg-primary/50 p-3 rounded-lg">
-                        <p className="font-semibold text-text-primary text-sm">
-                          {part.name}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <button
-                            type="button"
-                            onClick={async () =>
-                              await handleAddToInventory(part, ItemStatus.NEED)
-                            }
-                            className="text-xs bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-2 py-1 rounded-md transition-colors">
-                            To Required
-                          </button>
-                          <button
-                            type="button"
-                            onClick={async () =>
-                              await handleAddToInventory(part, ItemStatus.WANT)
-                            }
-                            className="text-xs bg-sky-500/20 text-sky-400 hover:bg-sky-500/40 px-2 py-1 rounded-md transition-colors">
-                            To Wishlist
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                {msg.role === "model" && (
+                  <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-accent flex items-center justify-center">
+                    <BotIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                 )}
-                {msg.groundingChunks && msg.groundingChunks.length > 0 && (
-                  <div className="mt-4 pt-2 border-t border-border-color">
-                    <h4 className="text-xs font-semibold text-text-secondary mb-1">
-                      Sources:
-                    </h4>
-                    <ul className="text-xs space-y-1">
-                      {msg.groundingChunks.map(
-                        (chunk, i) =>
-                          chunk.web && (
-                            <li key={i}>
-                              <a
-                                href={chunk.web.uri}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sky-400 hover:underline break-all">
-                                {chunk.web.title || chunk.web.uri}
-                              </a>
-                            </li>
-                          )
+                <div
+                  className={`max-w-[85%] sm:max-w-xl p-3 sm:p-4 rounded-xl ${
+                    msg.role === "user"
+                      ? "bg-accent text-white"
+                      : "bg-secondary"
+                  }`}>
+                  <div className="prose prose-invert text-text-primary prose-p:my-0 prose-pre:my-2 prose-strong:text-text-primary prose-em:text-text-primary">
+                    {parseContent(displayContent)}
+                  </div>
+
+                  {(suggestions ||
+                    project ||
+                    moveAction ||
+                    transferAction ||
+                    templateAction ||
+                    analysisAction ||
+                    projectUpdateAction) && (
+                    <div className="mt-4 pt-3 border-t border-border-color space-y-3">
+                      <h4 className="text-sm font-semibold text-text-secondary">
+                        Interactive Actions:
+                      </h4>
+                      {project && (
+                        <div className="bg-primary/50 p-3 rounded-lg">
+                          <p className="font-semibold text-text-primary text-sm flex items-center gap-2">
+                            <ProjectsIcon /> {project.projectName}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleCreateProject(
+                                  project.components,
+                                  project.projectName
+                                )
+                              }
+                              className="text-xs bg-highlight/20 text-highlight hover:bg-highlight/40 px-2 py-1 rounded-md transition-colors w-full text-center">
+                              Create Project
+                            </button>
+                          </div>
+                        </div>
                       )}
-                    </ul>
+                      {moveAction && (
+                        <div className="bg-primary/50 p-3 rounded-lg">
+                          <p className="font-semibold text-text-primary text-sm">
+                            Move Component
+                          </p>
+                          <p className="text-xs text-text-secondary mt-1">
+                            {moveAction.quantity}x {moveAction.componentName}{" "}
+                            from{" "}
+                            {projects.find(
+                              (p) => p.id === moveAction.sourceProjectId
+                            )?.name || "Unknown"}{" "}
+                            to{" "}
+                            {projects.find(
+                              (p) => p.id === moveAction.targetProjectId
+                            )?.name || "Unknown"}
+                          </p>
+                          <p className="text-xs text-text-secondary mt-1">
+                            {moveAction.reason}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveComponent(moveAction)}
+                              className="text-xs bg-green-500/20 text-green-400 hover:bg-green-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
+                              Execute Move
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {transferAction && (
+                        <div className="bg-primary/50 p-3 rounded-lg">
+                          <p className="font-semibold text-text-primary text-sm">
+                            Transfer from Inventory
+                          </p>
+                          <p className="text-xs text-text-secondary mt-1">
+                            {transferAction.quantity}x{" "}
+                            {inventory.find(
+                              (item) =>
+                                item.id === transferAction.inventoryItemId
+                            )?.name || "Unknown"}{" "}
+                            to{" "}
+                            {projects.find(
+                              (p) => p.id === transferAction.targetProjectId
+                            )?.name || "Unknown"}
+                          </p>
+                          <p className="text-xs text-text-secondary mt-1">
+                            {transferAction.reason}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleTransferToProject(transferAction)
+                              }
+                              className="text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
+                              Execute Transfer
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {templateAction && (
+                        <div className="bg-primary/50 p-3 rounded-lg">
+                          <p className="font-semibold text-text-primary text-sm">
+                            📋 Project Template Suggestion
+                          </p>
+                          <p className="font-medium text-text-primary text-sm mt-1">
+                            {templateAction.templateName}
+                          </p>
+                          <p className="text-xs text-text-secondary mt-1">
+                            {templateAction.reason}
+                          </p>
+                          <div className="mt-2 space-y-1">
+                            {templateAction.matchingComponents.length > 0 && (
+                              <p className="text-xs text-green-400">
+                                ✓ You have:{" "}
+                                {templateAction.matchingComponents.join(", ")}
+                              </p>
+                            )}
+                            {templateAction.missingComponents.length > 0 && (
+                              <p className="text-xs text-yellow-400">
+                                ⚠ Missing:{" "}
+                                {templateAction.missingComponents.join(", ")}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                addToast(
+                                  "Template feature coming soon!",
+                                  "info"
+                                )
+                              }
+                              className="text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
+                              Use Template
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {analysisAction && (
+                        <div className="bg-primary/50 p-3 rounded-lg">
+                          <p className="font-semibold text-text-primary text-sm">
+                            🔍 Component Analysis
+                          </p>
+                          {analysisAction.issues.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs font-semibold text-red-400 mb-1">
+                                Issues Found:
+                              </p>
+                              {analysisAction.issues.map((issue, idx) => (
+                                <p
+                                  key={idx}
+                                  className="text-xs text-red-300 mb-1">
+                                  • {issue.message}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                          {analysisAction.suggestions.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs font-semibold text-blue-400 mb-1">
+                                Suggestions:
+                              </p>
+                              {analysisAction.suggestions.map(
+                                (suggestion, idx) => (
+                                  <p
+                                    key={idx}
+                                    className="text-xs text-blue-300 mb-1">
+                                    •{" "}
+                                    {suggestion.type === "alternative"
+                                      ? `Replace ${suggestion.component} with ${suggestion.alternative}`
+                                      : `Add ${suggestion.quantity}x ${suggestion.component}`}
+                                    : {suggestion.reason}
+                                  </p>
+                                )
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {projectUpdateAction && (
+                        <div className="bg-primary/50 p-3 rounded-lg">
+                          <p className="font-semibold text-text-primary text-sm flex items-center gap-2">
+                            <ProjectsIcon /> Update: {projectUpdateAction.projectName}
+                          </p>
+                          <p className="text-xs text-text-secondary mt-1">
+                            {projectUpdateAction.reason}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <button
+                              type="button"
+                              onClick={() => handleProjectUpdate(projectUpdateAction)}
+                              className="text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
+                              Apply Updates
+                            </button>
+                          </div>
+                          <div className="mt-2 text-xs text-text-secondary">
+                            {Object.entries(projectUpdateAction.updates).map(([key, value]) => (
+                              <div key={key} className="flex justify-between">
+                                <span className="capitalize">{key}:</span>
+                                <span className="text-text-primary">{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {suggestions?.map((part, partIdx) => (
+                        <div
+                          key={partIdx}
+                          className="bg-primary/50 p-3 rounded-lg">
+                          <p className="font-semibold text-text-primary text-sm">
+                            {part.name}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <button
+                              type="button"
+                              onClick={async () =>
+                                await handleAddToInventory(
+                                  part,
+                                  ItemStatus.NEED
+                                )
+                              }
+                              className="text-xs bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-2 py-1 rounded-md transition-colors">
+                              To Required
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () =>
+                                await handleAddToInventory(
+                                  part,
+                                  ItemStatus.WANT
+                                )
+                              }
+                              className="text-xs bg-sky-500/20 text-sky-400 hover:bg-sky-500/40 px-2 py-1 rounded-md transition-colors">
+                              To Wishlist
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {msg.groundingChunks && msg.groundingChunks.length > 0 && (
+                    <div className="mt-4 pt-2 border-t border-border-color">
+                      <h4 className="text-xs font-semibold text-text-secondary mb-1">
+                        Sources:
+                      </h4>
+                      <ul className="text-xs space-y-1">
+                        {msg.groundingChunks.map(
+                          (chunk, i) =>
+                            chunk.web && (
+                              <li key={i}>
+                                <a
+                                  href={chunk.web.uri}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sky-400 hover:underline break-all">
+                                  {chunk.web.title || chunk.web.uri}
+                                </a>
+                              </li>
+                            )
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                {msg.role === "user" && (
+                  <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center">
+                    <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                 )}
               </div>
-              {msg.role === "user" && (
-                <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center">
-                  <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                </div>
-              )}
+            );
+          })}
+          {isLoading && messages[messages.length - 1]?.role !== "model" && (
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-accent flex items-center justify-center">
+                <BotIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+              </div>
+              <div className="max-w-xl p-3 sm:p-4 rounded-xl bg-secondary flex items-center">
+                <SpinnerIcon /> <span className="ml-2">Thinking...</span>
+              </div>
             </div>
-          );
-        })}
-        {isLoading && messages[messages.length - 1]?.role !== "model" && (
-          <div className="flex items-start gap-3 sm:gap-4">
-            <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-accent flex items-center justify-center">
-              <BotIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+          )}
+          {messages.length === 0 && !isLoading && (
+            <div className="text-center text-text-secondary p-8 flex flex-col justify-center items-center h-full">
+              <ChatIcon className="mx-auto w-12 h-12 sm:w-16 sm:h-16" />
+              <p className="mt-4 text-base sm:text-lg">
+                Start a conversation with your IoT Oracle.
+              </p>
+              <p className="text-xs sm:text-sm">
+                Ask about your next project, what parts you need, or for coding
+                help!
+              </p>
             </div>
-            <div className="max-w-xl p-3 sm:p-4 rounded-xl bg-secondary flex items-center">
-              <SpinnerIcon /> <span className="ml-2">Thinking...</span>
-            </div>
-          </div>
-        )}
-        {messages.length === 0 && !isLoading && (
-          <div className="text-center text-text-secondary p-8 flex flex-col justify-center items-center h-full">
-            <ChatIcon className="mx-auto w-12 h-12 sm:w-16 sm:h-16" />
-            <p className="mt-4 text-base sm:text-lg">
-              Start a conversation with your IoT Oracle.
-            </p>
-            <p className="text-xs sm:text-sm">
-              Ask about your next project, what parts you need, or for coding
-              help!
-            </p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <div className="mt-auto pt-4 shrink-0 bg-primary">
-        {attachedFile && (
-          <div className="mb-2 px-3 py-2 bg-primary border border-border-color rounded-lg flex justify-between items-center text-sm">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <PaperclipIcon />
-              <span
-                className="text-text-secondary truncate font-medium"
-                title={attachedFile.name}>
-                {attachedFile.name}
-              </span>
+        <div className="mt-auto pt-4 shrink-0 bg-primary">
+          {attachedFile && (
+            <div className="mb-2 px-3 py-2 bg-primary border border-border-color rounded-lg flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <PaperclipIcon />
+                <span
+                  className="text-text-secondary truncate font-medium"
+                  title={attachedFile.name}>
+                  {attachedFile.name}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAttachedFile(null)}
+                className="text-text-secondary hover:text-text-primary p-1 rounded-full text-lg leading-none"
+                aria-label="Remove attached file"
+                title="Remove attached file">
+                &times;
+              </button>
             </div>
+          )}
+          <div className="flex items-center bg-secondary border border-border-color rounded-lg p-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept=".txt,.md,.json,.js,.py,.c,.cpp,.h,.ino"
+              id="file-upload"
+              aria-label="Upload document file"
+            />
             <button
               type="button"
-              onClick={() => setAttachedFile(null)}
-              className="text-text-secondary hover:text-text-primary p-1 rounded-full text-lg leading-none"
-              aria-label="Remove attached file"
-              title="Remove attached file">
-              &times;
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+              aria-label="Attach file"
+              title="Attach file">
+              <PaperclipIcon />
+            </button>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder={
+                attachedFile
+                  ? `Add a comment about ${attachedFile.name}...`
+                  : "Plan your next project..."
+              }
+              rows={1}
+              className="flex-1 bg-transparent px-2 resize-none focus:outline-none max-h-40"
+            />
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={isLoading || (!input.trim() && !attachedFile)}
+              className="bg-accent p-2 rounded-md text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Send message"
+              title="Send message">
+              <SendIcon />
             </button>
           </div>
-        )}
-        <div className="flex items-center bg-secondary border border-border-color rounded-lg p-2">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            className="hidden"
-            accept=".txt,.md,.json,.js,.py,.c,.cpp,.h,.ino"
-            id="file-upload"
-            aria-label="Upload document file"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-            aria-label="Attach file"
-            title="Attach file">
-            <PaperclipIcon />
-          </button>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            placeholder={
-              attachedFile
-                ? `Add a comment about ${attachedFile.name}...`
-                : "Plan your next project..."
-            }
-            rows={1}
-            className="flex-1 bg-transparent px-2 resize-none focus:outline-none max-h-40"
-          />
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={isLoading || (!input.trim() && !attachedFile)}
-            className="bg-accent p-2 rounded-md text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            aria-label="Send message"
-            title="Send message">
-            <SendIcon />
-          </button>
         </div>
       </div>
-      </div>
-      
+
       {/* Chat History Sidebar */}
       <ChatHistorySidebar
         conversations={conversations}
@@ -1556,7 +1694,9 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         onDeleteConversation={deleteConversation}
         onNewConversation={createNewConversation}
         isCollapsed={isHistorySidebarCollapsed}
-        onToggleCollapse={() => setIsHistorySidebarCollapsed(!isHistorySidebarCollapsed)}
+        onToggleCollapse={() =>
+          setIsHistorySidebarCollapsed(!isHistorySidebarCollapsed)
+        }
       />
     </div>
   );

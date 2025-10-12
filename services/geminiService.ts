@@ -227,6 +227,32 @@ const getChat = (history: ChatMessage[]): Chat => {
             /// ANALYSIS_JSON_END ///
             \`\`\`
 
+            - **For Project Updates (NEW):**
+            \`\`\`json
+            /// PROJECT_UPDATE_JSON_START ///
+            {
+              "action": "update_project",
+              "projectId": "project-id-123",
+              "projectName": "Arduino Weather Station",
+              "updates": {
+                "status": "In Progress",
+                "progress": 75,
+                "description": "Updated project description",
+                "notes": "Added new notes about progress"
+              },
+              "reason": "User requested status change and progress update"
+            }
+            /// PROJECT_UPDATE_JSON_END ///
+            \`\`\`
+
+            **PROJECT UPDATE TRIGGERS:**
+            When users mention projects in conversation, automatically suggest PROJECT_UPDATE_JSON if they:
+            - Mention changing project status ("mark as completed", "set to in progress")
+            - Mention progress updates ("75% done", "halfway finished", "almost complete")
+            - Want to update descriptions or notes
+            - Mention project milestones or achievements
+            - Ask to modify project details
+
             **IMPORTANT CONTEXT MANAGEMENT:**
             - Always reference specific IDs when discussing projects or inventory items
             - Remember recent operations and build upon them in follow-up responses
