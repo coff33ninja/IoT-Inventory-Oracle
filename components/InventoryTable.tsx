@@ -132,6 +132,16 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
                             {item.description}
                         </div>
                       )}
+                      {item.specs && (
+                        <div className="text-xs text-text-secondary mt-1 max-w-xs">
+                            {Object.entries(item.specs).map(([key, value]) => (
+                                <div key={key} className="flex justify-between">
+                                    <span className="font-semibold">{key}:</span>
+                                    <span>{value}</span>
+                                </div>
+                            ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </td>

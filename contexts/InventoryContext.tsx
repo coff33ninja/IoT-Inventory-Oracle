@@ -86,6 +86,8 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
     loadData();
   }, []);
 
+
+
   const addItem = async (item: Omit<InventoryItem, "id">) => {
     try {
       const newItem = await apiClient.addItem(item);

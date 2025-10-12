@@ -52,6 +52,7 @@ export interface InventoryItem {
   invoiceNumber?: string; // Invoice/order number
   warrantyExpiry?: string; // Warranty expiration date (ISO string)
   condition?: 'New' | 'Used' | 'Refurbished' | 'Damaged' | 'Unknown'; // Item condition
+  specs?: { [key: string]: string | number }; // Item-specific specifications
   notes?: string; // Additional notes about the item
 }
 

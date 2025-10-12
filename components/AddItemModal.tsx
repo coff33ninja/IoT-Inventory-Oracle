@@ -54,8 +54,10 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
   const uniqueContainers = useMemo(() => {
     const containers = new Set<string>();
     inventory.forEach((item) => {
-      const [containerName] = item.location.split(" - ");
-      if (containerName) containers.add(containerName.trim());
+      if (item.location) {
+        const [containerName] = item.location.split(" - ");
+        if (containerName) containers.add(containerName.trim());
+      }
     });
     return Array.from(containers);
   }, [inventory]);
