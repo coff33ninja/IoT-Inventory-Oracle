@@ -1,4 +1,5 @@
-import { InventoryItem, Project, ItemStatus, AiInsights, MarketDataItem } from '../types';
+import { InventoryItem, Project, ItemStatus, AiInsights, MarketDataItem, ChatMessage } from '../types';
+import { ChatConversation, ChatContext } from './chatService';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -121,6 +122,70 @@ class ApiClient {
     await this.request(`/projects/${projectId}/components`, {
       method: 'PUT',
       body: JSON.stringify({ components }),
+    });
+  }
+
+  // Chat conversation methods
+  async getAllConversations(): Promise<ChatConversation[]> {
+    return this.request<ChatConversation[]>('/chat/conversations');
+  }
+
+  async createConversation(title?: string): Promise<{ id: string }> {
+    return this.request<{ id: string }>('/chat/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ title }),
+    });
+  }
+
+  async getActiveConversation(): Promise<{ activeConversationId: string | null }> {
+    return this.request<{ activeConversationId: string | null }>('/chat/conversations/active');
+  }
+
+  async switchToConversation(conversationId: string): Promise<void> {
+    await this.request(`/chat/conversations/${conversationId}/activate`, {
+      method: 'PUT',
+    });
+  }
+
+  async updateConversationTitle(conversationId: string, title: string): Promise<void> {
+    await this.request(`/chat/conversations/${conversationId}/title`, {
+      method: 'PUT',
+      body: JSON.stringify({ title }),
+    });
+  }
+
+  async deleteConversation(conversationId: string): Promise<void> {
+    await this.request(`/chat/conversations/${conversationId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Chat message methods
+  async getConversationMessages(conversationId: string): Promise<ChatMessage[]> {
+    return this.request<ChatMessage[]>(`/chat/conversations/${conversationId}/messages`);
+  }
+
+  async addMessage(conversationId: string, message: ChatMessage): Promise<{ id: string }> {
+    return this.request<{ id: string }>(`/chat/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(message),
+    });
+  }
+
+  async getConversationContext(conversationId: string): Promise<ChatContext> {
+    return this.request<ChatContext>(`/chat/conversations/${conversationId}/context`);
+  }
+
+  async updateConversationSummary(conversationId: string, summary: string): Promise<void> {
+    await this.request(`/chat/conversations/${conversationId}/summary`, {
+      method: 'PUT',
+      body: JSON.stringify({ summary }),
+    });
+  }
+
+  async generateConversationTitle(conversationId: string): Promise<{ title: string }> {
+    return this.request<{ title: string }>(`/chat/conversations/${conversationId}/generate-title`, {
+      method: 'POST',
     });
   }
 }

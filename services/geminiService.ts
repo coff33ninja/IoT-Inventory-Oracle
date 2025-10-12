@@ -239,7 +239,8 @@ export const getAiChatStream = async (
     message: string,
     history: ChatMessage[],
     fullInventory: InventoryItem[],
-    projects: any[] = []
+    projects: any[] = [],
+    conversationContext?: any
 ): Promise<AsyncGenerator<GenerateContentResponse>> => {
     
     // Prune history to manage context limits while preserving key information
@@ -264,7 +265,7 @@ export const getAiChatStream = async (
       })), null, 2)}
     ` : '';
 
-    const contextSummaryText = `
+    let contextSummaryText = `
       CONVERSATION CONTEXT:
       - Recent Projects: ${contextSummary.recentProjects.map(p => `${p.name} (${p.status}, ${p.componentCount} components)`).join(', ')}
       - Recent Operations: ${contextSummary.recentOperations.map(op => `${op.type} ${op.entity}: ${op.details}`).join('; ')}
@@ -272,6 +273,18 @@ export const getAiChatStream = async (
       
       IMPORTANT: You can reference specific projects and inventory items by their IDs. When suggesting moves or transfers between projects, always specify the exact project IDs and item IDs involved.
     `;
+
+    // Add persistent conversation context if available
+    if (conversationContext) {
+      contextSummaryText += `
+      
+      PERSISTENT MEMORY:
+      - Previous Summary: ${conversationContext.summary || 'None'}
+      - Recent Topics: ${conversationContext.recentTopics?.join(', ') || 'None'}
+      - Components Discussed: ${conversationContext.mentionedComponents?.join(', ') || 'None'}
+      - Projects Mentioned: ${conversationContext.discussedProjects?.join(', ') || 'None'}
+      `;
+    }
 
     const fullPrompt = `${contextSummaryText}\n\n${inventoryContext}\n\n${projectContext}\n\nUser's request: ${message}`;
     

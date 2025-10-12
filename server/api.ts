@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import DatabaseService from '../services/databaseService.js';
 import ProjectService from '../services/projectService.js';
-import { InventoryItem, Project, ItemStatus } from '../types.js';
+import ChatService from '../services/chatService.js';
+import { InventoryItem, Project, ItemStatus, ChatMessage } from '../types.js';
 
 const app = express();
 const port = 3001;
@@ -19,6 +20,7 @@ app.use(express.json());
 // Initialize services
 const dbService = new DatabaseService();
 const projectService = new ProjectService();
+const chatService = new ChatService();
 
 // Inventory endpoints
 app.get('/api/inventory', (req, res) => {
@@ -181,6 +183,111 @@ app.put('/api/projects/:id/components', async (req, res) => {
   }
 });
 
+// Chat conversation endpoints
+app.get('/api/chat/conversations', (req, res) => {
+  try {
+    const conversations = chatService.getAllConversations();
+    res.json(conversations);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch conversations' });
+  }
+});
+
+app.post('/api/chat/conversations', (req, res) => {
+  try {
+    const { title } = req.body;
+    const conversationId = chatService.createNewConversation(title);
+    res.status(201).json({ id: conversationId });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create conversation' });
+  }
+});
+
+app.get('/api/chat/conversations/active', (req, res) => {
+  try {
+    const activeId = chatService.getActiveConversationId();
+    res.json({ activeConversationId: activeId });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get active conversation' });
+  }
+});
+
+app.put('/api/chat/conversations/:id/activate', (req, res) => {
+  try {
+    chatService.switchToConversation(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to switch conversation' });
+  }
+});
+
+app.put('/api/chat/conversations/:id/title', (req, res) => {
+  try {
+    const { title } = req.body;
+    chatService.updateConversationTitle(req.params.id, title);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update conversation title' });
+  }
+});
+
+app.delete('/api/chat/conversations/:id', (req, res) => {
+  try {
+    chatService.deleteConversation(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete conversation' });
+  }
+});
+
+// Chat message endpoints
+app.get('/api/chat/conversations/:id/messages', (req, res) => {
+  try {
+    const messages = chatService.getConversationMessages(req.params.id);
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+app.post('/api/chat/conversations/:id/messages', (req, res) => {
+  try {
+    const message: ChatMessage = req.body;
+    const messageId = chatService.addMessage(req.params.id, message);
+    res.status(201).json({ id: messageId });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add message' });
+  }
+});
+
+app.get('/api/chat/conversations/:id/context', (req, res) => {
+  try {
+    const context = chatService.getConversationContext(req.params.id);
+    res.json(context);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get conversation context' });
+  }
+});
+
+app.put('/api/chat/conversations/:id/summary', (req, res) => {
+  try {
+    const { summary } = req.body;
+    chatService.updateConversationSummary(req.params.id, summary);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update conversation summary' });
+  }
+});
+
+app.post('/api/chat/conversations/:id/generate-title', async (req, res) => {
+  try {
+    const title = await chatService.generateConversationTitle(req.params.id);
+    res.json({ title });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate conversation title' });
+  }
+});
+
 // Root endpoint for API status
 app.get('/', (req, res) => {
   res.json({ 
@@ -201,6 +308,7 @@ app.get('/health', (req, res) => {
 // Cleanup on exit
 process.on('SIGINT', () => {
   dbService.close();
+  chatService.close();
   process.exit(0);
 });
 

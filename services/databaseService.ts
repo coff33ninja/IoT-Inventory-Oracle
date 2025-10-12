@@ -54,11 +54,41 @@ class DatabaseService {
       )
     `);
 
+    // Create chat conversations table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS chat_conversations (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        isActive INTEGER DEFAULT 0,
+        summary TEXT,
+        messageCount INTEGER DEFAULT 0
+      )
+    `);
+
+    // Create chat messages table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id TEXT PRIMARY KEY,
+        conversationId TEXT NOT NULL,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        groundingChunks TEXT, -- JSON array
+        suggestedProject TEXT, -- JSON object
+        FOREIGN KEY (conversationId) REFERENCES chat_conversations (id) ON DELETE CASCADE
+      )
+    `);
+
     // Create indexes for better performance
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_inventory_status ON inventory_items(status);
       CREATE INDEX IF NOT EXISTS idx_inventory_category ON inventory_items(category);
       CREATE INDEX IF NOT EXISTS idx_inventory_location ON inventory_items(location);
+      CREATE INDEX IF NOT EXISTS idx_chat_conversation ON chat_messages(conversationId);
+      CREATE INDEX IF NOT EXISTS idx_chat_created ON chat_messages(createdAt);
+      CREATE INDEX IF NOT EXISTS idx_conversation_updated ON chat_conversations(updatedAt);
     `);
   }
 
@@ -338,6 +368,203 @@ class DatabaseService {
     });
 
     transaction(items);
+  }
+
+  // Chat conversation operations
+  createConversation(title: string): string {
+    const id = new Date().toISOString();
+    const now = new Date().toISOString();
+    
+    // Set all other conversations as inactive
+    this.db.prepare('UPDATE chat_conversations SET isActive = 0').run();
+    
+    this.db.prepare(`
+      INSERT INTO chat_conversations (id, title, createdAt, updatedAt, isActive, messageCount)
+      VALUES (?, ?, ?, ?, 1, 0)
+    `).run(id, title, now, now);
+    
+    return id;
+  }
+
+  getAllConversations(): Array<{
+    id: string;
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+    isActive: boolean;
+    summary?: string;
+    messageCount: number;
+  }> {
+    return this.db.prepare(`
+      SELECT * FROM chat_conversations 
+      ORDER BY updatedAt DESC
+    `).all() as any[];
+  }
+
+  getActiveConversation(): string | null {
+    const result = this.db.prepare(`
+      SELECT id FROM chat_conversations WHERE isActive = 1 LIMIT 1
+    `).get() as { id: string } | undefined;
+    
+    return result?.id || null;
+  }
+
+  setActiveConversation(conversationId: string): void {
+    const transaction = this.db.transaction(() => {
+      this.db.prepare('UPDATE chat_conversations SET isActive = 0').run();
+      this.db.prepare('UPDATE chat_conversations SET isActive = 1 WHERE id = ?').run(conversationId);
+    });
+    transaction();
+  }
+
+  updateConversationTitle(conversationId: string, title: string): void {
+    this.db.prepare(`
+      UPDATE chat_conversations 
+      SET title = ?, updatedAt = ? 
+      WHERE id = ?
+    `).run(title, new Date().toISOString(), conversationId);
+  }
+
+  updateConversationSummary(conversationId: string, summary: string): void {
+    this.db.prepare(`
+      UPDATE chat_conversations 
+      SET summary = ?, updatedAt = ? 
+      WHERE id = ?
+    `).run(summary, new Date().toISOString(), conversationId);
+  }
+
+  deleteConversation(conversationId: string): void {
+    this.db.prepare('DELETE FROM chat_conversations WHERE id = ?').run(conversationId);
+  }
+
+  // Chat message operations
+  addMessage(conversationId: string, role: 'user' | 'model', content: string, groundingChunks?: any[], suggestedProject?: any): string {
+    const id = new Date().toISOString() + '-' + Math.random().toString(36).substr(2, 9);
+    const now = new Date().toISOString();
+    
+    const transaction = this.db.transaction(() => {
+      // Insert message
+      this.db.prepare(`
+        INSERT INTO chat_messages (id, conversationId, role, content, createdAt, groundingChunks, suggestedProject)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        conversationId,
+        role,
+        content,
+        now,
+        groundingChunks ? JSON.stringify(groundingChunks) : null,
+        suggestedProject ? JSON.stringify(suggestedProject) : null
+      );
+      
+      // Update conversation
+      this.db.prepare(`
+        UPDATE chat_conversations 
+        SET updatedAt = ?, messageCount = messageCount + 1
+        WHERE id = ?
+      `).run(now, conversationId);
+    });
+    
+    transaction();
+    return id;
+  }
+
+  getConversationMessages(conversationId: string): Array<{
+    id: string;
+    role: 'user' | 'model';
+    content: string;
+    createdAt: string;
+    groundingChunks?: any[];
+    suggestedProject?: any;
+  }> {
+    const messages = this.db.prepare(`
+      SELECT * FROM chat_messages 
+      WHERE conversationId = ? 
+      ORDER BY createdAt ASC
+    `).all(conversationId) as any[];
+
+    return messages.map(msg => ({
+      id: msg.id,
+      role: msg.role,
+      content: msg.content,
+      createdAt: msg.createdAt,
+      groundingChunks: msg.groundingChunks ? JSON.parse(msg.groundingChunks) : undefined,
+      suggestedProject: msg.suggestedProject ? JSON.parse(msg.suggestedProject) : undefined
+    }));
+  }
+
+  getRecentMessages(conversationId: string, limit: number = 20): Array<{
+    role: 'user' | 'model';
+    content: string;
+  }> {
+    const messages = this.db.prepare(`
+      SELECT role, content FROM chat_messages 
+      WHERE conversationId = ? 
+      ORDER BY createdAt DESC 
+      LIMIT ?
+    `).all(conversationId, limit) as any[];
+
+    return messages.reverse(); // Return in chronological order
+  }
+
+  // Memory and context operations
+  getConversationContext(conversationId: string): {
+    summary?: string;
+    recentTopics: string[];
+    mentionedComponents: string[];
+    discussedProjects: string[];
+  } {
+    const conversation = this.db.prepare(`
+      SELECT summary FROM chat_conversations WHERE id = ?
+    `).get(conversationId) as { summary?: string } | undefined;
+
+    // Extract topics from recent messages
+    const recentMessages = this.db.prepare(`
+      SELECT content FROM chat_messages 
+      WHERE conversationId = ? AND role = 'user'
+      ORDER BY createdAt DESC 
+      LIMIT 10
+    `).all(conversationId) as { content: string }[];
+
+    const recentTopics: string[] = [];
+    const mentionedComponents: string[] = [];
+    const discussedProjects: string[] = [];
+
+    // Simple keyword extraction (could be enhanced with NLP)
+    const componentKeywords = ['arduino', 'raspberry', 'sensor', 'led', 'motor', 'esp32', 'resistor', 'capacitor'];
+    const projectKeywords = ['project', 'build', 'create', 'make', 'design'];
+
+    recentMessages.forEach(msg => {
+      const content = msg.content.toLowerCase();
+      
+      // Extract component mentions
+      componentKeywords.forEach(keyword => {
+        if (content.includes(keyword) && !mentionedComponents.includes(keyword)) {
+          mentionedComponents.push(keyword);
+        }
+      });
+
+      // Extract project discussions
+      if (projectKeywords.some(keyword => content.includes(keyword))) {
+        const words = content.split(' ').slice(0, 5).join(' ');
+        if (!discussedProjects.includes(words)) {
+          discussedProjects.push(words);
+        }
+      }
+
+      // Extract general topics (first few words of user messages)
+      const topic = content.split(' ').slice(0, 3).join(' ');
+      if (topic.length > 5 && !recentTopics.includes(topic)) {
+        recentTopics.push(topic);
+      }
+    });
+
+    return {
+      summary: conversation?.summary,
+      recentTopics: recentTopics.slice(0, 5),
+      mentionedComponents: mentionedComponents.slice(0, 10),
+      discussedProjects: discussedProjects.slice(0, 5)
+    };
   }
 
   close(): void {
