@@ -151,6 +151,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onEdit, onCheckoutComplet
           <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
               {Object.values(ItemStatus).map(status => (
                   <button
+                      type="button"
                       key={status}
                       onClick={() => {
                         setActiveTab(status);
@@ -177,6 +178,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onEdit, onCheckoutComplet
               .map(([category, items]) => (
                 <div key={category} className="bg-secondary rounded-lg border border-border-color overflow-hidden transition-all duration-300">
                   <button
+                    type="button"
                     onClick={() => toggleCategory(category)}
                     className="w-full flex justify-between items-center p-4 bg-secondary hover:bg-primary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent"
                     aria-expanded={expandedCategories.has(category)}
@@ -220,6 +222,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onEdit, onCheckoutComplet
 
        {activeTab === ItemStatus.HAVE && selectedCount > 0 && (
          <button
+            type="button"
             onClick={() => setIsCheckoutModalOpen(true)}
             className="fixed bottom-6 right-24 bg-highlight hover:bg-green-700 text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-highlight z-20 flex items-center"
             aria-label="Checkout selected items"

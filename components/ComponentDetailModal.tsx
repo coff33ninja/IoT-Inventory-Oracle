@@ -92,7 +92,7 @@ const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({ isOpen, onC
                   </span>
               </div>
             </div>
-            <button onClick={onClose} className="text-text-secondary hover:text-text-primary transition-colors">
+            <button type="button" onClick={onClose} className="text-text-secondary hover:text-text-primary transition-colors" aria-label="Close modal">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </div>
@@ -100,13 +100,13 @@ const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({ isOpen, onC
           <div className="mt-4">
              <div className="border-b border-border-color">
                 <nav className="-mb-px flex space-x-6" aria-label="Tabs">
-                    <button onClick={() => setActiveTab('insights')} className={`${activeTab === 'insights' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'} flex items-center gap-2 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}>
+                    <button type="button" onClick={() => setActiveTab('insights')} className={`${activeTab === 'insights' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'} flex items-center gap-2 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}>
                        <InfoIcon /> AI Insights
                     </button>
-                    <button onClick={() => setActiveTab('market')} className={`${activeTab === 'market' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'} flex items-center gap-2 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}>
+                    <button type="button" onClick={() => setActiveTab('market')} className={`${activeTab === 'market' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'} flex items-center gap-2 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}>
                         <PriceTagIcon /> Market Price
                     </button>
-                    <button onClick={() => setActiveTab('usage')} className={`${activeTab === 'usage' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'} flex items-center gap-2 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}>
+                    <button type="button" onClick={() => setActiveTab('usage')} className={`${activeTab === 'usage' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'} flex items-center gap-2 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
@@ -152,7 +152,7 @@ const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({ isOpen, onC
                                 <h4 className="font-semibold text-text-primary">Online Pricing</h4>
                                 {lastRefreshedDate && <p className="text-xs text-text-secondary">Last updated: {lastRefreshedDate.toLocaleString()}</p>}
                              </div>
-                             <button onClick={() => fetchData(true)} className="flex items-center gap-2 text-xs bg-secondary border border-border-color py-1 px-3 rounded-md text-text-primary hover:bg-primary transition-colors">
+                             <button type="button" onClick={() => fetchData(true)} className="flex items-center gap-2 text-xs bg-secondary border border-border-color py-1 px-3 rounded-md text-text-primary hover:bg-primary transition-colors" aria-label="Refresh market data">
                                  <RefreshIcon /> Refresh
                              </button>
                          </div>
@@ -193,6 +193,11 @@ const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({ isOpen, onC
                                         <div 
                                             className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
                                             style={{ width: `${(item.allocatedQuantity / item.quantity) * 100}%` }}
+                                            role="progressbar"
+                                            aria-valuenow={item.allocatedQuantity}
+                                            aria-valuemin={0}
+                                            aria-valuemax={item.quantity}
+                                            aria-label={`${item.allocatedQuantity} of ${item.quantity} components allocated`}
                                         />
                                     </div>
                                     <div className="flex justify-between text-xs text-text-secondary mt-1">

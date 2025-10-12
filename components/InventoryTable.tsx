@@ -65,23 +65,23 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
       <table className="min-w-full divide-y divide-border-color">
         <thead className="bg-secondary/50">
           <tr>
-            {selectable && <th scope="col" className="px-4 py-3"></th>}
+            {selectable && <th scope="col" className="px-4 py-3"><span className="sr-only">Select</span></th>}
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Name</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Quantity</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider hidden md:table-cell">
-               <button onClick={() => onSort('location')} className="group flex items-center uppercase font-medium">
+               <button type="button" onClick={() => onSort('location')} className="group flex items-center uppercase font-medium" aria-label="Sort by location">
                     Location
                     {renderSortArrow('location')}
                 </button>
             </th>
             {showCategory && <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider hidden md:table-cell">
-               <button onClick={() => onSort('category')} className="group flex items-center uppercase font-medium">
+               <button type="button" onClick={() => onSort('category')} className="group flex items-center uppercase font-medium" aria-label="Sort by category">
                     Category
                     {renderSortArrow('category')}
                 </button>
             </th>}
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider hidden lg:table-cell">
-                <button onClick={() => onSort('source')} className="group flex items-center uppercase font-medium">
+                <button type="button" onClick={() => onSort('source')} className="group flex items-center uppercase font-medium" aria-label="Sort by source">
                     Source
                     {renderSortArrow('source')}
                 </button>
@@ -107,6 +107,7 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
                       className="h-4 w-4 rounded bg-primary border-border-color text-accent focus:ring-accent"
                       checked={isSelected}
                       onChange={(e) => handleCheckboxChange(e, item)}
+                      aria-label={`Select ${item.name}`}
                     />
                   </td>
                 )}
@@ -142,6 +143,7 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
                           max={item.quantity}
                           className="w-16 bg-primary border border-border-color rounded-md py-1 px-2 text-sm focus:ring-accent focus:border-accent"
                           onClick={(e) => e.stopPropagation()} // Prevent row click from unchecking
+                          aria-label={`Quantity for ${item.name}`}
                         />
                         <span className="text-sm text-text-secondary">/ {item.quantity}</span>
                       </div>
@@ -167,10 +169,10 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-4">
-                    <button onClick={(e) => { e.stopPropagation(); onEdit(item); }} className="text-accent hover:text-blue-400 transition-colors" aria-label={`Edit ${item.name}`}>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(item); }} className="text-accent hover:text-blue-400 transition-colors" aria-label={`Edit ${item.name}`}>
                       <EditIcon />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} className="text-danger hover:text-red-400 transition-colors" aria-label={`Delete ${item.name}`}>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} className="text-danger hover:text-red-400 transition-colors" aria-label={`Delete ${item.name}`}>
                       <TrashIcon />
                     </button>
                   </div>

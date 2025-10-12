@@ -1,18 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Project } from '../types';
-import { useInventory } from '../contexts/InventoryContext';
-import { useToast } from '../contexts/ToastContext';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { SpinnerIcon } from './icons/SpinnerIcon';
-import { EditIcon } from './icons/EditIcon';
-import { PlusIcon } from './icons/PlusIcon';
+import React, { useState, useEffect } from "react";
+import { Project } from "../types";
+import { useInventory } from "../contexts/InventoryContext";
+import { useToast } from "../contexts/ToastContext";
+import { SparklesIcon } from "./icons/SparklesIcon";
+import { SpinnerIcon } from "./icons/SpinnerIcon";
+import { EditIcon } from "./icons/EditIcon";
+import { PlusIcon } from "./icons/PlusIcon";
 // CheckIcon component inline since it doesn't exist yet
 const CheckIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+  <svg
+    className="w-4 h-4"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M5 13l4 4L19 7"
+    />
   </svg>
 );
-import { generateProjectInstructions, enhanceProjectDescription, suggestProjectImprovements } from '../services/geminiService';
+import {
+  generateProjectInstructions,
+  enhanceProjectDescription,
+  suggestProjectImprovements,
+} from "../services/geminiService";
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -20,12 +33,19 @@ interface ProjectDetailViewProps {
   onClose: () => void;
 }
 
-const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate, onClose }) => {
+const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
+  project,
+  onUpdate,
+  onClose,
+}) => {
   const { addToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'overview' | 'instructions' | 'components' | 'insights'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "instructions" | "components" | "insights"
+  >("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [editedProject, setEditedProject] = useState<Project>(project);
-  const [isGeneratingInstructions, setIsGeneratingInstructions] = useState(false);
+  const [isGeneratingInstructions, setIsGeneratingInstructions] =
+    useState(false);
   const [isEnhancingDescription, setIsEnhancingDescription] = useState(false);
   const [isGettingInsights, setIsGettingInsights] = useState(false);
 
@@ -36,7 +56,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
   const handleSave = () => {
     onUpdate(editedProject);
     setIsEditing(false);
-    addToast('Project updated successfully!', 'success');
+    addToast("Project updated successfully!", "success");
   };
 
   const handleCancel = () => {
@@ -52,7 +72,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
         project.longDescription || project.description,
         project.components
       );
-      
+
       const updatedProject = {
         ...editedProject,
         instructions: instructions.map((inst, index) => ({
@@ -61,15 +81,15 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
           title: inst.title,
           description: inst.description,
           code: inst.code,
-          tips: inst.tips || []
-        }))
+          tips: inst.tips || [],
+        })),
       };
-      
+
       setEditedProject(updatedProject);
-      addToast('Instructions generated successfully!', 'success');
+      addToast("Instructions generated successfully!", "success");
     } catch (error) {
-      console.error('Failed to generate instructions:', error);
-      addToast('Failed to generate instructions', 'error');
+      console.error("Failed to generate instructions:", error);
+      addToast("Failed to generate instructions", "error");
     } finally {
       setIsGeneratingInstructions(false);
     }
@@ -82,16 +102,16 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
         project.name,
         project.longDescription || project.description
       );
-      
+
       setEditedProject({
         ...editedProject,
-        longDescription: enhanced
+        longDescription: enhanced,
       });
-      
-      addToast('Description enhanced successfully!', 'success');
+
+      addToast("Description enhanced successfully!", "success");
     } catch (error) {
-      console.error('Failed to enhance description:', error);
-      addToast('Failed to enhance description', 'error');
+      console.error("Failed to enhance description:", error);
+      addToast("Failed to enhance description", "error");
     } finally {
       setIsEnhancingDescription(false);
     }
@@ -105,23 +125,25 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
         project.longDescription || project.description,
         project.components
       );
-      
+
       const insights = {
         suggestions: improvements.suggestions,
-        improvements: improvements.additionalComponents.map(c => `Add ${c.name}: ${c.reason}`),
+        improvements: improvements.additionalComponents.map(
+          (c) => `Add ${c.name}: ${c.reason}`
+        ),
         troubleshooting: improvements.optimizations,
-        relatedProjects: [] // Could be enhanced later
+        relatedProjects: [], // Could be enhanced later
       };
-      
+
       setEditedProject({
         ...editedProject,
-        aiInsights: insights
+        aiInsights: insights,
       });
-      
-      addToast('AI insights generated successfully!', 'success');
+
+      addToast("AI insights generated successfully!", "success");
     } catch (error) {
-      console.error('Failed to get insights:', error);
-      addToast('Failed to get AI insights', 'error');
+      console.error("Failed to get insights:", error);
+      addToast("Failed to get AI insights", "error");
     } finally {
       setIsGettingInsights(false);
     }
@@ -135,21 +157,21 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
 
   const toggleInstructionComplete = (stepId: string) => {
     // This could be enhanced to track completed steps
-    addToast('Step marked as complete!', 'success');
+    addToast("Step marked as complete!", "success");
   };
 
   const addInstruction = () => {
     const newStep = {
       id: `step-${(editedProject.instructions?.length || 0) + 1}`,
       step: (editedProject.instructions?.length || 0) + 1,
-      title: 'New Step',
-      description: 'Add your step description here...',
-      tips: []
+      title: "New Step",
+      description: "Add your step description here...",
+      tips: [],
     };
-    
+
     setEditedProject({
       ...editedProject,
-      instructions: [...(editedProject.instructions || []), newStep]
+      instructions: [...(editedProject.instructions || []), newStep],
     });
   };
 
@@ -159,14 +181,21 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
         {/* Header */}
         <div className="p-6 border-b border-border-color flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <h2 className="text-2xl font-bold text-text-primary">{project.name}</h2>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              project.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
-              project.status === 'In Progress' ? 'bg-blue-500/20 text-blue-400' :
-              project.status === 'Testing' ? 'bg-yellow-500/20 text-yellow-400' :
-              project.status === 'On Hold' ? 'bg-red-500/20 text-red-400' :
-              'bg-gray-500/20 text-gray-400'
-            }`}>
+            <h2 className="text-2xl font-bold text-text-primary">
+              {project.name}
+            </h2>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                project.status === "Completed"
+                  ? "bg-green-500/20 text-green-400"
+                  : project.status === "In Progress"
+                  ? "bg-blue-500/20 text-blue-400"
+                  : project.status === "Testing"
+                  ? "bg-yellow-500/20 text-yellow-400"
+                  : project.status === "On Hold"
+                  ? "bg-red-500/20 text-red-400"
+                  : "bg-gray-500/20 text-gray-400"
+              }`}>
               {project.status}
             </span>
             {project.difficulty && (
@@ -177,19 +206,28 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
           </div>
           <div className="flex items-center space-x-2">
             <button
+              type="button"
               onClick={() => setIsEditing(!isEditing)}
               className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-              title="Edit project"
-            >
+              title="Edit project">
               <EditIcon />
             </button>
             <button
+              type="button"
               onClick={onClose}
               className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-              title="Close"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              title="Close">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -203,13 +241,14 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
               <span>{project.progress}%</span>
             </div>
             <div className="w-full bg-primary rounded-full h-2">
-              <div 
+              <div
                 className="bg-accent h-2 rounded-full transition-all duration-300"
                 style={{ width: `${project.progress}%` }}
                 role="progressbar"
                 aria-valuenow={project.progress}
                 aria-valuemin={0}
                 aria-valuemax={100}
+                aria-label={`Project progress: ${project.progress}%`}
               />
             </div>
           </div>
@@ -218,35 +257,39 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
         {/* Tabs */}
         <div className="px-6 border-b border-border-color">
           <nav className="flex space-x-8">
-            {['overview', 'instructions', 'components', 'insights'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-colors ${
-                  activeTab === tab
-                    ? 'border-accent text-accent'
-                    : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border-color'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+            {["overview", "instructions", "components", "insights"].map(
+              (tab) => (
+                <button
+                  type="button"
+                  key={tab}
+                  onClick={() => setActiveTab(tab as any)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-colors ${
+                    activeTab === tab
+                      ? "border-accent text-accent"
+                      : "border-transparent text-text-secondary hover:text-text-primary hover:border-border-color"
+                  }`}>
+                  {tab}
+                </button>
+              )
+            )}
           </nav>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === 'overview' && (
+          {activeTab === "overview" && (
             <div className="space-y-6">
               {/* Description */}
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-lg font-semibold text-text-primary">Description</h3>
+                  <h3 className="text-lg font-semibold text-text-primary">
+                    Description
+                  </h3>
                   {!isEnhancingDescription && (
                     <button
+                      type="button"
                       onClick={handleEnhanceDescription}
-                      className="text-xs text-accent hover:text-blue-400 flex items-center"
-                    >
+                      className="text-xs text-accent hover:text-blue-400 flex items-center">
                       <SparklesIcon className="w-4 h-4 mr-1" />
                       Enhance with AI
                     </button>
@@ -254,11 +297,15 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
                 </div>
                 {isEditing ? (
                   <textarea
-                    value={editedProject.longDescription || editedProject.description}
-                    onChange={(e) => setEditedProject({
-                      ...editedProject,
-                      longDescription: e.target.value
-                    })}
+                    value={
+                      editedProject.longDescription || editedProject.description
+                    }
+                    onChange={(e) =>
+                      setEditedProject({
+                        ...editedProject,
+                        longDescription: e.target.value,
+                      })
+                    }
                     rows={6}
                     className="w-full bg-primary border border-border-color rounded-md p-3 text-text-primary"
                     placeholder="Detailed project description..."
@@ -272,7 +319,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
                       </div>
                     ) : (
                       <p className="text-text-primary whitespace-pre-wrap">
-                        {editedProject.longDescription || editedProject.description || 'No detailed description available.'}
+                        {editedProject.longDescription ||
+                          editedProject.description ||
+                          "No detailed description available."}
                       </p>
                     )}
                   </div>
@@ -282,53 +331,74 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
               {/* Project Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium text-text-primary mb-2">Project Details</h4>
+                  <h4 className="font-medium text-text-primary mb-2">
+                    Project Details
+                  </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-text-secondary">Category:</span>
-                      <span className="text-text-primary">{project.category || 'Uncategorized'}</span>
+                      <span className="text-text-primary">
+                        {project.category || "Uncategorized"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-secondary">Difficulty:</span>
-                      <span className="text-text-primary">{project.difficulty || 'Not specified'}</span>
+                      <span className="text-text-primary">
+                        {project.difficulty || "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-secondary">Estimated Time:</span>
-                      <span className="text-text-primary">{project.estimatedTime || 'Not specified'}</span>
+                      <span className="text-text-secondary">
+                        Estimated Time:
+                      </span>
+                      <span className="text-text-primary">
+                        {project.estimatedTime || "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-secondary">Components:</span>
-                      <span className="text-text-primary">{project.components.length} items</span>
+                      <span className="text-text-primary">
+                        {project.components.length} items
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-text-primary mb-2">Progress Control</h4>
+                  <h4 className="font-medium text-text-primary mb-2">
+                    Progress Control
+                  </h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm text-text-secondary mb-1">Progress: {editedProject.progress || 0}%</label>
+                      <label className="block text-sm text-text-secondary mb-1">
+                        Progress: {editedProject.progress || 0}%
+                      </label>
                       <input
                         type="range"
                         min="0"
                         max="100"
                         value={editedProject.progress || 0}
-                        onChange={(e) => updateProgress(parseInt(e.target.value))}
+                        onChange={(e) =>
+                          updateProgress(parseInt(e.target.value))
+                        }
                         className="w-full"
                         title="Project progress percentage"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-text-secondary mb-1">Status</label>
+                      <label className="block text-sm text-text-secondary mb-1">
+                        Status
+                      </label>
                       <select
                         value={editedProject.status}
-                        onChange={(e) => setEditedProject({
-                          ...editedProject,
-                          status: e.target.value as Project['status']
-                        })}
+                        onChange={(e) =>
+                          setEditedProject({
+                            ...editedProject,
+                            status: e.target.value as Project["status"],
+                          })
+                        }
                         className="w-full bg-primary border border-border-color rounded-md p-2 text-text-primary"
-                        title="Project status"
-                      >
+                        title="Project status">
                         <option value="Planning">Planning</option>
                         <option value="In Progress">In Progress</option>
                         <option value="Testing">Testing</option>
@@ -344,11 +414,13 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
               <div>
                 <h4 className="font-medium text-text-primary mb-2">Notes</h4>
                 <textarea
-                  value={editedProject.notes || ''}
-                  onChange={(e) => setEditedProject({
-                    ...editedProject,
-                    notes: e.target.value
-                  })}
+                  value={editedProject.notes || ""}
+                  onChange={(e) =>
+                    setEditedProject({
+                      ...editedProject,
+                      notes: e.target.value,
+                    })
+                  }
                   rows={4}
                   className="w-full bg-primary border border-border-color rounded-md p-3 text-text-primary"
                   placeholder="Add your project notes, observations, or reminders..."
@@ -357,33 +429,44 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
             </div>
           )}
 
-          {activeTab === 'instructions' && (
+          {activeTab === "instructions" && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-text-primary">Step-by-Step Instructions</h3>
+                <h3 className="text-lg font-semibold text-text-primary">
+                  Step-by-Step Instructions
+                </h3>
                 <div className="flex space-x-2">
                   <button
+                    type="button"
                     onClick={handleGenerateInstructions}
                     disabled={isGeneratingInstructions}
-                    className="text-sm bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center disabled:opacity-50"
-                  >
-                    {isGeneratingInstructions ? <SpinnerIcon className="mr-2" /> : <SparklesIcon className="mr-2" />}
-                    {isGeneratingInstructions ? 'Generating...' : 'Generate with AI'}
+                    className="text-sm bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center disabled:opacity-50">
+                    {isGeneratingInstructions ? (
+                      <SpinnerIcon className="mr-2" />
+                    ) : (
+                      <SparklesIcon className="mr-2" />
+                    )}
+                    {isGeneratingInstructions
+                      ? "Generating..."
+                      : "Generate with AI"}
                   </button>
                   <button
+                    type="button"
                     onClick={addInstruction}
-                    className="text-sm bg-highlight hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center"
-                  >
+                    className="text-sm bg-highlight hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center">
                     <PlusIcon className="mr-2" />
                     Add Step
                   </button>
                 </div>
               </div>
 
-              {editedProject.instructions && editedProject.instructions.length > 0 ? (
+              {editedProject.instructions &&
+              editedProject.instructions.length > 0 ? (
                 <div className="space-y-4">
                   {editedProject.instructions.map((instruction, index) => (
-                    <div key={instruction.id} className="bg-primary border border-border-color rounded-lg p-4">
+                    <div
+                      key={instruction.id}
+                      className="bg-primary border border-border-color rounded-lg p-4">
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-text-primary flex items-center">
                           <span className="bg-accent text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">
@@ -392,27 +475,35 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
                           {instruction.title}
                         </h4>
                         <button
-                          onClick={() => toggleInstructionComplete(instruction.id)}
+                          type="button"
+                          onClick={() =>
+                            toggleInstructionComplete(instruction.id)
+                          }
                           className="text-highlight hover:text-green-400 transition-colors"
-                          title="Mark as complete"
-                        >
+                          title="Mark as complete">
                           <CheckIcon />
                         </button>
                       </div>
-                      <p className="text-text-primary mb-3 ml-9">{instruction.description}</p>
-                      
+                      <p className="text-text-primary mb-3 ml-9">
+                        {instruction.description}
+                      </p>
+
                       {instruction.code && (
                         <div className="ml-9 mb-3">
-                          <h5 className="text-sm font-medium text-text-secondary mb-2">Code:</h5>
+                          <h5 className="text-sm font-medium text-text-secondary mb-2">
+                            Code:
+                          </h5>
                           <pre className="bg-secondary p-3 rounded border border-border-color overflow-x-auto text-sm">
                             <code>{instruction.code}</code>
                           </pre>
                         </div>
                       )}
-                      
+
                       {instruction.tips && instruction.tips.length > 0 && (
                         <div className="ml-9">
-                          <h5 className="text-sm font-medium text-text-secondary mb-2">Tips:</h5>
+                          <h5 className="text-sm font-medium text-text-secondary mb-2">
+                            Tips:
+                          </h5>
                           <ul className="text-sm text-text-primary space-y-1">
                             {instruction.tips.map((tip, tipIndex) => (
                               <li key={tipIndex} className="flex items-start">
@@ -429,29 +520,43 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
               ) : (
                 <div className="text-center py-12 text-text-secondary">
                   <p className="mb-4">No instructions available yet.</p>
-                  <p className="text-sm">Use the "Generate with AI" button to create step-by-step instructions automatically.</p>
+                  <p className="text-sm">
+                    Use the "Generate with AI" button to create step-by-step
+                    instructions automatically.
+                  </p>
                 </div>
               )}
             </div>
           )}
 
-          {activeTab === 'components' && (
+          {activeTab === "components" && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-text-primary">Components List</h3>
+              <h3 className="text-lg font-semibold text-text-primary">
+                Components List
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {project.components.map((component) => (
-                  <div key={component.id} className="bg-primary border border-border-color rounded-lg p-4">
+                  <div
+                    key={component.id}
+                    className="bg-primary border border-border-color rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-text-primary">{component.name}</h4>
-                      <span className="text-sm text-text-secondary">×{component.quantity}</span>
+                      <h4 className="font-medium text-text-primary">
+                        {component.name}
+                      </h4>
+                      <span className="text-sm text-text-secondary">
+                        ×{component.quantity}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        component.source === 'ai-suggested' ? 'bg-accent/20 text-accent' :
-                        component.source === 'github' ? 'bg-purple-500/20 text-purple-400' :
-                        'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        {component.source || 'manual'}
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          component.source === "ai-suggested"
+                            ? "bg-accent/20 text-accent"
+                            : component.source === "github"
+                            ? "bg-purple-500/20 text-purple-400"
+                            : "bg-gray-500/20 text-gray-400"
+                        }`}>
+                        {component.source || "manual"}
                       </span>
                     </div>
                   </div>
@@ -460,17 +565,23 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
             </div>
           )}
 
-          {activeTab === 'insights' && (
+          {activeTab === "insights" && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-text-primary">AI Insights</h3>
+                <h3 className="text-lg font-semibold text-text-primary">
+                  AI Insights
+                </h3>
                 <button
+                  type="button"
                   onClick={handleGetInsights}
                   disabled={isGettingInsights}
-                  className="text-sm bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center disabled:opacity-50"
-                >
-                  {isGettingInsights ? <SpinnerIcon className="mr-2" /> : <SparklesIcon className="mr-2" />}
-                  {isGettingInsights ? 'Analyzing...' : 'Get AI Insights'}
+                  className="text-sm bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center disabled:opacity-50">
+                  {isGettingInsights ? (
+                    <SpinnerIcon className="mr-2" />
+                  ) : (
+                    <SparklesIcon className="mr-2" />
+                  )}
+                  {isGettingInsights ? "Analyzing..." : "Get AI Insights"}
                 </button>
               </div>
 
@@ -478,39 +589,57 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
                 <div className="space-y-6">
                   {editedProject.aiInsights.suggestions.length > 0 && (
                     <div>
-                      <h4 className="font-medium text-text-primary mb-3">💡 Suggestions</h4>
+                      <h4 className="font-medium text-text-primary mb-3">
+                        💡 Suggestions
+                      </h4>
                       <ul className="space-y-2">
-                        {editedProject.aiInsights.suggestions.map((suggestion, index) => (
-                          <li key={index} className="bg-primary border border-border-color rounded-lg p-3 text-text-primary">
-                            {suggestion}
-                          </li>
-                        ))}
+                        {editedProject.aiInsights.suggestions.map(
+                          (suggestion, index) => (
+                            <li
+                              key={index}
+                              className="bg-primary border border-border-color rounded-lg p-3 text-text-primary">
+                              {suggestion}
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                   )}
 
                   {editedProject.aiInsights.improvements.length > 0 && (
                     <div>
-                      <h4 className="font-medium text-text-primary mb-3">🚀 Improvements</h4>
+                      <h4 className="font-medium text-text-primary mb-3">
+                        🚀 Improvements
+                      </h4>
                       <ul className="space-y-2">
-                        {editedProject.aiInsights.improvements.map((improvement, index) => (
-                          <li key={index} className="bg-primary border border-border-color rounded-lg p-3 text-text-primary">
-                            {improvement}
-                          </li>
-                        ))}
+                        {editedProject.aiInsights.improvements.map(
+                          (improvement, index) => (
+                            <li
+                              key={index}
+                              className="bg-primary border border-border-color rounded-lg p-3 text-text-primary">
+                              {improvement}
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                   )}
 
                   {editedProject.aiInsights.troubleshooting.length > 0 && (
                     <div>
-                      <h4 className="font-medium text-text-primary mb-3">🔧 Troubleshooting</h4>
+                      <h4 className="font-medium text-text-primary mb-3">
+                        🔧 Troubleshooting
+                      </h4>
                       <ul className="space-y-2">
-                        {editedProject.aiInsights.troubleshooting.map((tip, index) => (
-                          <li key={index} className="bg-primary border border-border-color rounded-lg p-3 text-text-primary">
-                            {tip}
-                          </li>
-                        ))}
+                        {editedProject.aiInsights.troubleshooting.map(
+                          (tip, index) => (
+                            <li
+                              key={index}
+                              className="bg-primary border border-border-color rounded-lg p-3 text-text-primary">
+                              {tip}
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                   )}
@@ -518,7 +647,10 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
               ) : (
                 <div className="text-center py-12 text-text-secondary">
                   <p className="mb-4">No AI insights available yet.</p>
-                  <p className="text-sm">Click "Get AI Insights" to analyze your project and get personalized suggestions.</p>
+                  <p className="text-sm">
+                    Click "Get AI Insights" to analyze your project and get
+                    personalized suggestions.
+                  </p>
                 </div>
               )}
             </div>
@@ -529,15 +661,15 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ project, onUpdate
         {isEditing && (
           <div className="p-6 border-t border-border-color flex justify-end space-x-3">
             <button
+              type="button"
               onClick={handleCancel}
-              className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors"
-            >
+              className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors">
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleSave}
-              className="px-4 py-2 bg-accent hover:bg-blue-600 text-white rounded-md transition-colors"
-            >
+              className="px-4 py-2 bg-accent hover:bg-blue-600 text-white rounded-md transition-colors">
               Save Changes
             </button>
           </div>
