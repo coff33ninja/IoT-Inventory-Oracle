@@ -50,7 +50,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     onUpdate({ ...project, notes });
   };
 
-  const toggleStatus = () => {
+  const toggleStatus = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up to card click
     let newStatus: Project['status'];
     if (project.status === "Planning") {
       newStatus = "In Progress";
@@ -62,11 +63,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     onUpdate({ ...project, status: newStatus });
   };
 
-  const handleEdit = () => {
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up to card click
     setIsEditing(true);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up to card click
     onUpdate({
       ...project,
       name: editedName.trim() || project.name,
@@ -75,13 +78,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     setIsEditing(false);
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up to card click
     setEditedName(project.name);
     setEditedDescription(project.description);
     setIsEditing(false);
   };
 
-  const handleGetImprovements = async () => {
+  const handleGetImprovements = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up to card click
     setIsLoadingImprovements(true);
     try {
       const improvementData = await suggestProjectImprovements(
@@ -99,7 +104,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up to card click
     if (
       window.confirm(
         `Are you sure you want to delete the project "${project.name}"? This action cannot be undone.`
@@ -133,12 +139,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                   type="text"
                   value={editedName}
                   onChange={(e) => setEditedName(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
                   className="w-full bg-primary border border-border-color rounded px-2 py-1 text-lg font-bold text-text-primary focus:ring-accent focus:border-accent"
                   placeholder="Project name"
                 />
                 <textarea
                   value={editedDescription}
                   onChange={(e) => setEditedDescription(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
                   className="w-full bg-primary border border-border-color rounded px-2 py-1 text-sm text-text-secondary focus:ring-accent focus:border-accent"
                   placeholder="Project description"
                   rows={2}
@@ -215,7 +223,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               </a>
             </div>
             <button
-              onClick={() => onSyncRepo(project)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSyncRepo(project);
+              }}
               disabled={isSyncing}
               className="flex items-center gap-1 text-xs bg-secondary border border-border-color py-1 px-2 rounded-md text-text-primary hover:bg-border-color transition-colors disabled:opacity-50 disabled:cursor-wait">
               {isSyncing ? <SpinnerIcon /> : <RefreshIcon />} Sync
@@ -223,7 +234,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           </div>
         ) : (
           <button
-            onClick={() => onLinkRepo(project)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onLinkRepo(project);
+            }}
             className="w-full flex items-center justify-center gap-2 text-sm bg-primary hover:bg-border-color border border-border-color p-2 rounded-md transition-colors">
             <LinkIcon /> Link GitHub Repo
           </button>
@@ -285,6 +299,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             value={notes}
             onChange={handleNotesChange}
             onBlur={handleNotesSave}
+            onClick={(e) => e.stopPropagation()}
             placeholder="Add your notes, links, or to-do items here..."
             rows={3}
             className="w-full bg-primary border border-border-color rounded-md text-sm p-2 focus:ring-accent focus:border-accent"
@@ -346,7 +361,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
       <div className="p-4 bg-primary/50 rounded-b-lg space-y-2">
         <div className="flex space-x-2">
           <button
-            onClick={() => onAiKickstart(project)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAiKickstart(project);
+            }}
             className="flex-1 bg-accent hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors flex items-center justify-center space-x-2">
             <SparklesIcon />
             <span>AI Kickstart</span>
@@ -367,7 +385,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                 AI Improvement Suggestions
               </h4>
               <button
-                onClick={() => setShowImprovements(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowImprovements(false);
+                }}
                 className="text-text-secondary hover:text-text-primary">
                 ×
               </button>
