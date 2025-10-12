@@ -36,8 +36,11 @@ const parseComponents = (text: string): { id: string, name: string; quantity: nu
 const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [longDescription, setLongDescription] = useState('');
   const [componentsText, setComponentsText] = useState('');
   const [category, setCategory] = useState('');
+  const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
+  const [estimatedTime, setEstimatedTime] = useState('');
   const [isSuggestingCategory, setIsSuggestingCategory] = useState(false);
   const [isEnhancingDescription, setIsEnhancingDescription] = useState(false);
 
@@ -45,8 +48,11 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
     if (isOpen) {
         setName('');
         setDescription('');
+        setLongDescription('');
         setComponentsText('');
         setCategory('');
+        setDifficulty('Intermediate');
+        setEstimatedTime('');
     }
   }, [isOpen]);
 
@@ -74,8 +80,8 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
     }
     setIsEnhancingDescription(true);
     try {
-        const enhancedDescription = await enhanceProjectDescription(name, description);
-        setDescription(enhancedDescription);
+        const enhancedDescription = await enhanceProjectDescription(name, longDescription || description);
+        setLongDescription(enhancedDescription);
     } catch (error) {
         console.error('Failed to enhance description:', error);
         alert('Failed to enhance description. Please try again.');
@@ -96,10 +102,10 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
     const newProject: Omit<Project, 'id' | 'createdAt'> = {
         name,
         description,
-        longDescription: description, // Use description as initial long description
+        longDescription: longDescription || description,
         category: category || undefined,
-        difficulty: 'Intermediate', // Default difficulty
-        estimatedTime: undefined,
+        difficulty,
+        estimatedTime: estimatedTime || undefined,
         components,
         instructions: undefined,
         updatedAt: new Date().toISOString(),
@@ -117,12 +123,13 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
-      <div className="bg-secondary rounded-lg shadow-xl w-full max-w-lg border border-border-color transform transition-all duration-300 scale-95 animate-modal-enter">
+      <div className="bg-secondary rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-border-color transform transition-all duration-300 scale-95 animate-modal-enter">
         <div className="p-6">
           <div className="flex justify-between items-center pb-4 border-b border-border-color">
-            <h3 className="text-lg font-medium leading-6 text-text-primary">
+            <h3 className="text-xl font-semibold leading-6 text-text-primary">
               Create New Project
             </h3>
+            <p className="text-sm text-text-secondary mt-1">Set up your IoT project with AI assistance</p>
             <button
               onClick={onClose}
               className="text-text-secondary hover:text-text-primary transition-colors"
@@ -130,6 +137,11 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
+          </div>
+          <div className="mt-4 p-3 bg-accent/10 border border-accent/20 rounded-lg">
+            <p className="text-sm text-text-primary">
+              <span className="font-medium">💡 Pro Tip:</span> Use the AI assistance buttons to automatically generate categories, enhance descriptions, and get project suggestions!
+            </p>
           </div>
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
@@ -174,6 +186,47 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
                   placeholder="e.g., Home Automation, Robotics, Sensors & Monitoring"
                   className="mt-1 block w-full bg-primary border border-border-color rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm" 
                 />
+            </div>
+            <div>
+                <div className="flex justify-between items-center">
+                    <label htmlFor="project-long-description" className="block text-sm font-medium text-text-secondary">Detailed Description</label>
+                    <button type="button" onClick={handleEnhanceDescription} disabled={isEnhancingDescription || !name} className="text-xs text-accent hover:text-blue-400 flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isEnhancingDescription ? <><SpinnerIcon /> <span className="ml-1">Enhancing...</span></> : <><SparklesIcon /> <span className="ml-1">Enhance with AI</span></>}
+                    </button>
+                </div>
+                <textarea 
+                  id="project-long-description" 
+                  value={longDescription}
+                  onChange={(e) => setLongDescription(e.target.value)}
+                  rows={4} 
+                  placeholder="Detailed project description with goals, features, and technical details..."
+                  className="mt-1 block w-full bg-primary border border-border-color rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label htmlFor="project-difficulty" className="block text-sm font-medium text-text-secondary">Difficulty Level</label>
+                    <select 
+                      id="project-difficulty" 
+                      value={difficulty}
+                      onChange={(e) => setDifficulty(e.target.value as 'Beginner' | 'Intermediate' | 'Advanced')}
+                      className="mt-1 block w-full bg-primary border border-border-color rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm"
+                    >
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="project-time" className="block text-sm font-medium text-text-secondary">Estimated Time</label>
+                    <input 
+                      type="text" 
+                      id="project-time" 
+                      value={estimatedTime}
+                      onChange={(e) => setEstimatedTime(e.target.value)}
+                      placeholder="e.g., 2-3 hours, 1 weekend, 1 week"
+                      className="mt-1 block w-full bg-primary border border-border-color rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm" 
+                    />
+                </div>
             </div>
              <div>
                 <label htmlFor="project-components" className="block text-sm font-medium text-text-secondary">Initial Components</label>
