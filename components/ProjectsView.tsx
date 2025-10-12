@@ -24,8 +24,8 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
     deallocateInventoryItems,
   } = useInventory();
   const { addToast } = useToast();
-  const [activeTab, setActiveTab] = useState<"In Progress" | "Completed">(
-    "In Progress"
+  const [activeTab, setActiveTab] = useState<"Planning" | "In Progress" | "Completed">(
+    "Planning"
   );
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [projectToLink, setProjectToLink] = useState<Project | null>(null);
@@ -138,7 +138,7 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
 
       <div className="border-b border-border-color">
         <nav className="-mb-px flex space-x-6" aria-label="Tabs">
-          {(["In Progress", "Completed"] as const).map((status) => (
+          {(["Planning", "In Progress", "Completed"] as const).map((status) => (
             <button
               key={status}
               onClick={() => setActiveTab(status)}
@@ -177,8 +177,12 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
               No {activeTab.toLowerCase()} projects yet.
             </h3>
             <p className="text-text-secondary mt-2">
-              Go to the Inventory tab, select some items, and click 'Checkout'
-              to start a new project!
+              {activeTab === "Planning" 
+                ? "Create a new project or use AI Kickstart to start planning your next IoT project!"
+                : activeTab === "In Progress"
+                ? "Move projects from Planning to In Progress when you start building them."
+                : "Complete your in-progress projects to see them here!"
+              }
             </p>
           </div>
         )}

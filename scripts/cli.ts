@@ -160,7 +160,7 @@ class InventoryCLI {
   private async listProjects(status?: string) {
     let projects;
     
-    if (status && (status === 'In Progress' || status === 'Completed')) {
+    if (status && (status === 'Planning' || status === 'In Progress' || status === 'Completed')) {
       projects = await this.projectService.getProjectsByStatus(status as any);
     } else {
       projects = await this.projectService.getAllProjects();

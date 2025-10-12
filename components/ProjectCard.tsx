@@ -51,8 +51,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   };
 
   const toggleStatus = () => {
-    const newStatus =
-      project.status === "In Progress" ? "Completed" : "In Progress";
+    let newStatus: Project['status'];
+    if (project.status === "Planning") {
+      newStatus = "In Progress";
+    } else if (project.status === "In Progress") {
+      newStatus = "Completed";
+    } else {
+      newStatus = "Planning"; // Reset completed projects back to planning
+    }
     onUpdate({ ...project, status: newStatus });
   };
 
@@ -184,7 +190,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             <button
               onClick={toggleStatus}
               className={`text-xs font-semibold py-1 px-3 rounded-full transition-colors ${
-                project.status === "In Progress"
+                project.status === "Planning"
+                  ? "bg-gray-500/20 text-gray-400 hover:bg-gray-500/40"
+                  : project.status === "In Progress"
                   ? "bg-sky-500/20 text-sky-400 hover:bg-sky-500/40"
                   : "bg-highlight/20 text-highlight hover:bg-highlight/40"
               }`}>
