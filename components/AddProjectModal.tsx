@@ -9,11 +9,12 @@ interface AddProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (project: Omit<Project, 'id' | 'createdAt'>) => void;
+  parentProject?: Project; // Optional parent project for creating sub-projects
 }
 
 
 
-const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSave }) => {
+const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSave, parentProject }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [longDescription, setLongDescription] = useState('');
@@ -85,7 +86,7 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
     }
 
     const newProject: Omit<Project, 'id' | 'createdAt'> = {
-        name,
+        name: parentProject ? `${parentProject.name} - ${name}` : name,
         description,
         longDescription: longDescription || description,
         category: category || undefined,
@@ -96,8 +97,10 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
         updatedAt: new Date().toISOString(),
         status: 'Planning',
         progress: 0,
-        notes: `Manually created on ${new Date().toLocaleDateString()}. ${category ? `Category: ${category}` : ''}`,
+        notes: `${parentProject ? 'Sub-project' : 'Project'} manually created on ${new Date().toLocaleDateString()}. ${category ? `Category: ${category}` : ''}`,
         tags: category ? [category] : undefined,
+        parentProjectId: parentProject?.id,
+        isSubProject: !!parentProject,
     };
 
     onSave(newProject);
@@ -117,9 +120,11 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
           <div className="flex justify-between items-start pb-4 border-b border-border-color">
             <div>
               <h3 className="text-xl font-semibold leading-6 text-text-primary">
-                Create New Project
+                {parentProject ? `Create Sub-Project for "${parentProject.name}"` : 'Create New Project'}
               </h3>
-              <p className="text-sm text-text-secondary mt-1">Set up your IoT project with AI assistance</p>
+              <p className="text-sm text-text-secondary mt-1">
+                {parentProject ? 'Set up a sub-project as part of the main project' : 'Set up your IoT project with AI assistance'}
+              </p>
             </div>
             <button
               onClick={onClose}

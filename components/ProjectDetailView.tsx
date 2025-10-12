@@ -6,6 +6,7 @@ import { SparklesIcon } from "./icons/SparklesIcon";
 import { SpinnerIcon } from "./icons/SpinnerIcon";
 import { EditIcon } from "./icons/EditIcon";
 import { PlusIcon } from "./icons/PlusIcon";
+import AddProjectModal from "./AddProjectModal";
 // CheckIcon component inline since it doesn't exist yet
 const CheckIcon = () => (
   <svg
@@ -32,12 +33,14 @@ interface ProjectDetailViewProps {
   project: Project;
   onUpdate: (project: Project) => void;
   onClose: () => void;
+  onProjectClick?: (project: Project) => void;
 }
 
 const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   project,
   onUpdate,
   onClose,
+  onProjectClick,
 }) => {
   const { addProject, projects } = useInventory();
   const { addToast } = useToast();
@@ -51,9 +54,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const [isEnhancingDescription, setIsEnhancingDescription] = useState(false);
   const [isGettingInsights, setIsGettingInsights] = useState(false);
   const [isAnalyzingComplexity, setIsAnalyzingComplexity] = useState(false);
-  const [showSubProjectForm, setShowSubProjectForm] = useState(false);
-  const [newSubProjectName, setNewSubProjectName] = useState("");
-  const [newSubProjectDescription, setNewSubProjectDescription] = useState("");
+  const [isAddSubProjectModalOpen, setIsAddSubProjectModalOpen] = useState(false);
 
   useEffect(() => {
     setEditedProject(project);
@@ -268,54 +269,10 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     }
   };
 
-  const handleCreateManualSubProject = async () => {
-    if (!newSubProjectName.trim()) {
-      addToast("Sub-project name is required", "error");
-      return;
-    }
-
+  const handleAddSubProject = async (subProjectData: Omit<Project, 'id' | 'createdAt'>) => {
     try {
-      const subProject: Omit<Project, "id" | "createdAt"> = {
-        name: `${project.name} - ${newSubProjectName}`,
-        description:
-          newSubProjectDescription || `Sub-project of ${project.name}`,
-        longDescription: newSubProjectDescription,
-        category: project.category,
-        difficulty: project.difficulty,
-        estimatedTime: undefined,
-        components: [],
-        instructions: undefined,
-        updatedAt: new Date().toISOString(),
-        status: "Planning",
-        progress: 0,
-        notes: `Manually created sub-project of "${project.name}".`,
-        tags: ["Manual", "Sub-Project"],
-        parentProjectId: project.id,
-        isSubProject: true,
-        phase: (editedProject.subProjects?.length || 0) + 1,
-        dependencies: [],
-      };
-
-      const createdSubProject = await addProject(subProject);
-
-      // Update main project with new sub-project reference
-      const updatedProject = {
-        ...editedProject,
-        subProjects: [
-          ...(editedProject.subProjects || []),
-          createdSubProject.id,
-        ],
-      };
-
-      setEditedProject(updatedProject);
-      onUpdate(updatedProject);
-
-      // Reset form
-      setNewSubProjectName("");
-      setNewSubProjectDescription("");
-      setShowSubProjectForm(false);
-
-      addToast(`Sub-project "${newSubProjectName}" created!`, "success");
+      const createdSubProject = await addProject(subProjectData);
+      addToast(`Sub-project "${subProjectData.name.replace(`${project.name} - `, '')}" created!`, "success");
     } catch (error) {
       console.error("Failed to create sub-project:", error);
       addToast("Failed to create sub-project", "error");
@@ -835,7 +792,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowSubProjectForm(!showSubProjectForm)}
+                    onClick={() => setIsAddSubProjectModalOpen(true)}
                     className="text-sm bg-highlight hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center">
                     <PlusIcon className="mr-2" />
                     Manual Create
@@ -843,56 +800,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                 </div>
               </div>
 
-              {/* Manual Sub-Project Creation Form */}
-              {showSubProjectForm && (
-                <div className="bg-primary border border-border-color rounded-lg p-4 space-y-4">
-                  <h4 className="font-medium text-text-primary">
-                    Create New Sub-Project
-                  </h4>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-text-secondary mb-1">
-                        Sub-Project Name
-                      </label>
-                      <input
-                        type="text"
-                        value={newSubProjectName}
-                        onChange={(e) => setNewSubProjectName(e.target.value)}
-                        placeholder="e.g., Bedroom Hub Setup"
-                        className="w-full bg-secondary border border-border-color rounded-md p-2 text-text-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-text-secondary mb-1">
-                        Description
-                      </label>
-                      <textarea
-                        value={newSubProjectDescription}
-                        onChange={(e) =>
-                          setNewSubProjectDescription(e.target.value)
-                        }
-                        rows={3}
-                        placeholder="Describe what this sub-project will accomplish..."
-                        className="w-full bg-secondary border border-border-color rounded-md p-2 text-text-primary"
-                      />
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowSubProjectForm(false)}
-                        className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors">
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCreateManualSubProject}
-                        className="px-4 py-2 bg-accent hover:bg-blue-600 text-white rounded-md transition-colors">
-                        Create Sub-Project
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+
 
               {/* Sub-Projects List */}
               {subProjects.length > 0 ? (
@@ -955,9 +863,12 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                           <button
                             type="button"
                             onClick={() => {
-                              // This would open the sub-project in detail view
-                              // For now, just show a toast
-                              addToast(`Opening ${subProject.name}...`, "info");
+                              if (onProjectClick) {
+                                onProjectClick(subProject);
+                                addToast(`Opening ${subProject.name}...`, "success");
+                              } else {
+                                addToast("Sub-project navigation not available", "error");
+                              }
                             }}
                             className="text-sm bg-secondary hover:bg-primary text-text-primary px-3 py-1 rounded border border-border-color transition-colors">
                             Open Details
@@ -1029,6 +940,14 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Add Sub-Project Modal */}
+      <AddProjectModal
+        isOpen={isAddSubProjectModalOpen}
+        onClose={() => setIsAddSubProjectModalOpen(false)}
+        onSave={handleAddSubProject}
+        parentProject={project}
+      />
     </div>
   );
 };

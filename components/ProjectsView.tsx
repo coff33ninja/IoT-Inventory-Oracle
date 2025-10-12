@@ -104,6 +104,11 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
       // Deallocate inventory items first
       await deallocateInventoryItems(project.id);
       
+      // Close detail view if this project is currently selected
+      if (selectedProject?.id === project.id) {
+        setSelectedProject(null);
+      }
+      
       // Then delete the project
       await deleteProject(project.id);
       addToast(`Project "${project.name}" deleted successfully!`, "success");
@@ -209,6 +214,7 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
             setSelectedProject(updatedProject); // Update the selected project with new data
           }}
           onClose={() => setSelectedProject(null)}
+          onProjectClick={setSelectedProject}
         />
       )}
     </div>

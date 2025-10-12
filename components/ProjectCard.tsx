@@ -303,7 +303,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           </h4>
           <div className="space-y-2">
             {subProjects.map((subProject) => (
-              <div key={subProject.id} className="bg-secondary p-2 rounded border border-border-color">
+              <div 
+                key={subProject.id} 
+                className="bg-secondary p-2 rounded border border-border-color hover:bg-primary cursor-pointer transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering parent project click
+                  onClick?.(subProject);
+                }}
+                title={`Click to view ${subProject.name}`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text-primary truncate">
