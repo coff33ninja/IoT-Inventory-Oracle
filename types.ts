@@ -82,7 +82,7 @@ export interface Project {
   }[];
   createdAt: string;
   updatedAt?: string;
-  status: 'Planning' | 'In Progress' | 'Testing' | 'Completed' | 'On Hold';
+  status: 'Planning' | 'In Progress' | 'Testing' | 'Completed' | 'On Hold' | 'Dropped';
   progress?: number; // 0-100
   notes?: string;
   githubUrl?: string;

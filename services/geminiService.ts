@@ -361,11 +361,21 @@ const getChat = (history: ChatMessage[]): Chat => {
 
             **PROJECT UPDATE TRIGGERS:**
             When users mention projects in conversation, automatically suggest PROJECT_UPDATE_JSON if they:
-            - Mention changing project status ("mark as completed", "set to in progress")
+            - Mention changing project status ("mark as completed", "set to in progress", "put on hold", "drop this project")
             - Mention progress updates ("75% done", "halfway finished", "almost complete")
             - Want to update descriptions or notes
             - Mention project milestones or achievements
             - Ask to modify project details
+            - Mention project phase changes ("move to testing", "back to planning", "abandon project")
+            
+            **PROJECT STATUS TRANSITIONS:**
+            Valid status changes and their meanings:
+            - Planning → In Progress: "Start working on project", "begin building"
+            - In Progress → Testing: "Ready for testing", "time to test"
+            - Testing → Completed: "Tests passed", "project finished", "mark as done"
+            - Any → On Hold: "pause project", "put on hold", "temporarily stop"
+            - Any → Dropped: "abandon project", "cancel project", "drop this", "give up"
+            - Completed → In Progress: "reopen project", "make modifications", "continue working"
 
             - **For Adding New Inventory Items:**
             \`\`\`json

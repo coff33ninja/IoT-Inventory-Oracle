@@ -8,6 +8,8 @@ import { SpinnerIcon } from "./icons/SpinnerIcon";
 import { TrashIcon } from "./icons/TrashIcon";
 import { EditIcon } from "./icons/EditIcon";
 import { suggestProjectImprovements } from "../services/geminiService";
+import ProjectStatusSelector from "./ProjectStatusSelector";
+import { ProjectStatus } from "../constants";
 
 interface ProjectCardProps {
   project: Project;
@@ -50,16 +52,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     onUpdate({ ...project, notes });
   };
 
-  const toggleStatus = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event from bubbling up to card click
-    let newStatus: Project['status'];
-    if (project.status === "Planning") {
-      newStatus = "In Progress";
-    } else if (project.status === "In Progress") {
-      newStatus = "Completed";
-    } else {
-      newStatus = "Planning"; // Reset completed projects back to planning
-    }
+  const handleStatusChange = (newStatus: ProjectStatus) => {
     onUpdate({ ...project, status: newStatus });
   };
 
@@ -195,17 +188,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                 </button>
               </>
             )}
-            <button
-              onClick={toggleStatus}
-              className={`text-xs font-semibold py-1 px-3 rounded-full transition-colors ${
-                project.status === "Planning"
-                  ? "bg-gray-500/20 text-gray-400 hover:bg-gray-500/40"
-                  : project.status === "In Progress"
-                  ? "bg-sky-500/20 text-sky-400 hover:bg-sky-500/40"
-                  : "bg-highlight/20 text-highlight hover:bg-highlight/40"
-              }`}>
-              {project.status}
-            </button>
+            <ProjectStatusSelector
+              currentStatus={project.status}
+              onStatusChange={handleStatusChange}
+            />
           </div>
         </div>
       </div>
@@ -333,14 +319,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                       {subProject.name.replace(`${project.name} - `, '')}
                     </p>
                     <div className="flex items-center space-x-2 mt-1">
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        subProject.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
-                        subProject.status === 'In Progress' ? 'bg-blue-500/20 text-blue-400' :
-                        subProject.status === 'Testing' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        {subProject.status}
-                      </span>
+                      <ProjectStatusSelector
+                        currentStatus={subProject.status}
+                        onStatusChange={(newStatus) => {
+                          // Update sub-project status
+                          onUpdate({ ...subProject, status: newStatus });
+                        }}
+                      />
                       {subProject.phase && (
                         <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">
                           Phase {subProject.phase}

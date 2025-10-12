@@ -7,10 +7,12 @@ import { SpinnerIcon } from "./icons/SpinnerIcon";
 import { EditIcon } from "./icons/EditIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 import AddProjectModal from "./AddProjectModal";
+import ProjectStatusSelector from "./ProjectStatusSelector";
+import { ProjectStatus } from "../constants";
 // CheckIcon component inline since it doesn't exist yet
-const CheckIcon = () => (
+const CheckIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
   <svg
-    className="w-4 h-4"
+    className={className}
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24">
@@ -296,20 +298,12 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             <h2 className="text-2xl font-bold text-text-primary">
               {project.name}
             </h2>
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                project.status === "Completed"
-                  ? "bg-green-500/20 text-green-400"
-                  : project.status === "In Progress"
-                  ? "bg-blue-500/20 text-blue-400"
-                  : project.status === "Testing"
-                  ? "bg-yellow-500/20 text-yellow-400"
-                  : project.status === "On Hold"
-                  ? "bg-red-500/20 text-red-400"
-                  : "bg-gray-500/20 text-gray-400"
-              }`}>
-              {project.status}
-            </span>
+            <ProjectStatusSelector
+              currentStatus={project.status}
+              onStatusChange={(newStatus: ProjectStatus) => {
+                onUpdate({ ...project, status: newStatus });
+              }}
+            />
             {project.difficulty && (
               <span className="px-2 py-1 rounded text-xs bg-primary text-text-secondary">
                 {project.difficulty}
@@ -836,18 +830,12 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                                 Phase {subProject.phase}
                               </span>
                             )}
-                            <span
-                              className={`text-xs px-2 py-1 rounded ${
-                                subProject.status === "Completed"
-                                  ? "bg-green-500/20 text-green-400"
-                                  : subProject.status === "In Progress"
-                                  ? "bg-blue-500/20 text-blue-400"
-                                  : subProject.status === "Testing"
-                                  ? "bg-yellow-500/20 text-yellow-400"
-                                  : "bg-gray-500/20 text-gray-400"
-                              }`}>
-                              {subProject.status}
-                            </span>
+                            <ProjectStatusSelector
+                              currentStatus={subProject.status}
+                              onStatusChange={(newStatus: ProjectStatus) => {
+                                onUpdate({ ...subProject, status: newStatus });
+                              }}
+                            />
                           </div>
                         </div>
 
