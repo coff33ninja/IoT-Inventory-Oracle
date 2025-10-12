@@ -1,8 +1,31 @@
 # IoT Inventory Oracle 🚀
 
-A comprehensive, AI-powered inventory management system for IoT makers and electronics enthusiasts. Features intelligent project management, conversational AI assistance, and seamless integration between your physical components and digital projects.
+A comprehensive, AI-powered inventory management system for makers, developers, and tech enthusiasts. Manage electronics components, computer hardware, tools, and general items with intelligent project management, conversational AI assistance, and smart component relationships.
 
-## ✨ Latest Features (v3.0) - AI-Powered Project & Inventory Management
+## ✨ Latest Features (v4.0) - Smart Component Relationships & Universal Inventory
+
+### 🔗 Smart Component Relationships
+- **Intelligent Component Linking**: AI recognizes when components work together
+  - *"ESP12E with NodeMCU HW-389 shield"* → Creates separate but linked entries
+  - *"Intel i7 with ASUS motherboard"* → Tracks compatibility relationships
+- **Component Bundles**: Group related items into logical kits and systems
+- **Relationship Types**: requires, compatible_with, enhances, part_of, contains
+- **Auto-Population**: AI automatically creates relationships when you mention compound components
+
+### 💻 Universal Inventory Support
+- **Computer Components**: Full support for PC builds, servers, and workstations
+  - CPU/Processor, GPU/Graphics Card, Motherboard, RAM/Memory
+  - Storage/SSD/HDD, Power Supply Unit, Cooling systems
+  - Peripherals, networking equipment, and accessories
+- **General Items**: Tools, furniture, office supplies, software licenses
+- **Smart Categorization**: 40+ categories covering electronics, computers, and general items
+- **Build Projects**: AI suggests PC builds, server setups, and workstation configurations
+
+### 🧠 Enhanced AI Intelligence
+- **Compound Component Recognition**: Understands complex component descriptions
+- **Compatibility Analysis**: Checks component compatibility (CPU sockets, power requirements)
+- **Build Optimization**: Suggests improvements and identifies potential issues
+- **Universal Project Support**: IoT projects, PC builds, office setups, home labs
 
 ### 🤖 Conversational AI Management
 - **Natural Language Control**: Manage projects and inventory through chat
@@ -21,12 +44,14 @@ A comprehensive, AI-powered inventory management system for IoT makers and elect
 - **GitHub Integration**: Import component lists from repositories
 - **Project Templates**: Pre-built templates for common IoT projects
 
-### 📦 Smart Inventory System
+### 📦 Universal Smart Inventory System
 - **7 Status Categories**: I Have, I Need, I Want, I Salvaged, I Returned, Discarded, Given Away
-- **AI Categorization**: 25+ specific categories (Resistor, Capacitor, LED, Motor, etc.)
+- **40+ Categories**: Electronics, computer components, tools, furniture, software, and more
+- **Component Relationships**: Track which components work together or require each other
+- **Component Bundles**: Group related items into kits, builds, and systems
 - **Allocation Tracking**: See which components are used in which projects
 - **Market Intelligence**: AI-powered price comparison and sourcing
-- **Component Analysis**: Compatibility checking and optimization suggestions
+- **Compatibility Analysis**: Smart compatibility checking for complex builds
 
 ### 🎨 Modern User Interface
 - **Collapsible Sidebar**: Icon-only mode for more workspace
@@ -55,22 +80,27 @@ A comprehensive, AI-powered inventory management system for IoT makers and elect
 - **Real-time Sourcing**: Find components online with pricing from multiple suppliers
 - **Project Suggestions**: Get project ideas based on your available components
 
-### 📦 Advanced Inventory Management
+### 📦 Universal Advanced Inventory Management
 - **7 Status Categories**: I Have, I Need, I Want, I Salvaged, I Returned, Discarded, Given Away
-- **25+ Component Categories**: Resistor, Capacitor, LED, Motor, Sensor, Microcontroller, etc.
+- **40+ Categories**: Electronics, computer hardware, tools, furniture, software, consumables
+- **Smart Component Relationships**: AI recognizes and links related components
+- **Component Bundles**: Group items into kits, builds, and systems
 - **AI-Enhanced Cataloging**: Auto-generate descriptions and suggest categories
 - **Allocation Tracking**: See which components are allocated to which projects
 - **Market Intelligence**: AI-powered price comparison and supplier recommendations
+- **Compatibility Analysis**: Smart compatibility checking for PC builds and complex systems
 - **Smart Analytics**: Inventory value, utilization rates, and distribution insights
 
-### 🎯 Intelligent Project Management
+### 🎯 Universal Intelligent Project Management
 - **3-Stage Workflow**: Planning → In Progress → Completed with progress tracking
 - **Sub-Project Support**: Break complex projects into manageable phases with dependencies
 - **AI-Generated Content**: Instructions, insights, and enhanced descriptions auto-saved
 - **GitHub Integration**: Import component lists from public repositories
-- **Project Templates**: Pre-built templates for Smart Home, Weather Station, Security, etc.
+- **Universal Project Templates**: IoT projects, PC builds, server setups, office configurations
 - **Readiness Analysis**: See which projects can be built immediately vs missing components
 - **Cross-Project Operations**: Move components between projects with AI guidance
+- **Build Optimization**: AI suggests improvements and identifies compatibility issues
+- **Component Relationships**: Track which components work together in projects
 
 ### 🏠 Home Assistant Integration
 - **Entity Linking**: Connect HA entities to physical components in your inventory
@@ -364,21 +394,22 @@ The AI assistant understands natural language and can manage your entire invento
 
 **Project Management Examples:**
 - *"Mark my Arduino weather station as completed"*
-- *"Set my LED strip project to 75% progress"*
+- *"Set my gaming PC build to 75% progress"*
 - *"Create a new smart home project with ESP32 and sensors"*
-- *"Generate step-by-step instructions for my temperature monitor"*
+- *"Generate step-by-step instructions for my server setup"*
 
 **Inventory Management Examples:**
 - *"I just bought 5 ESP32s, put them in my electronics drawer"*
-- *"I need to order more resistors"*
-- *"I salvaged LEDs from my old project"*
-- *"My sensor is broken, mark it as discarded"*
+- *"I got an Intel i7 CPU and ASUS motherboard, they work together"*
+- *"I need to order more resistors and a new graphics card"*
+- *"My old hard drive failed, mark it as discarded"*
 
 **Technical Assistance:**
 - *"What can I build with an ESP32 and BME280 sensor?"*
+- *"Help me plan a gaming PC build with RTX 4070"*
 - *"Write me Arduino code to read a DHT22 sensor"*
-- *"Find suppliers for Raspberry Pi 5"*
-- *"Help me troubleshoot my I2C communication issues"*
+- *"Find suppliers for Raspberry Pi 5 and compatible accessories"*
+- *"Check if my CPU is compatible with this motherboard"*
 
 ### 📦 Inventory Management
 1. **Adding Components**: Click the `+` button or tell the AI *"I just got new components"*
@@ -411,21 +442,24 @@ The AI assistant understands natural language and can manage your entire invento
 
 ### vs. Traditional Inventory Apps
 - **AI-Powered**: Natural language control instead of forms and menus
-- **Project-Centric**: Built for makers who build things, not just store parts
+- **Universal Support**: Electronics, computers, tools, and general items in one system
+- **Smart Relationships**: Automatically links related components and tracks compatibility
+- **Project-Centric**: Built for makers, builders, and creators who build things
 - **Context-Aware**: Remembers your projects and suggests optimizations
-- **Auto-Categorization**: No manual data entry - AI handles the tedious work
 
 ### vs. Simple Spreadsheets
 - **Intelligent Search**: Find components by project, compatibility, or usage
+- **Component Relationships**: Track which items work together or require each other
 - **Market Intelligence**: Real-time pricing and supplier recommendations
 - **Project Integration**: See which components are used where
-- **AI Assistance**: Get help with technical questions and project planning
+- **AI Assistance**: Get help with technical questions and build planning
 
 ### vs. Generic Project Management
-- **Hardware-Focused**: Designed specifically for electronics and IoT projects
+- **Hardware-Focused**: Designed for electronics, computers, and physical builds
 - **Component Allocation**: Track physical inventory usage across projects
-- **Technical AI**: Understands electronics, compatibility, and coding
-- **Maker Workflow**: Optimized for the build-test-iterate cycle
+- **Technical AI**: Understands electronics, PC compatibility, and coding
+- **Universal Workflow**: Optimized for IoT projects, PC builds, and general making
+- **Smart Compatibility**: Checks component compatibility and suggests improvements
 
 ## 🔧 Troubleshooting
 
@@ -491,12 +525,14 @@ The AI assistant understands natural language and can manage your entire invento
 
 ## 📊 Project Stats
 
-- **Components**: 25+ categorized component types
-- **Project Templates**: Smart Home, Weather Station, Security, Robotics, and more
-- **AI Capabilities**: 7 different JSON action types for intelligent automation
+- **Categories**: 40+ categorized component types (electronics, computers, tools, general)
+- **Project Templates**: IoT projects, PC builds, server setups, office configurations
+- **AI Capabilities**: 9 different JSON action types for intelligent automation
+- **Component Relationships**: Smart linking system with 5 relationship types
 - **Storage**: SQLite database + Markdown files for optimal performance
-- **UI Components**: 20+ React components with full TypeScript support
+- **UI Components**: 25+ React components with full TypeScript support
 - **CLI Commands**: Comprehensive command-line interface for power users
+- **TypeScript**: Strict mode enabled with comprehensive type safety
 
 ## 🤝 Contributing
 
