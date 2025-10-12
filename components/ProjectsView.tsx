@@ -13,7 +13,7 @@ interface ProjectsViewProps {
 }
 
 const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
-  const { projects, addProject, updateProject, updateProjectComponents } = useInventory();
+  const { projects, addProject, updateProject, deleteProject, updateProjectComponents } = useInventory();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<'In Progress' | 'Completed'>('In Progress');
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
@@ -61,6 +61,15 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
     addToast(`Project "${newProjectData.name}" created!`, 'success');
   };
 
+  const handleDeleteProject = async (project: Project) => {
+    try {
+      await deleteProject(project.id);
+      addToast(`Project "${project.name}" deleted successfully!`, 'success');
+    } catch (error) {
+      addToast(`Failed to delete project "${project.name}"`, 'error');
+    }
+  };
+
   const filteredProjects = projects.filter(p => p.status === activeTab)
      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -104,6 +113,7 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
                             project={project} 
                             onAiKickstart={onAiKickstart} 
                             onUpdate={updateProject}
+                            onDelete={handleDeleteProject}
                             onLinkRepo={handleOpenLinkModal}
                             onSyncRepo={handleSyncRepo}
                             isSyncing={syncingProjectId === project.id}

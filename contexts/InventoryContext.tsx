@@ -12,6 +12,7 @@ interface InventoryContextType {
   checkoutItems: (itemsToCheckout: {id: string; quantity: number}[]) => Promise<void>;
   addProject: (project: Omit<Project, 'id' | 'createdAt'>) => Promise<void>;
   updateProject: (updatedProject: Project) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
   updateItemIntelligence: (itemId: string, aiInsights: AiInsights, marketData: MarketDataItem[]) => Promise<void>;
   updateProjectComponents: (projectId: string, githubComponents: { name: string; quantity: number }[]) => Promise<void>;
 }
@@ -147,6 +148,17 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
       setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
     }
   };
+
+  const deleteProject = async (id: string) => {
+    try {
+      await apiClient.deleteProject(id);
+      setProjects(prev => prev.filter(p => p.id !== id));
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      // Still update UI state
+      setProjects(prev => prev.filter(p => p.id !== id));
+    }
+  };
   
   const updateItemIntelligence = async (itemId: string, aiInsights: AiInsights, marketData: MarketDataItem[]) => {
     const updatedItem = inventory.find(item => item.id === itemId);
@@ -199,6 +211,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
       checkoutItems,
       addProject,
       updateProject,
+      deleteProject,
       updateItemIntelligence,
       updateProjectComponents
     }}>
