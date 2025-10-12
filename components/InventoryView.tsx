@@ -125,6 +125,22 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onEdit, onCheckoutComplet
     setDetailItem(item);
   };
 
+  const handlePriceCheck = async (item: InventoryItem) => {
+    try {
+      const { getComponentIntelligence } = await import('../services/geminiService');
+      const intelligence = await getComponentIntelligence(item.name);
+      
+      // This will trigger the ComponentDetailModal to show updated prices
+      setDetailItem({
+        ...item,
+        marketData: intelligence.marketData,
+        lastRefreshed: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Failed to check prices:", error);
+    }
+  };
+
   const selectedCount = Object.keys(selectedItems).length;
 
   return (
@@ -194,6 +210,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({ onEdit, onCheckoutComplet
                           onEdit={onEdit}
                           onDelete={deleteItem}
                           onItemClick={handleItemClick}
+                          onPriceCheck={handlePriceCheck}
                           selectable={activeTab === ItemStatus.HAVE}
                           selectedItems={selectedItems}
                           onSelectionChange={handleSelectionChange}

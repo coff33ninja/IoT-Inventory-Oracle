@@ -4,12 +4,14 @@ import { STATUS_CONFIG } from '../constants';
 import { EditIcon } from './icons/EditIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { CameraIcon } from './icons/CameraIcon';
+import { PriceCheckIcon } from './icons/PriceCheckIcon';
 
 interface InventoryTableProps {
   items: InventoryItem[];
   onEdit: (item: InventoryItem) => void;
   onDelete: (id: string) => void;
   onItemClick: (item: InventoryItem) => void;
+  onPriceCheck?: (item: InventoryItem) => void;
   selectable?: boolean;
   selectedItems?: Record<string, number>;
   onSelectionChange?: (itemId: string, quantity: number) => void;
@@ -24,6 +26,7 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
     onEdit, 
     onDelete, 
     onItemClick, 
+    onPriceCheck,
     selectable = false, 
     selectedItems = {}, 
     onSelectionChange = (_itemId, _quantity) => {},
@@ -169,6 +172,17 @@ const InventoryTable: React.FC<InventoryTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-4">
+                    {onPriceCheck && (
+                      <button 
+                        type="button" 
+                        onClick={(e) => { e.stopPropagation(); onPriceCheck(item); }} 
+                        className="text-yellow-500 hover:text-yellow-400 transition-colors" 
+                        aria-label={`Check prices for ${item.name}`}
+                        title="Check current prices"
+                      >
+                        <PriceCheckIcon />
+                      </button>
+                    )}
                     <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(item); }} className="text-accent hover:text-blue-400 transition-colors" aria-label={`Edit ${item.name}`}>
                       <EditIcon />
                     </button>

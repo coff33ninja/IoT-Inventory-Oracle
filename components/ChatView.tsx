@@ -513,6 +513,24 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
         handleInventoryUpdate(inventoryUpdateAction);
         addToast(`Updated inventory: ${inventoryUpdateAction.itemName}`, "success");
       }
+
+      // Parse and auto-execute price checks
+      const { jsonData: priceCheckAction } = parseJsonBlock<{
+        action: string;
+        itemName: string;
+        itemId: string;
+        searchQuery: string;
+        reason: string;
+      }>(
+        responseContent,
+        "/// PRICE_CHECK_JSON_START ///",
+        "/// PRICE_CHECK_JSON_END ///"
+      );
+
+      if (priceCheckAction) {
+        handlePriceCheck(priceCheckAction);
+        addToast(`Checking prices for: ${priceCheckAction.itemName}`, "info");
+      }
     } catch (error) {
       console.error("Error auto-executing AI suggestions:", error);
       addToast("Error processing AI suggestions", "error");
@@ -1040,6 +1058,55 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
     }
   };
 
+  const handlePriceCheck = async (priceData: {
+    action: string;
+    itemName: string;
+    itemId: string;
+    searchQuery: string;
+    reason: string;
+  }) => {
+    try {
+      // Find the inventory item
+      const item = inventory.find((i) => i.id === priceData.itemId);
+      
+      if (!item) {
+        addToast(`Could not find inventory item: ${priceData.itemName}`, "error");
+        return;
+      }
+
+      // Check if we have recent market data (less than 24 hours old)
+      const now = new Date();
+      const lastRefreshed = item.lastRefreshed ? new Date(item.lastRefreshed) : null;
+      const isDataFresh = lastRefreshed && (now.getTime() - lastRefreshed.getTime() < 24 * 60 * 60 * 1000);
+
+      if (isDataFresh && item.marketData && item.marketData.length > 0) {
+        addToast(`Using recent price data for ${item.name}`, "info");
+        return;
+      }
+
+      // Get fresh market data using the AI service
+      const { getComponentIntelligence } = await import('../services/geminiService');
+      const intelligence = await getComponentIntelligence(item.name);
+      
+      // Update the item with new market data
+      const updatedItem = {
+        ...item,
+        marketData: intelligence.marketData,
+        lastRefreshed: new Date().toISOString()
+      };
+
+      updateItem(updatedItem);
+      
+      addToast(
+        `Updated prices for ${item.name} - found ${intelligence.marketData.length} suppliers`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Failed to check prices:", error);
+      addToast(`Failed to check prices for ${priceData.itemName}`, "error");
+    }
+  };
+
   const parseContent = (content: string) => {
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
     const parts = [];
@@ -1397,7 +1464,7 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                 "/// PROJECT_UPDATE_JSON_START ///",
                 "/// PROJECT_UPDATE_JSON_END ///"
               );
-            const { displayContent, jsonData: inventoryUpdateAction } =
+            const { displayContent: contentAfterInventoryUpdate, jsonData: inventoryUpdateAction } =
               parseJsonBlock<{
                 action: string;
                 itemId: string;
@@ -1413,6 +1480,18 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                 contentAfterProjectUpdate,
                 "/// INVENTORY_UPDATE_JSON_START ///",
                 "/// INVENTORY_UPDATE_JSON_END ///"
+              );
+            const { displayContent, jsonData: priceCheckAction } =
+              parseJsonBlock<{
+                action: string;
+                itemName: string;
+                itemId: string;
+                searchQuery: string;
+                reason: string;
+              }>(
+                contentAfterInventoryUpdate,
+                "/// PRICE_CHECK_JSON_START ///",
+                "/// PRICE_CHECK_JSON_END ///"
               );
 
             return (
@@ -1443,7 +1522,8 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                     templateAction ||
                     analysisAction ||
                     projectUpdateAction ||
-                    inventoryUpdateAction) && (
+                    inventoryUpdateAction ||
+                    priceCheckAction) && (
                     <div className="mt-4 pt-3 border-t border-border-color space-y-3">
                       <h4 className="text-sm font-semibold text-text-secondary">
                         Interactive Actions:
@@ -1665,6 +1745,27 @@ const ChatView: React.FC<ChatViewProps> = ({ initialMessage }) => {
                                 <span className="text-text-primary">{value}</span>
                               </div>
                             ))}
+                          </div>
+                        </div>
+                      )}
+                      {priceCheckAction && (
+                        <div className="bg-primary/50 p-3 rounded-lg">
+                          <p className="font-semibold text-text-primary text-sm flex items-center gap-2">
+                            💰 Price Check: {priceCheckAction.itemName}
+                          </p>
+                          <p className="text-xs text-text-secondary mt-1">
+                            {priceCheckAction.reason}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <button
+                              type="button"
+                              onClick={() => handlePriceCheck(priceCheckAction)}
+                              className="text-xs bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-2 py-1 rounded-md transition-colors w-full text-center">
+                              Check Current Prices
+                            </button>
+                          </div>
+                          <div className="mt-2 text-xs text-text-secondary">
+                            <p>Search: {priceCheckAction.searchQuery}</p>
                           </div>
                         </div>
                       )}

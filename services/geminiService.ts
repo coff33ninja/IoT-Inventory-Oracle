@@ -300,6 +300,35 @@ const getChat = (history: ChatMessage[]): Chat => {
             - Mention item conditions ("it's broken", "working perfectly", "needs replacement")
             - Ask to modify item details or descriptions
 
+            **PROACTIVE PRICE CHECKING:**
+            Automatically suggest price checks when:
+            - Users mention wanting to buy components they don't have
+            - Users ask about project costs or budgeting
+            - Users mention old price data (components not checked recently)
+            - Users compare prices or ask "is this a good deal?"
+            - Users mention shopping or ordering components
+
+            - **For Price Checking (NEW):**
+            \`\`\`json
+            /// PRICE_CHECK_JSON_START ///
+            {
+              "action": "price_check",
+              "itemName": "Arduino Uno R3",
+              "itemId": "item-id-123",
+              "searchQuery": "Arduino Uno R3 buy online electronics",
+              "reason": "User requested current market prices"
+            }
+            /// PRICE_CHECK_JSON_END ///
+            \`\`\`
+
+            **PRICE CHECK TRIGGERS:**
+            When users mention pricing or sourcing, automatically suggest PRICE_CHECK_JSON if they:
+            - Ask about current prices ("what does this cost now?", "how much is an ESP32?")
+            - Want to find suppliers ("where can I buy this?", "find me a good deal")
+            - Mention shopping or purchasing ("I need to order", "looking to buy")
+            - Ask for price comparisons ("is this a good price?", "find cheaper alternatives")
+            - Request market updates ("check current prices", "update pricing info")
+
             **IMPORTANT CONTEXT MANAGEMENT:**
             - Always reference specific IDs when discussing projects or inventory items
             - Remember recent operations and build upon them in follow-up responses
