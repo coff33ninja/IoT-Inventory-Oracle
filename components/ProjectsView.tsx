@@ -200,7 +200,10 @@ const ProjectsView: React.FC<ProjectsViewProps> = ({ onAiKickstart }) => {
       {selectedProject && (
         <ProjectDetailView
           project={selectedProject}
-          onUpdate={updateProject}
+          onUpdate={async (updatedProject) => {
+            await updateProject(updatedProject);
+            setSelectedProject(updatedProject); // Update the selected project with new data
+          }}
           onClose={() => setSelectedProject(null)}
         />
       )}

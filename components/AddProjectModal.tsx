@@ -110,11 +110,13 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
     <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
       <div className="bg-secondary rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-border-color transform transition-all duration-300 scale-95 animate-modal-enter">
         <div className="p-6">
-          <div className="flex justify-between items-center pb-4 border-b border-border-color">
-            <h3 className="text-xl font-semibold leading-6 text-text-primary">
-              Create New Project
-            </h3>
-            <p className="text-sm text-text-secondary mt-1">Set up your IoT project with AI assistance</p>
+          <div className="flex justify-between items-start pb-4 border-b border-border-color">
+            <div>
+              <h3 className="text-xl font-semibold leading-6 text-text-primary">
+                Create New Project
+              </h3>
+              <p className="text-sm text-text-secondary mt-1">Set up your IoT project with AI assistance</p>
+            </div>
             <button
               onClick={onClose}
               className="text-text-secondary hover:text-text-primary transition-colors"

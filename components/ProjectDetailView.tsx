@@ -59,10 +59,15 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     setEditedProject(project);
   }, [project]);
 
-  const handleSave = () => {
-    onUpdate(editedProject);
-    setIsEditing(false);
-    addToast("Project updated successfully!", "success");
+  const handleSave = async () => {
+    try {
+      await onUpdate(editedProject);
+      setIsEditing(false);
+      addToast("Project updated successfully!", "success");
+    } catch (error) {
+      console.error('Failed to save project:', error);
+      addToast("Failed to save project changes", "error");
+    }
   };
 
   const handleCancel = () => {
@@ -188,18 +193,20 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         project.name,
         project.longDescription || project.description
       );
-      
+
       if (analysis.isComplex && analysis.suggestedSubProjects.length > 0) {
         // Auto-create suggested sub-projects
         const subProjectIds = [];
-        
+
         for (const subProjectSuggestion of analysis.suggestedSubProjects) {
-          const subProjectComponents = subProjectSuggestion.components.map((compName, index) => ({
-            id: `sub-${Date.now()}-${index}`,
-            name: compName,
-            quantity: 1,
-            source: 'ai-suggested' as const,
-          }));
+          const subProjectComponents = subProjectSuggestion.components.map(
+            (compName, index) => ({
+              id: `sub-${Date.now()}-${index}`,
+              name: compName,
+              quantity: 1,
+              source: "ai-suggested" as const,
+            })
+          );
 
           const subProject: Omit<Project, "id" | "createdAt"> = {
             name: `${project.name} - ${subProjectSuggestion.name}`,
@@ -214,7 +221,11 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             status: "Planning",
             progress: 0,
             notes: `Sub-project created by AI analysis. Phase ${subProjectSuggestion.phase} of main project.`,
-            tags: ['AI-Generated', 'Sub-Project', `Phase-${subProjectSuggestion.phase}`],
+            tags: [
+              "AI-Generated",
+              "Sub-Project",
+              `Phase-${subProjectSuggestion.phase}`,
+            ],
             parentProjectId: project.id,
             isSubProject: true,
             phase: subProjectSuggestion.phase,
@@ -229,19 +240,29 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         const updatedProject = {
           ...editedProject,
           subProjects: [...(editedProject.subProjects || []), ...subProjectIds],
-          notes: `${editedProject.notes || ''}\n\n🔗 AI-generated sub-projects:\n${analysis.suggestedSubProjects.map((sp, i) => `Phase ${sp.phase}: ${sp.name}`).join('\n')}\n\nReasoning: ${analysis.reasoning}`
+          notes: `${
+            editedProject.notes || ""
+          }\n\n🔗 AI-generated sub-projects:\n${analysis.suggestedSubProjects
+            .map((sp, i) => `Phase ${sp.phase}: ${sp.name}`)
+            .join("\n")}\n\nReasoning: ${analysis.reasoning}`,
         };
-        
+
         setEditedProject(updatedProject);
         onUpdate(updatedProject);
 
-        addToast(`Created ${subProjectIds.length} sub-projects based on AI analysis!`, "success");
+        addToast(
+          `Created ${subProjectIds.length} sub-projects based on AI analysis!`,
+          "success"
+        );
       } else {
-        addToast("Project doesn't require sub-projects or is already well-structured", "info");
+        addToast(
+          "Project doesn't require sub-projects or is already well-structured",
+          "info"
+        );
       }
     } catch (error) {
-      console.error('Failed to analyze project complexity:', error);
-      addToast('Failed to analyze project complexity', 'error');
+      console.error("Failed to analyze project complexity:", error);
+      addToast("Failed to analyze project complexity", "error");
     } finally {
       setIsAnalyzingComplexity(false);
     }
@@ -249,14 +270,15 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
 
   const handleCreateManualSubProject = async () => {
     if (!newSubProjectName.trim()) {
-      addToast('Sub-project name is required', 'error');
+      addToast("Sub-project name is required", "error");
       return;
     }
 
     try {
       const subProject: Omit<Project, "id" | "createdAt"> = {
         name: `${project.name} - ${newSubProjectName}`,
-        description: newSubProjectDescription || `Sub-project of ${project.name}`,
+        description:
+          newSubProjectDescription || `Sub-project of ${project.name}`,
         longDescription: newSubProjectDescription,
         category: project.category,
         difficulty: project.difficulty,
@@ -267,7 +289,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         status: "Planning",
         progress: 0,
         notes: `Manually created sub-project of "${project.name}".`,
-        tags: ['Manual', 'Sub-Project'],
+        tags: ["Manual", "Sub-Project"],
         parentProjectId: project.id,
         isSubProject: true,
         phase: (editedProject.subProjects?.length || 0) + 1,
@@ -275,13 +297,16 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
       };
 
       const createdSubProject = await addProject(subProject);
-      
+
       // Update main project with new sub-project reference
       const updatedProject = {
         ...editedProject,
-        subProjects: [...(editedProject.subProjects || []), createdSubProject.id],
+        subProjects: [
+          ...(editedProject.subProjects || []),
+          createdSubProject.id,
+        ],
       };
-      
+
       setEditedProject(updatedProject);
       onUpdate(updatedProject);
 
@@ -292,13 +317,13 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
 
       addToast(`Sub-project "${newSubProjectName}" created!`, "success");
     } catch (error) {
-      console.error('Failed to create sub-project:', error);
-      addToast('Failed to create sub-project', 'error');
+      console.error("Failed to create sub-project:", error);
+      addToast("Failed to create sub-project", "error");
     }
   };
 
   // Get sub-projects for this project
-  const subProjects = projects.filter(p => p.parentProjectId === project.id);
+  const subProjects = projects.filter((p) => p.parentProjectId === project.id);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
@@ -382,21 +407,27 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         {/* Tabs */}
         <div className="px-6 border-b border-border-color">
           <nav className="flex space-x-8">
-            {["overview", "instructions", "components", "insights", "subprojects"].map(
-              (tab) => (
-                <button
-                  type="button"
-                  key={tab}
-                  onClick={() => setActiveTab(tab as any)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-colors ${
-                    activeTab === tab
-                      ? "border-accent text-accent"
-                      : "border-transparent text-text-secondary hover:text-text-primary hover:border-border-color"
-                  }`}>
-                  {tab === "subprojects" ? `Sub-Projects (${subProjects.length})` : tab}
-                </button>
-              )
-            )}
+            {[
+              "overview",
+              "instructions",
+              "components",
+              "insights",
+              "subprojects",
+            ].map((tab) => (
+              <button
+                type="button"
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-colors ${
+                  activeTab === tab
+                    ? "border-accent text-accent"
+                    : "border-transparent text-text-secondary hover:text-text-primary hover:border-border-color"
+                }`}>
+                {tab === "subprojects"
+                  ? `Sub-Projects (${subProjects.length})`
+                  : tab}
+              </button>
+            ))}
           </nav>
         </div>
 
@@ -784,22 +815,28 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           {activeTab === "subprojects" && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-text-primary">Sub-Projects Management</h3>
+                <h3 className="text-lg font-semibold text-text-primary">
+                  Sub-Projects Management
+                </h3>
                 <div className="flex space-x-2">
                   <button
                     type="button"
                     onClick={handleAnalyzeForSubProjects}
                     disabled={isAnalyzingComplexity}
-                    className="text-sm bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center disabled:opacity-50"
-                  >
-                    {isAnalyzingComplexity ? <SpinnerIcon className="mr-2" /> : <SparklesIcon className="mr-2" />}
-                    {isAnalyzingComplexity ? 'Analyzing...' : 'AI Analyze & Create'}
+                    className="text-sm bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center disabled:opacity-50">
+                    {isAnalyzingComplexity ? (
+                      <SpinnerIcon className="mr-2" />
+                    ) : (
+                      <SparklesIcon className="mr-2" />
+                    )}
+                    {isAnalyzingComplexity
+                      ? "Analyzing..."
+                      : "AI Analyze & Create"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowSubProjectForm(!showSubProjectForm)}
-                    className="text-sm bg-highlight hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center"
-                  >
+                    className="text-sm bg-highlight hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center">
                     <PlusIcon className="mr-2" />
                     Manual Create
                   </button>
@@ -809,10 +846,14 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               {/* Manual Sub-Project Creation Form */}
               {showSubProjectForm && (
                 <div className="bg-primary border border-border-color rounded-lg p-4 space-y-4">
-                  <h4 className="font-medium text-text-primary">Create New Sub-Project</h4>
+                  <h4 className="font-medium text-text-primary">
+                    Create New Sub-Project
+                  </h4>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-text-secondary mb-1">Sub-Project Name</label>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        Sub-Project Name
+                      </label>
                       <input
                         type="text"
                         value={newSubProjectName}
@@ -822,10 +863,14 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-text-secondary mb-1">Description</label>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        Description
+                      </label>
                       <textarea
                         value={newSubProjectDescription}
-                        onChange={(e) => setNewSubProjectDescription(e.target.value)}
+                        onChange={(e) =>
+                          setNewSubProjectDescription(e.target.value)
+                        }
                         rows={3}
                         placeholder="Describe what this sub-project will accomplish..."
                         className="w-full bg-secondary border border-border-color rounded-md p-2 text-text-primary"
@@ -835,15 +880,13 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                       <button
                         type="button"
                         onClick={() => setShowSubProjectForm(false)}
-                        className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors"
-                      >
+                        className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors">
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={handleCreateManualSubProject}
-                        className="px-4 py-2 bg-accent hover:bg-blue-600 text-white rounded-md transition-colors"
-                      >
+                        className="px-4 py-2 bg-accent hover:bg-blue-600 text-white rounded-md transition-colors">
                         Create Sub-Project
                       </button>
                     </div>
@@ -854,16 +897,25 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               {/* Sub-Projects List */}
               {subProjects.length > 0 ? (
                 <div className="space-y-4">
-                  <h4 className="font-medium text-text-primary">Current Sub-Projects</h4>
+                  <h4 className="font-medium text-text-primary">
+                    Current Sub-Projects
+                  </h4>
                   <div className="grid grid-cols-1 gap-4">
                     {subProjects.map((subProject) => (
-                      <div key={subProject.id} className="bg-primary border border-border-color rounded-lg p-4">
+                      <div
+                        key={subProject.id}
+                        className="bg-primary border border-border-color rounded-lg p-4">
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
                             <h5 className="font-medium text-text-primary">
-                              {subProject.name.replace(`${project.name} - `, '')}
+                              {subProject.name.replace(
+                                `${project.name} - `,
+                                ""
+                              )}
                             </h5>
-                            <p className="text-sm text-text-secondary mt-1">{subProject.description}</p>
+                            <p className="text-sm text-text-secondary mt-1">
+                              {subProject.description}
+                            </p>
                           </div>
                           <div className="flex items-center space-x-2 ml-4">
                             {subProject.phase && (
@@ -871,17 +923,21 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                                 Phase {subProject.phase}
                               </span>
                             )}
-                            <span className={`text-xs px-2 py-1 rounded ${
-                              subProject.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
-                              subProject.status === 'In Progress' ? 'bg-blue-500/20 text-blue-400' :
-                              subProject.status === 'Testing' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-gray-500/20 text-gray-400'
-                            }`}>
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                subProject.status === "Completed"
+                                  ? "bg-green-500/20 text-green-400"
+                                  : subProject.status === "In Progress"
+                                  ? "bg-blue-500/20 text-blue-400"
+                                  : subProject.status === "Testing"
+                                  ? "bg-yellow-500/20 text-yellow-400"
+                                  : "bg-gray-500/20 text-gray-400"
+                              }`}>
                               {subProject.status}
                             </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
                             <div className="text-sm text-text-secondary">
@@ -901,10 +957,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                             onClick={() => {
                               // This would open the sub-project in detail view
                               // For now, just show a toast
-                              addToast(`Opening ${subProject.name}...`, 'info');
+                              addToast(`Opening ${subProject.name}...`, "info");
                             }}
-                            className="text-sm bg-secondary hover:bg-primary text-text-primary px-3 py-1 rounded border border-border-color transition-colors"
-                          >
+                            className="text-sm bg-secondary hover:bg-primary text-text-primary px-3 py-1 rounded border border-border-color transition-colors">
                             Open Details
                           </button>
                         </div>
@@ -912,7 +967,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                         {/* Progress Bar */}
                         <div className="mt-3">
                           <div className="w-full bg-secondary rounded-full h-2">
-                            <div 
+                            <div
                               className="bg-accent h-2 rounded-full transition-all duration-300"
                               style={{ width: `${subProject.progress || 0}%` }}
                             />
@@ -920,18 +975,23 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                         </div>
 
                         {/* Dependencies */}
-                        {subProject.dependencies && subProject.dependencies.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-border-color">
-                            <p className="text-xs text-text-secondary mb-1">Dependencies:</p>
-                            <div className="flex flex-wrap gap-1">
-                              {subProject.dependencies.map((dep, index) => (
-                                <span key={index} className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
-                                  {dep}
-                                </span>
-                              ))}
+                        {subProject.dependencies &&
+                          subProject.dependencies.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-border-color">
+                              <p className="text-xs text-text-secondary mb-1">
+                                Dependencies:
+                              </p>
+                              <div className="flex flex-wrap gap-1">
+                                {subProject.dependencies.map((dep, index) => (
+                                  <span
+                                    key={index}
+                                    className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+                                    {dep}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
                       </div>
                     ))}
                   </div>
@@ -941,7 +1001,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                   <div className="text-4xl mb-4">🏗️</div>
                   <p className="mb-4">No sub-projects created yet.</p>
                   <p className="text-sm">
-                    Use "AI Analyze & Create" to automatically break down complex projects, or "Manual Create" to add your own sub-projects.
+                    Use "AI Analyze & Create" to automatically break down
+                    complex projects, or "Manual Create" to add your own
+                    sub-projects.
                   </p>
                 </div>
               )}
