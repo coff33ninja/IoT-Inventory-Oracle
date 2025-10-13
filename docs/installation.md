@@ -7,6 +7,9 @@ Get IoT Inventory Oracle up and running on your system in just a few minutes.
 - **Node.js** (v16 or higher) and **npm** or **yarn**
 - **Modern web browser** with ES Modules support
 - **Google Gemini API Key** - Get yours at [Google AI Studio](https://makersuite.google.com/app/apikey)
+- **Exchange Rate API Key** (Optional) - For currency conversion in market data:
+  - **Fixer.io** (Recommended) - [Get free API key](https://fixer.io/) (1000 requests/month free)
+  - **CurrencyLayer** (Alternative) - [Get free API key](https://currencylayer.com/) (1000 requests/month free)
 
 ## Quick Installation
 
@@ -58,6 +61,11 @@ Create a `.env` file in the root directory:
 # Required: Google Gemini API Key
 VITE_API_KEY=your_actual_gemini_api_key_here
 
+# Optional: Exchange Rate API Keys (for currency conversion)
+# Choose one of the following:
+VITE_FIXER_API_KEY=your_fixer_api_key_here
+# VITE_CURRENCYLAYER_API_KEY=your_currencylayer_api_key_here
+
 # Optional: Home Assistant integration (can also be set via Settings UI)
 VITE_HOME_ASSISTANT_URL=http://your-home-assistant-ip:8123
 VITE_HOME_ASSISTANT_TOKEN=your_long_lived_access_token_here
@@ -66,12 +74,35 @@ VITE_HOME_ASSISTANT_TOKEN=your_long_lived_access_token_here
 VITE_DEBUG=true
 ```
 
-## Getting Your Gemini API Key
+## Getting Your API Keys
+
+### Gemini API Key (Required)
 
 1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Sign in with your Google account
 3. Click "Create API Key"
 4. Copy the generated key to your `.env` file
+
+### Exchange Rate API Key (Optional)
+
+For currency conversion in market data, choose one of these free services:
+
+#### Option 1: Fixer.io (Recommended)
+1. Visit [Fixer.io](https://fixer.io/)
+2. Click "Get Free API Key"
+3. Sign up for a free account
+4. Copy your API key to `VITE_FIXER_API_KEY` in your `.env` file
+5. **Free tier**: 1000 requests/month
+
+#### Option 2: CurrencyLayer
+1. Visit [CurrencyLayer](https://currencylayer.com/)
+2. Sign up for a free account
+3. Get your API key from the dashboard
+4. Copy your API key to `VITE_CURRENCYLAYER_API_KEY` in your `.env` file
+5. **Free tier**: 1000 requests/month
+
+#### Fallback Option
+If no API key is configured, the system will use ExchangeRate-API.com as a fallback (no registration required, but limited functionality).
 
 ## Architecture Overview
 

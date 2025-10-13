@@ -5,9 +5,12 @@ import { SettingsIcon } from "./icons/SettingsIcon";
 import { ProjectsIcon } from "./icons/ProjectsIcon";
 import { HomeAssistantIcon } from "./icons/HomeAssistantIcon";
 import { AnalyticsIcon } from "./icons/AnalyticsIcon";
+import BudgetIcon from "./icons/BudgetIcon";
 import { ChevronLeftIcon } from "./icons/ChevronLeftIcon";
 import { ChevronRightIcon } from "./icons/ChevronRightIcon";
 import { InfoIcon } from "./icons/InfoIcon";
+import { DocumentTextIcon } from "./icons/AnalyticsIcons";
+import RecommendationSettingsMenu from "./RecommendationSettingsMenu";
 
 type View =
   | "inventory"
@@ -15,7 +18,9 @@ type View =
   | "settings"
   | "projects"
   | "home-assistant"
-  | "analytics";
+  | "analytics"
+  | "budget"
+  | "technical-docs";
 
 interface SidebarProps {
   currentView: View;
@@ -158,6 +163,20 @@ const Sidebar: React.FC<SidebarProps> = ({
             isCollapsed={isCollapsed}
           />
           <NavItem
+            label="Budget"
+            icon={<BudgetIcon />}
+            isActive={currentView === "budget"}
+            onClick={() => handleNavigation("budget")}
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
+            label="Technical Docs"
+            icon={<DocumentTextIcon />}
+            isActive={currentView === "technical-docs"}
+            onClick={() => handleNavigation("technical-docs")}
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
             label="Home Assistant"
             icon={<HomeAssistantIcon />}
             isActive={currentView === "home-assistant"}
@@ -191,6 +210,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             {!isCollapsed && <span className="font-medium">Read the Docs</span>}
           </a>
         </nav>
+        
+        {/* AI Settings Section */}
+        {!isCollapsed && (
+          <div className="mt-6 pt-4 border-t border-border-color">
+            <RecommendationSettingsMenu />
+          </div>
+        )}
         {!isCollapsed && (
           <div className="mt-auto text-center text-text-secondary text-xs">
             <p>&copy; 2024 Plus Ultra Apps</p>

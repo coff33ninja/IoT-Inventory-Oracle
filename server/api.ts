@@ -3,7 +3,16 @@ import cors from "cors";
 import DatabaseService from "../services/databaseService.js";
 import ProjectService from "../services/projectService.js";
 import ChatService from "../services/chatService.js";
-import { InventoryItem, Project, ItemStatus, ChatMessage } from "../types.js";
+import TechnicalDocumentationService from "../services/technicalDocumentationService.js";
+import { getRecommendationService, getAnalyticsService, getPredictionEngine } from "../services/serviceFactory.js";
+import { InventoryItem, Project, ItemStatus, ChatMessage, ComponentAlternative, ComponentPrediction, ComponentSuggestion, PersonalizedRecommendation } from "../types.js";
+import { RecommendationPreferences } from "../components/RecommendationSettingsPanel.js";
+import { 
+  logRecommendationRequest, 
+  handleRecommendationError, 
+  validateRecommendationRequest, 
+  rateLimitRecommendations 
+} from "./middleware/recommendationMiddleware.js";
 
 const app = express();
 const port = 3001;
@@ -23,6 +32,12 @@ app.use(express.json());
 const dbService = new DatabaseService();
 const projectService = new ProjectService();
 const chatService = new ChatService();
+const technicalDocService = new TechnicalDocumentationService();
+
+// Initialize recommendation services
+const recommendationService = getRecommendationService();
+const analyticsService = getAnalyticsService();
+const predictionEngine = getPredictionEngine();
 
 // Inventory endpoints
 app.get("/api/inventory", (req, res) => {
@@ -377,6 +392,474 @@ app.delete("/api/bundles/:id", (req, res) => {
     res.status(500).json({ error: "Failed to delete bundle" });
   }
 });
+
+// Apply middleware to recommendation routes
+app.use('/api/recommendations', rateLimitRecommendations, logRecommendationRequest, validateRecommendationRequest);
+app.use('/api/analytics', rateLimitRecommendations, logRecommendationRequest, validateRecommendationRequest);
+app.use('/api/predictions', rateLimitRecommendations, logRecommendationRequest, validateRecommendationRequest);
+app.use('/api/preferences', rateLimitRecommendations, logRecommendationRequest, validateRecommendationRequest);
+
+// Recommendation API endpoints
+// Component alternatives
+app.get("/api/recommendations/alternatives/:componentId", async (req, res) => {
+  try {
+    const { componentId } = req.params;
+    const { projectId, projectType, budget } = req.query;
+    
+    const context = projectId ? {
+      projectId: projectId as string,
+      projectType: projectType as string || 'General',
+      existingComponents: [],
+      budget: budget ? parseFloat(budget as string) : undefined,
+      difficulty: 'Intermediate' as const
+    } : undefined;
+
+    const alternatives = await recommendationService.getComponentAlternatives(componentId, context);
+    res.json(alternatives);
+  } catch (error) {
+    console.error('Failed to get component alternatives:', error);
+    res.status(500).json({ 
+      error: "Failed to get component alternatives",
+      fallback: []
+    });
+  }
+});
+
+// Component predictions
+app.get("/api/recommendations/predictions/:projectId", async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const predictions = await recommendationService.predictComponentNeeds(projectId);
+    res.json(predictions);
+  } catch (error) {
+    console.error('Failed to get component predictions:', error);
+    res.status(500).json({ 
+      error: "Failed to get component predictions",
+      fallback: []
+    });
+  }
+});
+
+// Project component suggestions
+app.post("/api/recommendations/project-suggestions", async (req, res) => {
+  try {
+    const { projectType, userPreferences } = req.body;
+    
+    if (!projectType) {
+      return res.status(400).json({ error: "Project type is required" });
+    }
+
+    const suggestions = await recommendationService.suggestProjectComponents(projectType, userPreferences || {});
+    res.json(suggestions);
+  } catch (error) {
+    console.error('Failed to get project suggestions:', error);
+    res.status(500).json({ 
+      error: "Failed to get project suggestions",
+      fallback: []
+    });
+  }
+});
+
+// Component compatibility analysis
+app.post("/api/recommendations/compatibility", async (req, res) => {
+  try {
+    const { componentIds } = req.body;
+    
+    if (!Array.isArray(componentIds) || componentIds.length === 0) {
+      return res.status(400).json({ error: "Component IDs array is required" });
+    }
+
+    const analysis = await recommendationService.analyzeComponentCompatibility(componentIds);
+    res.json(analysis);
+  } catch (error) {
+    console.error('Failed to analyze compatibility:', error);
+    res.status(500).json({ 
+      error: "Failed to analyze compatibility",
+      fallback: {
+        overallCompatibility: 0,
+        issues: [],
+        suggestions: [],
+        requiredModifications: []
+      }
+    });
+  }
+});
+
+// Personalized recommendations
+app.get("/api/recommendations/personalized/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const recommendations = await recommendationService.getPersonalizedRecommendations(userId);
+    res.json(recommendations);
+  } catch (error) {
+    console.error('Failed to get personalized recommendations:', error);
+    res.status(500).json({ 
+      error: "Failed to get personalized recommendations",
+      fallback: []
+    });
+  }
+});
+
+// Analytics endpoints
+// Usage patterns
+app.get("/api/analytics/usage-patterns", async (req, res) => {
+  try {
+    const { timeframe = '30d' } = req.query;
+    const patterns = await analyticsService.analyzeUsagePatterns(timeframe as string);
+    res.json(patterns);
+  } catch (error) {
+    console.error('Failed to get usage patterns:', error);
+    res.status(500).json({ 
+      error: "Failed to get usage patterns",
+      fallback: {}
+    });
+  }
+});
+
+// Stock depletion predictions
+app.get("/api/analytics/stock-predictions/:componentId", async (req, res) => {
+  try {
+    const { componentId } = req.params;
+    const prediction = await analyticsService.predictStockDepletion(componentId);
+    res.json(prediction);
+  } catch (error) {
+    console.error('Failed to get stock prediction:', error);
+    res.status(500).json({ 
+      error: "Failed to get stock prediction",
+      fallback: null
+    });
+  }
+});
+
+// Component popularity
+app.get("/api/analytics/popularity", async (req, res) => {
+  try {
+    const { category } = req.query;
+    const popularity = await analyticsService.calculateComponentPopularity(category as string);
+    res.json(popularity);
+  } catch (error) {
+    console.error('Failed to get component popularity:', error);
+    res.status(500).json({ 
+      error: "Failed to get component popularity",
+      fallback: []
+    });
+  }
+});
+
+// Spending insights
+app.get("/api/analytics/spending", async (req, res) => {
+  try {
+    const { timeframe = '30d' } = req.query;
+    const insights = await analyticsService.generateSpendingInsights(timeframe as string);
+    res.json(insights);
+  } catch (error) {
+    console.error('Failed to get spending insights:', error);
+    res.status(500).json({ 
+      error: "Failed to get spending insights",
+      fallback: {}
+    });
+  }
+});
+
+// Project patterns
+app.get("/api/analytics/project-patterns/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const patterns = await analyticsService.identifyProjectPatterns(userId);
+    res.json(patterns);
+  } catch (error) {
+    console.error('Failed to get project patterns:', error);
+    res.status(500).json({ 
+      error: "Failed to get project patterns",
+      fallback: []
+    });
+  }
+});
+
+// Prediction endpoints
+// Project success prediction
+app.post("/api/predictions/project-success", async (req, res) => {
+  try {
+    const { components, projectType } = req.body;
+    
+    if (!Array.isArray(components) || !projectType) {
+      return res.status(400).json({ error: "Components array and project type are required" });
+    }
+
+    const prediction = await predictionEngine.predictProjectSuccess(components, projectType);
+    res.json(prediction);
+  } catch (error) {
+    console.error('Failed to predict project success:', error);
+    res.status(500).json({ 
+      error: "Failed to predict project success",
+      fallback: { successProbability: 0.5, confidence: 0.1 }
+    });
+  }
+});
+
+// Component demand forecast
+app.get("/api/predictions/demand/:componentId", async (req, res) => {
+  try {
+    const { componentId } = req.params;
+    const { horizon = 30 } = req.query;
+    
+    const forecast = await predictionEngine.forecastComponentDemand(
+      componentId, 
+      parseInt(horizon as string)
+    );
+    res.json(forecast);
+  } catch (error) {
+    console.error('Failed to forecast component demand:', error);
+    res.status(500).json({ 
+      error: "Failed to forecast component demand",
+      fallback: { predictedDemand: 0, confidence: 0.1 }
+    });
+  }
+});
+
+// Optimal quantities suggestion
+app.post("/api/predictions/optimal-quantities", async (req, res) => {
+  try {
+    const { componentId, projectPipeline } = req.body;
+    
+    if (!componentId) {
+      return res.status(400).json({ error: "Component ID is required" });
+    }
+
+    const suggestion = await predictionEngine.suggestOptimalQuantities(
+      componentId, 
+      projectPipeline || []
+    );
+    res.json(suggestion);
+  } catch (error) {
+    console.error('Failed to suggest optimal quantities:', error);
+    res.status(500).json({ 
+      error: "Failed to suggest optimal quantities",
+      fallback: { recommendedQuantity: 1, reasoning: "Default fallback" }
+    });
+  }
+});
+
+// Component trends
+app.get("/api/predictions/trends/:category", async (req, res) => {
+  try {
+    const { category } = req.params;
+    const trends = await predictionEngine.identifyComponentTrends(category);
+    res.json(trends);
+  } catch (error) {
+    console.error('Failed to identify component trends:', error);
+    res.status(500).json({ 
+      error: "Failed to identify component trends",
+      fallback: []
+    });
+  }
+});
+
+// User preferences endpoints
+// Get user preferences
+app.get("/api/preferences/:userId", (req, res) => {
+  try {
+    const { userId } = req.params;
+    const preferences = dbService.getUserPreferences(userId);
+    
+    if (!preferences) {
+      return res.status(404).json({ error: "User preferences not found" });
+    }
+    
+    res.json(preferences);
+  } catch (error) {
+    console.error('Failed to get user preferences:', error);
+    res.status(500).json({ error: "Failed to get user preferences" });
+  }
+});
+
+// Update user preferences
+app.put("/api/preferences/:userId", (req, res) => {
+  try {
+    const { userId } = req.params;
+    const preferences: RecommendationPreferences = req.body;
+    
+    dbService.saveUserPreferences(userId, preferences);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to update user preferences:', error);
+    res.status(500).json({ error: "Failed to update user preferences" });
+  }
+});
+
+// Delete user preferences
+app.delete("/api/preferences/:userId", (req, res) => {
+  try {
+    const { userId } = req.params;
+    dbService.deleteUserPreferences(userId);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete user preferences:', error);
+    res.status(500).json({ error: "Failed to delete user preferences" });
+  }
+});
+
+// Component usage tracking
+app.post("/api/recommendations/usage/:componentId", async (req, res) => {
+  try {
+    const { componentId } = req.params;
+    const { projectId, quantity } = req.body;
+    
+    if (!projectId || !quantity) {
+      return res.status(400).json({ error: "Project ID and quantity are required" });
+    }
+
+    await recommendationService.updateComponentUsage(componentId, projectId, quantity);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to update component usage:', error);
+    res.status(500).json({ error: "Failed to update component usage" });
+  }
+});
+
+// Recommendation system health and stats
+app.get("/api/recommendations/health", (req, res) => {
+  try {
+    const health = recommendationService.isSystemHealthy();
+    const stats = recommendationService.getRecommendationStats();
+    const errorStats = recommendationService.getErrorStats();
+    
+    res.json({
+      ...health,
+      stats,
+      errorStats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Failed to get recommendation system health:', error);
+    res.status(500).json({ 
+      error: "Failed to get system health",
+      healthy: false,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Batch operations
+app.post("/api/recommendations/batch/alternatives", async (req, res) => {
+  try {
+    const { componentIds, context } = req.body;
+    
+    if (!Array.isArray(componentIds)) {
+      return res.status(400).json({ error: "Component IDs array is required" });
+    }
+
+    const results = await Promise.allSettled(
+      componentIds.map(id => recommendationService.getComponentAlternatives(id, context))
+    );
+
+    const alternatives = results.map((result, index) => ({
+      componentId: componentIds[index],
+      alternatives: result.status === 'fulfilled' ? result.value : [],
+      error: result.status === 'rejected' ? result.reason?.message : null
+    }));
+
+    res.json(alternatives);
+  } catch (error) {
+    console.error('Failed to get batch alternatives:', error);
+    res.status(500).json({ error: "Failed to get batch alternatives" });
+  }
+});
+
+// Technical Documentation endpoints
+app.get("/api/technical/documents", async (req, res) => {
+  try {
+    const documents = await technicalDocService.getTechnicalDocuments();
+    res.json(documents);
+  } catch (error) {
+    console.error('Failed to get technical documents:', error);
+    res.status(500).json({ 
+      error: "Failed to get technical documents",
+      fallback: []
+    });
+  }
+});
+
+app.get("/api/technical/specifications", async (req, res) => {
+  try {
+    const specifications = await technicalDocService.getTechnicalSpecifications();
+    res.json(specifications);
+  } catch (error) {
+    console.error('Failed to get technical specifications:', error);
+    res.status(500).json({ 
+      error: "Failed to get technical specifications",
+      fallback: []
+    });
+  }
+});
+
+app.get("/api/technical/parse-datasheet/:documentId", async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const parsedData = await technicalDocService.parseDatasheet(documentId);
+    res.json(parsedData);
+  } catch (error) {
+    console.error('Failed to parse datasheet:', error);
+    res.status(500).json({ 
+      error: "Failed to parse datasheet",
+      fallback: {
+        extractedSpecs: {},
+        features: [],
+        applications: [],
+        pinCount: 0,
+        packageType: 'Unknown'
+      }
+    });
+  }
+});
+
+app.get("/api/technical/pinout/:componentId", async (req, res) => {
+  try {
+    const { componentId } = req.params;
+    const pinoutData = await technicalDocService.generatePinoutDiagram(componentId);
+    res.json(pinoutData);
+  } catch (error) {
+    console.error('Failed to generate pinout diagram:', error);
+    res.status(500).json({ 
+      error: "Failed to generate pinout diagram",
+      fallback: null
+    });
+  }
+});
+
+app.get("/api/technical/schematic/:componentId", async (req, res) => {
+  try {
+    const { componentId } = req.params;
+    const schematicData = await technicalDocService.generateSchematicSymbol(componentId);
+    res.json(schematicData);
+  } catch (error) {
+    console.error('Failed to generate schematic symbol:', error);
+    res.status(500).json({ 
+      error: "Failed to generate schematic symbol",
+      fallback: null
+    });
+  }
+});
+
+app.post("/api/technical/search", async (req, res) => {
+  try {
+    const { query, filters } = req.body;
+    const searchResults = await technicalDocService.searchTechnicalDocuments(query, filters);
+    res.json(searchResults);
+  } catch (error) {
+    console.error('Failed to search technical documents:', error);
+    res.status(500).json({ 
+      error: "Failed to search technical documents",
+      fallback: []
+    });
+  }
+});
+
+// Apply error handling middleware to recommendation routes
+app.use('/api/recommendations', handleRecommendationError);
+app.use('/api/analytics', handleRecommendationError);
+app.use('/api/predictions', handleRecommendationError);
+app.use('/api/preferences', handleRecommendationError);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

@@ -9,7 +9,20 @@
     "preview": "vite preview",
     "server": "tsx server/api.ts",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
-    "cli": "tsx scripts/cli.ts"
+    "cli": "tsx scripts/cli.ts",
+    "migrate:recommendations": "tsx scripts/migrate-recommendation-schema.ts",
+    "test:recommendations": "tsx scripts/test-recommendation-service.ts",
+    "validate:services": "tsx scripts/validate-services.ts",
+    "test:alternatives": "tsx scripts/test-alternative-engine.ts",
+    "test:analytics": "tsx scripts/test-analytics-service.ts",
+    "test:predictions": "tsx scripts/test-prediction-engine.ts",
+    "test:user-preferences": "tsx scripts/test-user-preference-learning.ts",
+    "test:project-success": "tsx scripts/test-project-success-prediction.ts",
+    "test:cost-analysis": "tsx scripts/test-cost-analysis.ts",
+    "test:market-data": "tsx scripts/test-market-data.ts",
+    "test:component-knowledge": "tsx scripts/test-component-knowledge.ts",
+    "test:technical-explanation": "tsx scripts/test-technical-explanation.ts",
+    "test:enhanced-inventory": "tsx scripts/test-enhanced-inventory-table.ts"
   },
   "dependencies": {
     "@google/genai": "^1.22.0",

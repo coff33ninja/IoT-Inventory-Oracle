@@ -8,9 +8,12 @@ import { EditIcon } from "./icons/EditIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 import AddProjectModal from "./AddProjectModal";
 import ProjectStatusSelector from "./ProjectStatusSelector";
+import ProjectRecommendationsPanel from "./ProjectRecommendationsPanel";
 import { ProjectStatus } from "../constants";
 // CheckIcon component inline since it doesn't exist yet
-const CheckIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+const CheckIcon: React.FC<{ className?: string }> = ({
+  className = "w-4 h-4",
+}) => (
   <svg
     className={className}
     fill="none"
@@ -47,7 +50,12 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const { addProject, projects } = useInventory();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "instructions" | "components" | "insights" | "subprojects"
+    | "overview"
+    | "instructions"
+    | "components"
+    | "insights"
+    | "subprojects"
+    | "recommendations"
   >("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [editedProject, setEditedProject] = useState<Project>(project);
@@ -56,7 +64,8 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const [isEnhancingDescription, setIsEnhancingDescription] = useState(false);
   const [isGettingInsights, setIsGettingInsights] = useState(false);
   const [isAnalyzingComplexity, setIsAnalyzingComplexity] = useState(false);
-  const [isAddSubProjectModalOpen, setIsAddSubProjectModalOpen] = useState(false);
+  const [isAddSubProjectModalOpen, setIsAddSubProjectModalOpen] =
+    useState(false);
 
   useEffect(() => {
     setEditedProject(project);
@@ -276,10 +285,18 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     }
   };
 
-  const handleAddSubProject = async (subProjectData: Omit<Project, 'id' | 'createdAt'>) => {
+  const handleAddSubProject = async (
+    subProjectData: Omit<Project, "id" | "createdAt">
+  ) => {
     try {
       const createdSubProject = await addProject(subProjectData);
-      addToast(`Sub-project "${subProjectData.name.replace(`${project.name} - `, '')}" created!`, "success");
+      addToast(
+        `Sub-project "${subProjectData.name.replace(
+          `${project.name} - `,
+          ""
+        )}" created!`,
+        "success"
+      );
     } catch (error) {
       console.error("Failed to create sub-project:", error);
       addToast("Failed to create sub-project", "error");
@@ -352,8 +369,8 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                 style={{ width: `${project.progress}%` }}
                 role="progressbar"
                 aria-valuenow={project.progress}
-                aria-valuemin="0"
-                aria-valuemax="100"
+                aria-valuemin={0}
+                aria-valuemax={100}
                 aria-label={`Project progress: ${project.progress}%`}
               />
             </div>
@@ -368,6 +385,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               "instructions",
               "components",
               "insights",
+              "recommendations",
               "subprojects",
             ].map((tab) => (
               <button
@@ -768,6 +786,16 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             </div>
           )}
 
+          {activeTab === "recommendations" && (
+            <ProjectRecommendationsPanel
+              project={editedProject}
+              onUpdateProject={(updatedProject) => {
+                setEditedProject(updatedProject);
+                onUpdate(updatedProject);
+              }}
+            />
+          )}
+
           {activeTab === "subprojects" && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
@@ -798,8 +826,6 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                   </button>
                 </div>
               </div>
-
-
 
               {/* Sub-Projects List */}
               {subProjects.length > 0 ? (
@@ -858,9 +884,15 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                             onClick={() => {
                               if (onProjectClick) {
                                 onProjectClick(subProject);
-                                addToast(`Opening ${subProject.name}...`, "success");
+                                addToast(
+                                  `Opening ${subProject.name}...`,
+                                  "success"
+                                );
                               } else {
-                                addToast("Sub-project navigation not available", "error");
+                                addToast(
+                                  "Sub-project navigation not available",
+                                  "error"
+                                );
                               }
                             }}
                             className="text-sm bg-secondary hover:bg-primary text-text-primary px-3 py-1 rounded border border-border-color transition-colors">
@@ -874,6 +906,13 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                             <div
                               className="bg-accent h-2 rounded-full transition-all duration-300"
                               style={{ width: `${subProject.progress || 0}%` }}
+                              role="progressbar"
+                              aria-valuenow={subProject.progress || 0}
+                              aria-valuemin={0}
+                              aria-valuemax={100}
+                              aria-label={`Sub-project progress: ${
+                                subProject.progress || 0
+                              }%`}
                             />
                           </div>
                         </div>

@@ -3,7 +3,8 @@ import { Project } from '../types';
 import { suggestProjectCategory, enhanceProjectDescription } from '../services/geminiService';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { SpinnerIcon } from './icons/SpinnerIcon';
-import ComponentSelector from './ComponentSelector';
+import EnhancedComponentSelector from './EnhancedComponentSelector';
+import SmartAllocationPanel from './SmartAllocationPanel';
 
 interface AddProjectModalProps {
   isOpen: boolean;
@@ -22,15 +23,18 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
     id: string;
     name: string;
     quantity: number;
-    source: 'manual' | 'inventory';
+    source: 'manual' | 'inventory' | 'ai-suggested' | 'github';
     inventoryItemId?: string;
     isAllocated?: boolean;
+    confidence?: number;
+    reasoning?: string;
   }[]>([]);
   const [category, setCategory] = useState('');
   const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
   const [estimatedTime, setEstimatedTime] = useState('');
   const [isSuggestingCategory, setIsSuggestingCategory] = useState(false);
   const [isEnhancingDescription, setIsEnhancingDescription] = useState(false);
+  const [showSmartAllocation, setShowSmartAllocation] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -105,6 +109,22 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
 
     onSave(newProject);
     onClose();
+  };
+
+  const handleSmartAllocationComplete = (allocatedComponents: Project['components']) => {
+    // Convert to the expected format
+    const convertedComponents = allocatedComponents.map(comp => ({
+      id: comp.id,
+      name: comp.name,
+      quantity: comp.quantity,
+      source: comp.source || 'manual' as 'manual' | 'inventory' | 'ai-suggested' | 'github',
+      inventoryItemId: comp.inventoryItemId,
+      isAllocated: comp.isAllocated,
+      confidence: undefined,
+      reasoning: undefined
+    }));
+    setComponents(convertedComponents);
+    setShowSmartAllocation(false);
   };
 
   if (!isOpen) return null;
@@ -224,12 +244,26 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
                     />
                 </div>
             </div>
-            <ComponentSelector
+            <EnhancedComponentSelector
               onComponentsChange={setComponents}
+              projectType={category}
+              projectDescription={longDescription || description}
+              enableRecommendations={true}
             />
-            <div className="pt-4 flex justify-end space-x-3">
-              <button type="button" onClick={onClose} className="bg-secondary border border-border-color py-2 px-4 rounded-md text-sm font-medium text-text-primary hover:bg-primary transition-colors">Cancel</button>
-              <button type="submit" className="bg-accent hover:bg-blue-600 py-2 px-4 rounded-md text-sm font-medium text-white transition-colors">Create Project</button>
+            <div className="pt-4 flex justify-between">
+              <button 
+                type="button" 
+                onClick={() => setShowSmartAllocation(true)}
+                disabled={components.length === 0}
+                className="bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded-md text-sm font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                <SparklesIcon className="w-4 h-4 mr-2" />
+                Smart Allocation
+              </button>
+              <div className="flex space-x-3">
+                <button type="button" onClick={onClose} className="bg-secondary border border-border-color py-2 px-4 rounded-md text-sm font-medium text-text-primary hover:bg-primary transition-colors">Cancel</button>
+                <button type="submit" className="bg-accent hover:bg-blue-600 py-2 px-4 rounded-md text-sm font-medium text-white transition-colors">Create Project</button>
+              </div>
             </div>
           </form>
         </div>
@@ -243,6 +277,29 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({ isOpen, onClose, onSa
           animation: modal-enter 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
         }
       `}</style>
+
+      {/* Smart Allocation Panel */}
+      {showSmartAllocation && (
+        <SmartAllocationPanel
+          project={{
+            id: 'temp',
+            name,
+            description,
+            longDescription: longDescription || description,
+            category,
+            difficulty,
+            estimatedTime,
+            components,
+            status: 'Planning',
+            progress: 0,
+            createdAt: new Date().toISOString(),
+            parentProjectId: parentProject?.id,
+            isSubProject: !!parentProject
+          }}
+          onAllocationComplete={handleSmartAllocationComplete}
+          onClose={() => setShowSmartAllocation(false)}
+        />
+      )}
     </div>
   );
 };

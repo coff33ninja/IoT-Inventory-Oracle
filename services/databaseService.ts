@@ -1,5 +1,16 @@
 import Database from 'better-sqlite3';
-import { InventoryItem, ItemStatus, AiInsights, MarketDataItem, ComponentRelationship } from '../types.js';
+import { 
+  InventoryItem, 
+  ItemStatus, 
+  AiInsights, 
+  MarketDataItem, 
+  ComponentRelationship,
+  ComponentSpecification,
+  UsageMetrics,
+  ComponentAlternative,
+  ComponentPrediction,
+  UserPreferences
+} from '../types.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -133,6 +144,9 @@ class DatabaseService {
       )
     `);
 
+    // Create recommendation system tables
+    this.createRecommendationTables();
+
     // Create indexes for better performance
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_inventory_status ON inventory_items(status);
@@ -144,6 +158,159 @@ class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_component_relationships ON component_relationships(componentId);
       CREATE INDEX IF NOT EXISTS idx_related_components ON component_relationships(relatedComponentId);
       CREATE INDEX IF NOT EXISTS idx_bundle_components ON bundle_components(bundleId);
+      -- Recommendation system indexes
+      CREATE INDEX IF NOT EXISTS idx_component_specs ON component_specifications(componentId);
+      CREATE INDEX IF NOT EXISTS idx_usage_metrics ON usage_metrics(componentId);
+      CREATE INDEX IF NOT EXISTS idx_alternatives ON component_alternatives(originalComponentId);
+      CREATE INDEX IF NOT EXISTS idx_predictions ON component_predictions(componentId);
+      CREATE INDEX IF NOT EXISTS idx_recommendations ON recommendations(userId, createdAt);
+      CREATE INDEX IF NOT EXISTS idx_user_preferences ON user_preferences(userId);
+    `);
+  }
+
+  private createRecommendationTables() {
+    // Component specifications table for detailed technical specs
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS component_specifications (
+        id TEXT PRIMARY KEY,
+        componentId TEXT NOT NULL,
+        specifications TEXT NOT NULL, -- JSON object with technical specs
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        FOREIGN KEY (componentId) REFERENCES inventory_items (id) ON DELETE CASCADE
+      )
+    `);
+
+    // Usage metrics table for tracking component usage patterns
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS usage_metrics (
+        id TEXT PRIMARY KEY,
+        componentId TEXT NOT NULL,
+        totalUsed INTEGER DEFAULT 0,
+        projectsUsedIn INTEGER DEFAULT 0,
+        averageQuantityPerProject REAL DEFAULT 0,
+        lastUsedDate TEXT,
+        usageFrequency TEXT DEFAULT 'low',
+        successRate REAL DEFAULT 0,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        FOREIGN KEY (componentId) REFERENCES inventory_items (id) ON DELETE CASCADE
+      )
+    `);
+
+    // Component alternatives table for storing alternative suggestions
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS component_alternatives (
+        id TEXT PRIMARY KEY,
+        originalComponentId TEXT NOT NULL,
+        alternativeComponentId TEXT NOT NULL,
+        compatibilityScore INTEGER NOT NULL,
+        priceComparison TEXT, -- JSON object with price comparison
+        technicalDifferences TEXT, -- JSON array of differences
+        usabilityImpact TEXT NOT NULL,
+        explanation TEXT NOT NULL,
+        confidence INTEGER NOT NULL,
+        requiredModifications TEXT, -- JSON array of modifications
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (originalComponentId) REFERENCES inventory_items (id) ON DELETE CASCADE,
+        FOREIGN KEY (alternativeComponentId) REFERENCES inventory_items (id) ON DELETE CASCADE
+      )
+    `);
+
+    // Component predictions table for stock depletion predictions
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS component_predictions (
+        id TEXT PRIMARY KEY,
+        componentId TEXT NOT NULL,
+        predictedNeedDate TEXT NOT NULL,
+        confidence INTEGER NOT NULL,
+        quantity INTEGER NOT NULL,
+        reasoning TEXT NOT NULL,
+        basedOnProjects TEXT, -- JSON array of project IDs
+        urgency TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (componentId) REFERENCES inventory_items (id) ON DELETE CASCADE
+      )
+    `);
+
+    // User preferences table for personalized recommendations
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS user_preferences (
+        id TEXT PRIMARY KEY,
+        userId TEXT NOT NULL,
+        preferredBrands TEXT, -- JSON array
+        budgetRange TEXT, -- JSON object with min/max
+        preferredSuppliers TEXT, -- JSON array
+        skillLevel TEXT NOT NULL,
+        projectTypes TEXT, -- JSON array
+        priceWeight REAL DEFAULT 0.3,
+        qualityWeight REAL DEFAULT 0.4,
+        availabilityWeight REAL DEFAULT 0.3,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    `);
+
+    // Recommendations table for storing generated recommendations
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS recommendations (
+        id TEXT PRIMARY KEY,
+        userId TEXT NOT NULL,
+        type TEXT NOT NULL, -- 'component', 'project', 'bundle'
+        itemId TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        relevanceScore INTEGER NOT NULL,
+        reasoning TEXT NOT NULL,
+        estimatedCost REAL,
+        estimatedTime TEXT,
+        difficulty TEXT,
+        isActive INTEGER DEFAULT 1,
+        createdAt TEXT NOT NULL
+      )
+    `);
+
+    // Project patterns table for identifying common project structures
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS project_patterns (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL,
+        commonComponents TEXT NOT NULL, -- JSON array
+        averageCost REAL NOT NULL,
+        averageTime TEXT NOT NULL,
+        successRate REAL NOT NULL,
+        difficulty TEXT NOT NULL,
+        tags TEXT, -- JSON array
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    `);
+
+    // Training data table for machine learning
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS training_data (
+        id TEXT PRIMARY KEY,
+        userId TEXT NOT NULL,
+        projectId TEXT NOT NULL,
+        components TEXT NOT NULL, -- JSON array of component usage
+        outcome TEXT NOT NULL,
+        completionTime INTEGER NOT NULL,
+        userSatisfaction INTEGER,
+        modifications TEXT, -- JSON array of modifications
+        createdAt TEXT NOT NULL
+      )
+    `);
+
+    // Analytics cache table for storing computed analytics
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS analytics_cache (
+        id TEXT PRIMARY KEY,
+        cacheKey TEXT NOT NULL UNIQUE,
+        data TEXT NOT NULL, -- JSON data
+        expiresAt TEXT NOT NULL,
+        createdAt TEXT NOT NULL
+      )
     `);
   }
 
@@ -821,8 +988,388 @@ class DatabaseService {
     }
   }
 
+  // Recommendation system methods
+
+  // Component specifications operations
+  saveComponentSpecifications(componentId: string, specifications: any): void {
+    const id = new Date().toISOString() + '-spec';
+    const now = new Date().toISOString();
+    
+    // Delete existing specifications
+    this.db.prepare('DELETE FROM component_specifications WHERE componentId = ?').run(componentId);
+    
+    // Insert new specifications
+    this.db.prepare(`
+      INSERT INTO component_specifications (id, componentId, specifications, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(id, componentId, JSON.stringify(specifications), now, now);
+  }
+
+  getComponentSpecifications(componentId: string): any | null {
+    const result = this.db.prepare(`
+      SELECT specifications FROM component_specifications WHERE componentId = ?
+    `).get(componentId) as { specifications: string } | undefined;
+    
+    return result ? JSON.parse(result.specifications) : null;
+  }
+
+  // Usage metrics operations
+  updateUsageMetrics(componentId: string, metrics: any): void {
+    const id = new Date().toISOString() + '-metrics';
+    const now = new Date().toISOString();
+    
+    // Check if metrics exist
+    const existing = this.db.prepare(`
+      SELECT id FROM usage_metrics WHERE componentId = ?
+    `).get(componentId) as { id: string } | undefined;
+    
+    if (existing) {
+      // Update existing metrics
+      this.db.prepare(`
+        UPDATE usage_metrics 
+        SET totalUsed = ?, projectsUsedIn = ?, averageQuantityPerProject = ?, 
+            lastUsedDate = ?, usageFrequency = ?, successRate = ?, updatedAt = ?
+        WHERE componentId = ?
+      `).run(
+        metrics.totalUsed,
+        metrics.projectsUsedIn,
+        metrics.averageQuantityPerProject,
+        metrics.lastUsedDate,
+        metrics.usageFrequency,
+        metrics.successRate,
+        now,
+        componentId
+      );
+    } else {
+      // Insert new metrics
+      this.db.prepare(`
+        INSERT INTO usage_metrics 
+        (id, componentId, totalUsed, projectsUsedIn, averageQuantityPerProject, 
+         lastUsedDate, usageFrequency, successRate, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        componentId,
+        metrics.totalUsed,
+        metrics.projectsUsedIn,
+        metrics.averageQuantityPerProject,
+        metrics.lastUsedDate,
+        metrics.usageFrequency,
+        metrics.successRate,
+        now,
+        now
+      );
+    }
+  }
+
+  getUsageMetrics(componentId: string): any | null {
+    const result = this.db.prepare(`
+      SELECT * FROM usage_metrics WHERE componentId = ?
+    `).get(componentId) as any;
+    
+    return result || null;
+  }
+
+  // Component alternatives operations
+  saveComponentAlternatives(originalComponentId: string, alternatives: any[]): void {
+    // Delete existing alternatives
+    this.db.prepare('DELETE FROM component_alternatives WHERE originalComponentId = ?').run(originalComponentId);
+    
+    // Insert new alternatives
+    const stmt = this.db.prepare(`
+      INSERT INTO component_alternatives 
+      (id, originalComponentId, alternativeComponentId, compatibilityScore, priceComparison,
+       technicalDifferences, usabilityImpact, explanation, confidence, requiredModifications, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    const now = new Date().toISOString();
+    alternatives.forEach((alt, index) => {
+      const id = `${originalComponentId}-alt-${index}-${now}`;
+      stmt.run(
+        id,
+        originalComponentId,
+        alt.componentId,
+        alt.compatibilityScore,
+        JSON.stringify(alt.priceComparison),
+        JSON.stringify(alt.technicalDifferences),
+        alt.usabilityImpact,
+        alt.explanation,
+        alt.confidence,
+        alt.requiredModifications ? JSON.stringify(alt.requiredModifications) : null,
+        now
+      );
+    });
+  }
+
+  getComponentAlternatives(originalComponentId: string): any[] {
+    const results = this.db.prepare(`
+      SELECT * FROM component_alternatives WHERE originalComponentId = ?
+      ORDER BY compatibilityScore DESC, confidence DESC
+    `).all(originalComponentId) as any[];
+    
+    return results.map(result => ({
+      componentId: result.alternativeComponentId,
+      name: result.name,
+      compatibilityScore: result.compatibilityScore,
+      priceComparison: JSON.parse(result.priceComparison || '{}'),
+      technicalDifferences: JSON.parse(result.technicalDifferences || '[]'),
+      usabilityImpact: result.usabilityImpact,
+      explanation: result.explanation,
+      confidence: result.confidence,
+      requiredModifications: result.requiredModifications ? JSON.parse(result.requiredModifications) : undefined
+    }));
+  }
+
+  // Component predictions operations
+  saveComponentPrediction(prediction: any): void {
+    const id = new Date().toISOString() + '-pred';
+    const now = new Date().toISOString();
+    
+    // Delete existing prediction for this component
+    this.db.prepare('DELETE FROM component_predictions WHERE componentId = ?').run(prediction.componentId);
+    
+    // Insert new prediction
+    this.db.prepare(`
+      INSERT INTO component_predictions 
+      (id, componentId, predictedNeedDate, confidence, quantity, reasoning, basedOnProjects, urgency, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      prediction.componentId,
+      prediction.predictedNeedDate,
+      prediction.confidence,
+      prediction.quantity,
+      prediction.reasoning,
+      JSON.stringify(prediction.basedOnProjects),
+      prediction.urgency,
+      now
+    );
+  }
+
+  getComponentPredictions(componentId?: string): any[] {
+    let query = 'SELECT * FROM component_predictions';
+    let params: any[] = [];
+    
+    if (componentId) {
+      query += ' WHERE componentId = ?';
+      params.push(componentId);
+    }
+    
+    query += ' ORDER BY urgency DESC, predictedNeedDate ASC';
+    
+    const results = this.db.prepare(query).all(...params) as any[];
+    
+    return results.map(result => ({
+      componentId: result.componentId,
+      predictedNeedDate: result.predictedNeedDate,
+      confidence: result.confidence,
+      quantity: result.quantity,
+      reasoning: result.reasoning,
+      basedOnProjects: JSON.parse(result.basedOnProjects || '[]'),
+      urgency: result.urgency
+    }));
+  }
+
+  // User preferences operations
+  saveUserPreferences(userId: string, preferences: any): void {
+    const id = new Date().toISOString() + '-pref';
+    const now = new Date().toISOString();
+    
+    // Check if preferences exist
+    const existing = this.db.prepare(`
+      SELECT id FROM user_preferences WHERE userId = ?
+    `).get(userId) as { id: string } | undefined;
+    
+    if (existing) {
+      // Update existing preferences
+      this.db.prepare(`
+        UPDATE user_preferences 
+        SET preferredBrands = ?, budgetRange = ?, preferredSuppliers = ?, skillLevel = ?,
+            projectTypes = ?, priceWeight = ?, qualityWeight = ?, availabilityWeight = ?, updatedAt = ?
+        WHERE userId = ?
+      `).run(
+        JSON.stringify(preferences.preferredBrands),
+        JSON.stringify(preferences.budgetRange),
+        JSON.stringify(preferences.preferredSuppliers),
+        preferences.skillLevel,
+        JSON.stringify(preferences.projectTypes),
+        preferences.priceWeight,
+        preferences.qualityWeight,
+        preferences.availabilityWeight,
+        now,
+        userId
+      );
+    } else {
+      // Insert new preferences
+      this.db.prepare(`
+        INSERT INTO user_preferences 
+        (id, userId, preferredBrands, budgetRange, preferredSuppliers, skillLevel,
+         projectTypes, priceWeight, qualityWeight, availabilityWeight, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        userId,
+        JSON.stringify(preferences.preferredBrands),
+        JSON.stringify(preferences.budgetRange),
+        JSON.stringify(preferences.preferredSuppliers),
+        preferences.skillLevel,
+        JSON.stringify(preferences.projectTypes),
+        preferences.priceWeight,
+        preferences.qualityWeight,
+        preferences.availabilityWeight,
+        now,
+        now
+      );
+    }
+  }
+
+  getUserPreferences(userId: string): any | null {
+    const result = this.db.prepare(`
+      SELECT * FROM user_preferences WHERE userId = ?
+    `).get(userId) as any;
+    
+    if (!result) return null;
+    
+    return {
+      preferredBrands: JSON.parse(result.preferredBrands || '[]'),
+      budgetRange: JSON.parse(result.budgetRange || '{}'),
+      preferredSuppliers: JSON.parse(result.preferredSuppliers || '[]'),
+      skillLevel: result.skillLevel,
+      projectTypes: JSON.parse(result.projectTypes || '[]'),
+      priceWeight: result.priceWeight,
+      qualityWeight: result.qualityWeight,
+      availabilityWeight: result.availabilityWeight
+    };
+  }
+
+  deleteUserPreferences(userId: string): void {
+    try {
+      const result = this.db.prepare(`
+        DELETE FROM user_preferences WHERE userId = ?
+      `).run(userId);
+      
+      console.log(`Deleted user preferences for user ${userId}. Rows affected: ${result.changes}`);
+    } catch (error) {
+      console.error('Error deleting user preferences:', error);
+      throw new Error(`Failed to delete user preferences for user ${userId}`);
+    }
+  }
+
+  // Analytics cache operations
+  setCacheData(key: string, data: any, expirationHours: number = 24): void {
+    const id = new Date().toISOString() + '-cache';
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + expirationHours * 60 * 60 * 1000).toISOString();
+    
+    // Delete existing cache entry
+    this.db.prepare('DELETE FROM analytics_cache WHERE cacheKey = ?').run(key);
+    
+    // Insert new cache entry
+    this.db.prepare(`
+      INSERT INTO analytics_cache (id, cacheKey, data, expiresAt, createdAt)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(id, key, JSON.stringify(data), expiresAt, now);
+  }
+
+  getCacheData(key: string): any | null {
+    const result = this.db.prepare(`
+      SELECT data, expiresAt FROM analytics_cache WHERE cacheKey = ?
+    `).get(key) as { data: string; expiresAt: string } | undefined;
+    
+    if (!result) return null;
+    
+    // Check if cache has expired
+    if (new Date(result.expiresAt) < new Date()) {
+      this.db.prepare('DELETE FROM analytics_cache WHERE cacheKey = ?').run(key);
+      return null;
+    }
+    
+    return JSON.parse(result.data);
+  }
+
+  // Training data operations
+  saveTrainingData(trainingData: any): void {
+    const id = new Date().toISOString() + '-training';
+    const now = new Date().toISOString();
+    
+    this.db.prepare(`
+      INSERT INTO training_data 
+      (id, userId, projectId, components, outcome, completionTime, userSatisfaction, modifications, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      trainingData.userId,
+      trainingData.projectId,
+      JSON.stringify(trainingData.components),
+      trainingData.outcome,
+      trainingData.completionTime,
+      trainingData.userSatisfaction || null,
+      JSON.stringify(trainingData.modifications),
+      now
+    );
+  }
+
+  getTrainingData(limit: number = 1000): any[] {
+    const results = this.db.prepare(`
+      SELECT * FROM training_data ORDER BY createdAt DESC LIMIT ?
+    `).all(limit) as any[];
+    
+    return results.map(result => ({
+      userId: result.userId,
+      projectId: result.projectId,
+      components: JSON.parse(result.components),
+      outcome: result.outcome,
+      completionTime: result.completionTime,
+      userSatisfaction: result.userSatisfaction,
+      modifications: JSON.parse(result.modifications || '[]'),
+      createdAt: result.createdAt
+    }));
+  }
+
   close(): void {
     this.db.close();
+  }
+  // Exchange rate operations
+  executeQuery(sql: string, params?: any[]): any {
+    if (params) {
+      return this.db.prepare(sql).run(...params);
+    } else {
+      return this.db.exec(sql);
+    }
+  }
+
+  prepareStatement(sql: string) {
+    return this.db.prepare(sql);
+  }
+
+  getExchangeRate(fromCurrency: string, toCurrency: string): any {
+    return this.db.prepare(`
+      SELECT * FROM exchange_rates 
+      WHERE base_currency = ? AND target_currency = ?
+    `).get(fromCurrency, toCurrency);
+  }
+
+  setExchangeRate(fromCurrency: string, toCurrency: string, rate: number): void {
+    this.db.prepare(`
+      INSERT OR REPLACE INTO exchange_rates 
+      (base_currency, target_currency, rate, last_updated)
+      VALUES (?, ?, ?, ?)
+    `).run(fromCurrency, toCurrency, rate, new Date().toISOString());
+  }
+
+  getDailyRatesCache(baseCurrency: string): any {
+    return this.db.prepare(`
+      SELECT * FROM daily_rates_cache WHERE base_currency = ?
+    `).get(baseCurrency);
+  }
+
+  setDailyRatesCache(baseCurrency: string, ratesJson: string, lastUpdated: string): void {
+    this.db.prepare(`
+      INSERT OR REPLACE INTO daily_rates_cache 
+      (base_currency, rates_json, last_updated)
+      VALUES (?, ?, ?)
+    `).run(baseCurrency, ratesJson, lastUpdated);
   }
 }
 

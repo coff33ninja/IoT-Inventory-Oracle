@@ -4,7 +4,9 @@ import { InventoryItem } from '../types';
 import { useInventory } from '../contexts/InventoryContext';
 import { useToast } from '../contexts/ToastContext';
 import { useHomeAssistant } from '../contexts/HomeAssistantContext';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { testConnection } from '../services/homeAssistantService';
+import CurrencySelector from './CurrencySelector';
 
 const SettingsView: React.FC = () => {
   const { inventory, setInventory } = useInventory();
@@ -153,6 +155,34 @@ const SettingsView: React.FC = () => {
                 <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
               </label>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Currency Settings */}
+      <div className="bg-secondary p-6 rounded-lg border border-border-color">
+        <h2 className="text-xl font-semibold mb-4">Currency & Localization</h2>
+        <div className="space-y-4">
+          <div>
+            <CurrencySelector 
+              className="max-w-md"
+              showLabel={true}
+            />
+            <p className="mt-2 text-xs text-text-secondary">
+              Select your preferred currency for displaying prices throughout the application. 
+              The currency will be automatically detected based on your location, but you can change it anytime.
+            </p>
+          </div>
+          
+          <div className="bg-primary p-4 rounded-md border border-border-color">
+            <h3 className="text-sm font-medium text-text-secondary mb-2">Currency Features</h3>
+            <ul className="text-xs text-text-secondary space-y-1">
+              <li>• Automatic currency detection based on your location</li>
+              <li>• Support for 40+ currencies including cryptocurrencies</li>
+              <li>• Proper formatting with local number conventions</li>
+              <li>• Currency conversion for international components</li>
+              <li>• Persistent currency preference across sessions</li>
+            </ul>
           </div>
         </div>
       </div>

@@ -867,14 +867,15 @@ export const suggestCategory = async (itemName: string): Promise<string> => {
 };
 
 export const getComponentIntelligence = async (
-  itemName: string
+  itemName: string,
+  userCurrency: string = 'USD'
 ): Promise<{ aiInsights: AiInsights; marketData: MarketDataItem[] }> => {
   try {
     const prompt = `
             Analyze the electronics component "${itemName}".
             1. Provide a detailed technical paragraph about the component, including its primary uses, key features, and common applications in IoT projects.
             2. Suggest 2-3 innovative project ideas that prominently feature this component.
-            3. Use your search tool to find its current price from at least two online suppliers.
+            3. Use your search tool to find its current price from at least two online suppliers. IMPORTANT: Convert all prices to ${userCurrency} currency and display them in ${userCurrency} format. If you find prices in other currencies, convert them to ${userCurrency} using current exchange rates.
 
             CRITICAL: Your entire response MUST be only a single, raw JSON object. Do not wrap it in markdown, and do not include any other text, comments, or explanations.
             The JSON object must conform to this exact structure:
@@ -884,11 +885,13 @@ export const getComponentIntelligence = async (
               "marketData": [
                 {
                   "supplier": "Supplier Name",
-                  "price": "$12.99",
+                  "price": "${userCurrency === 'USD' ? '$' : userCurrency + ' '}12.99",
                   "link": "https://example.com/product_link"
                 }
               ]
             }
+
+            Remember: All prices must be in ${userCurrency} currency format.
         `;
 
     const response = await ai.models.generateContent({

@@ -42,6 +42,8 @@ const LinkGithubModal: React.FC<LinkGithubModalProps> = ({ isOpen, onClose, onLi
             <button
               onClick={onClose}
               className="text-text-secondary hover:text-text-primary transition-colors"
+              aria-label="Close modal"
+              type="button"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>

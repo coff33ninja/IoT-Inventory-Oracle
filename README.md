@@ -272,6 +272,9 @@ npm run cli projects show "2025-10-11T23:45:25.501Z"
 - **Node.js** v16+ (v18+ recommended)
 - **Modern web browser** with ES Modules support
 - **Google Gemini API Key** - Get yours at [Google AI Studio](https://makersuite.google.com/app/apikey)
+- **Exchange Rate API Key** (Optional) - For currency conversion in market data:
+  - **Fixer.io** (Recommended) - [Get free API key](https://fixer.io/) (1000 requests/month free)
+  - **CurrencyLayer** (Alternative) - [Get free API key](https://currencylayer.com/) (1000 requests/month free)
 
 ### Installation
 
@@ -285,7 +288,9 @@ npm install
 
 # Configure environment
 cp .env.example .env
-# Edit .env and add your Gemini API key
+# Edit .env and add your API keys:
+# - VITE_API_KEY: Your Gemini API key (required)
+# - VITE_FIXER_API_KEY: Your Fixer.io API key (optional, for currency conversion)
 
 # Start the application
 npm run dev:full

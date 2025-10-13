@@ -1,5 +1,6 @@
-import { InventoryItem, Project, ItemStatus, AiInsights, MarketDataItem, ChatMessage } from '../types';
+import { InventoryItem, Project, ItemStatus, AiInsights, MarketDataItem, ChatMessage, ComponentAlternative, ComponentPrediction, ComponentSuggestion, PersonalizedRecommendation, CompatibilityAnalysis, ProjectContext, UserPreferences } from '../types';
 import { ChatConversation, ChatContext } from './chatService';
+import { RecommendationPreferences } from '../components/RecommendationSettingsPanel';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -186,6 +187,164 @@ class ApiClient {
   async generateConversationTitle(conversationId: string): Promise<{ title: string }> {
     return this.request<{ title: string }>(`/chat/conversations/${conversationId}/generate-title`, {
       method: 'POST',
+    });
+  }
+
+  // Recommendation API methods
+  async getComponentAlternatives(
+    componentId: string, 
+    context?: { projectId?: string; projectType?: string; budget?: number }
+  ): Promise<ComponentAlternative[]> {
+    const params = new URLSearchParams();
+    if (context?.projectId) params.append('projectId', context.projectId);
+    if (context?.projectType) params.append('projectType', context.projectType);
+    if (context?.budget) params.append('budget', context.budget.toString());
+    
+    const url = `/recommendations/alternatives/${componentId}${params.toString() ? '?' + params.toString() : ''}`;
+    return this.request<ComponentAlternative[]>(url);
+  }
+
+  async getComponentPredictions(projectId: string): Promise<ComponentPrediction[]> {
+    return this.request<ComponentPrediction[]>(`/recommendations/predictions/${projectId}`);
+  }
+
+  async getProjectSuggestions(
+    projectType: string, 
+    userPreferences?: RecommendationPreferences
+  ): Promise<ComponentSuggestion[]> {
+    return this.request<ComponentSuggestion[]>('/recommendations/project-suggestions', {
+      method: 'POST',
+      body: JSON.stringify({ projectType, userPreferences }),
+    });
+  }
+
+  async analyzeComponentCompatibility(componentIds: string[]): Promise<CompatibilityAnalysis> {
+    return this.request<CompatibilityAnalysis>('/recommendations/compatibility', {
+      method: 'POST',
+      body: JSON.stringify({ componentIds }),
+    });
+  }
+
+  async getPersonalizedRecommendations(userId: string): Promise<PersonalizedRecommendation[]> {
+    return this.request<PersonalizedRecommendation[]>(`/recommendations/personalized/${userId}`);
+  }
+
+  // Analytics API methods
+  async getUsagePatterns(timeframe: string = '30d'): Promise<any> {
+    return this.request<any>(`/analytics/usage-patterns?timeframe=${timeframe}`);
+  }
+
+  async getStockPrediction(componentId: string): Promise<any> {
+    return this.request<any>(`/analytics/stock-predictions/${componentId}`);
+  }
+
+  async getComponentPopularity(category?: string): Promise<any> {
+    const url = category ? `/analytics/popularity?category=${category}` : '/analytics/popularity';
+    return this.request<any>(url);
+  }
+
+  async getSpendingInsights(timeframe: string = '30d'): Promise<any> {
+    return this.request<any>(`/analytics/spending?timeframe=${timeframe}`);
+  }
+
+  async getProjectPatterns(userId: string): Promise<any> {
+    return this.request<any>(`/analytics/project-patterns/${userId}`);
+  }
+
+  // Prediction API methods
+  async predictProjectSuccess(components: string[], projectType: string): Promise<any> {
+    return this.request<any>('/predictions/project-success', {
+      method: 'POST',
+      body: JSON.stringify({ components, projectType }),
+    });
+  }
+
+  async forecastComponentDemand(componentId: string, horizon: number = 30): Promise<any> {
+    return this.request<any>(`/predictions/demand/${componentId}?horizon=${horizon}`);
+  }
+
+  async suggestOptimalQuantities(componentId: string, projectPipeline: any[] = []): Promise<any> {
+    return this.request<any>('/predictions/optimal-quantities', {
+      method: 'POST',
+      body: JSON.stringify({ componentId, projectPipeline }),
+    });
+  }
+
+  async getComponentTrends(category: string): Promise<any> {
+    return this.request<any>(`/predictions/trends/${category}`);
+  }
+
+  // User preferences API methods
+  async getUserPreferences(userId: string): Promise<RecommendationPreferences> {
+    return this.request<RecommendationPreferences>(`/preferences/${userId}`);
+  }
+
+  async updateUserPreferences(userId: string, preferences: RecommendationPreferences): Promise<void> {
+    await this.request(`/preferences/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(preferences),
+    });
+  }
+
+  async saveUserPreferences(userId: string, preferences: RecommendationPreferences): Promise<void> {
+    await this.request(`/preferences/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(preferences),
+    });
+  }
+
+  async deleteUserPreferences(userId: string): Promise<void> {
+    await this.request(`/preferences/${userId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Component usage tracking
+  async updateComponentUsage(componentId: string, projectId: string, quantity: number): Promise<void> {
+    await this.request(`/recommendations/usage/${componentId}`, {
+      method: 'POST',
+      body: JSON.stringify({ projectId, quantity }),
+    });
+  }
+
+  // System health and stats
+  async getRecommendationSystemHealth(): Promise<any> {
+    return this.request<any>('/recommendations/health');
+  }
+
+  // Batch operations
+  async getBatchAlternatives(componentIds: string[], context?: any): Promise<any> {
+    return this.request<any>('/recommendations/batch/alternatives', {
+      method: 'POST',
+      body: JSON.stringify({ componentIds, context }),
+    });
+  }
+
+  // Technical Documentation methods
+  async getTechnicalDocuments(): Promise<any[]> {
+    return this.request<any[]>('/technical/documents');
+  }
+
+  async getTechnicalSpecifications(): Promise<any[]> {
+    return this.request<any[]>('/technical/specifications');
+  }
+
+  async parseDatasheet(documentId: string): Promise<any> {
+    return this.request<any>(`/technical/parse-datasheet/${documentId}`);
+  }
+
+  async generatePinoutDiagram(componentId: string): Promise<any> {
+    return this.request<any>(`/technical/pinout/${componentId}`);
+  }
+
+  async generateSchematicSymbol(componentId: string): Promise<any> {
+    return this.request<any>(`/technical/schematic/${componentId}`);
+  }
+
+  async searchTechnicalDocuments(query: string, filters?: any): Promise<any[]> {
+    return this.request<any[]>('/technical/search', {
+      method: 'POST',
+      body: JSON.stringify({ query, filters }),
     });
   }
 }

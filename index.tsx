@@ -5,6 +5,8 @@ import App from './App';
 import { InventoryProvider } from './contexts/InventoryContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { HomeAssistantProvider } from './contexts/HomeAssistantContext';
+import { RecommendationPreferencesProvider } from './contexts/RecommendationPreferencesContext';
+import { CurrencyProvider } from './contexts/CurrencyContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -14,12 +16,16 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <ToastProvider>
-      <InventoryProvider>
-        <HomeAssistantProvider>
-          <App />
-        </HomeAssistantProvider>
-      </InventoryProvider>
-    </ToastProvider>
+    <CurrencyProvider>
+      <ToastProvider>
+        <RecommendationPreferencesProvider>
+          <InventoryProvider>
+            <HomeAssistantProvider>
+              <App />
+            </HomeAssistantProvider>
+          </InventoryProvider>
+        </RecommendationPreferencesProvider>
+      </ToastProvider>
+    </CurrencyProvider>
   </React.StrictMode>
 );

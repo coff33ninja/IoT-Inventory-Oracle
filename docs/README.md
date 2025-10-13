@@ -8,6 +8,7 @@ Welcome to the comprehensive documentation for IoT Inventory Oracle! This docume
 - [**Installation & Setup**](./installation.md) - Get up and running quickly
 - [**Quick Start Guide**](./quick-start.md) - Your first 10 minutes with the app
 - [**Configuration**](./configuration.md) - Environment variables and settings
+- [**Currency Configuration**](./currency-configuration.md) - Multi-currency setup and exchange rates
 
 ### Core Features
 - [**Inventory Management**](./inventory-management.md) - Complete inventory system guide

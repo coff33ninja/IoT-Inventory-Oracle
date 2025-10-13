@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { InventoryItem, ItemStatus } from "../types";
-import InventoryTable from "./InventoryTable";
+import EnhancedInventoryTable from "./EnhancedInventoryTable";
 import { useInventory } from "../contexts/InventoryContext";
 import { STATUS_CONFIG } from "../constants";
 import CheckoutModal from "./CheckoutModal";
@@ -20,7 +20,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({
   onEdit,
   onCheckoutComplete,
 }) => {
-  const { inventory, deleteItem, checkoutItems } = useInventory();
+  const { inventory, deleteItem, checkoutItems, addItem } = useInventory();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<ItemStatus>(ItemStatus.HAVE);
   const [selectedItems, setSelectedItems] = useState<Record<string, number>>(
@@ -173,6 +173,153 @@ const InventoryView: React.FC<InventoryViewProps> = ({
 
   const selectedCount = Object.keys(selectedItems).length;
 
+  // Recommendation handlers
+  const handleAcceptAlternative = async (
+    itemId: string,
+    alternativeId: string
+  ) => {
+    try {
+      // Get the client-side recommendation service
+      const { ClientRecommendationService } = await import(
+        "../services/clientRecommendationService"
+      );
+
+      const originalItem = inventory.find((item) => item.id === itemId);
+      if (!originalItem) return;
+
+      // Get the actual alternative details from the client-side service
+      const alternatives =
+        ClientRecommendationService.findComponentAlternatives(
+          originalItem,
+          inventory
+        );
+      const selectedAlternative = alternatives.find(
+        (alt) => alt.componentId === alternativeId
+      );
+
+      if (!selectedAlternative) {
+        console.error(`Alternative ${alternativeId} not found`);
+        return;
+      }
+
+      // Create the alternative component based on the recommendation data
+      const alternativeComponent = {
+        id: `alt-${alternativeId}-${Date.now()}`,
+        name: selectedAlternative.name,
+        quantity: 1,
+        location: originalItem.location,
+        status: ItemStatus.WANT,
+        category: originalItem.category,
+        description: selectedAlternative.explanation,
+        createdAt: new Date().toISOString(),
+        source: "recommendation",
+        purchasePrice: selectedAlternative.priceComparison.alternative,
+      };
+
+      await addItem(alternativeComponent);
+      console.log(
+        `Added alternative ${selectedAlternative.name} for ${originalItem.name}`
+      );
+    } catch (error) {
+      console.error("Failed to accept alternative:", error);
+    }
+  };
+
+  const handleAddToWishlist = async (itemId: string, alternativeId: string) => {
+    try {
+      // Get the client-side recommendation service
+      const { ClientRecommendationService } = await import(
+        "../services/clientRecommendationService"
+      );
+
+      const originalItem = inventory.find((item) => item.id === itemId);
+      if (!originalItem) return;
+
+      // Get the actual alternative details from the client-side service
+      const alternatives =
+        ClientRecommendationService.findComponentAlternatives(
+          originalItem,
+          inventory
+        );
+      const selectedAlternative = alternatives.find(
+        (alt) => alt.componentId === alternativeId
+      );
+
+      if (!selectedAlternative) {
+        console.error(`Alternative ${alternativeId} not found`);
+        return;
+      }
+
+      // Create wishlist entry with actual alternative data
+      const wishlistComponent = {
+        id: `wishlist-${alternativeId}-${Date.now()}`,
+        name: `${selectedAlternative.name} (Wishlist)`,
+        quantity: 1,
+        location: "Wishlist",
+        status: ItemStatus.WANT,
+        category: originalItem.category,
+        description: `${selectedAlternative.explanation} - Added to wishlist`,
+        createdAt: new Date().toISOString(),
+        source: "recommendation-wishlist",
+        purchasePrice: selectedAlternative.priceComparison.alternative,
+      };
+
+      await addItem(wishlistComponent);
+      console.log(`Added ${selectedAlternative.name} to wishlist`);
+    } catch (error) {
+      console.error("Failed to add to wishlist:", error);
+    }
+  };
+
+  const handleReorderItem = async (itemId: string) => {
+    try {
+      const item = inventory.find((i) => i.id === itemId);
+      if (!item) return;
+
+      // Use client-side prediction for reorder quantity
+      let suggestedQuantity = Math.max(5, Math.ceil(item.quantity * 1.5));
+
+      try {
+        const { ClientRecommendationService } = await import(
+          "../services/clientRecommendationService"
+        );
+
+        // Generate predictions to get better reorder quantity
+        const predictions =
+          ClientRecommendationService.generateStockPredictions(item);
+        if (predictions.length > 0) {
+          suggestedQuantity = predictions[0].quantity;
+        }
+      } catch (predictionError) {
+        console.warn(
+          "Failed to get prediction-based reorder quantity, using fallback:",
+          predictionError
+        );
+      }
+
+      // Create a reorder entry in the "I Need" status
+      const reorderComponent = {
+        id: `reorder-${itemId}-${Date.now()}`,
+        name: `${item.name} (Reorder)`,
+        quantity: suggestedQuantity,
+        location: item.location,
+        status: ItemStatus.NEED,
+        category: item.category,
+        description: `Reorder for ${item.name} - low stock detected (current: ${item.quantity})`,
+        createdAt: new Date().toISOString(),
+        source: "auto-reorder",
+        purchasePrice: item.purchasePrice,
+      };
+
+      await addItem(reorderComponent);
+      console.log(
+        `Created reorder entry for ${item.name} (quantity: ${suggestedQuantity})`
+      );
+    } catch (error) {
+      console.error("Failed to create reorder:", error);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -233,9 +380,9 @@ const InventoryView: React.FC<InventoryViewProps> = ({
           <div className="space-y-4">
             {Object.entries(groupedInventory)
               .sort(([catA], [catB]) => catA.localeCompare(catB))
-              .map(([category, items]) => (
+              .map(([category, items], index) => (
                 <div
-                  key={category}
+                  key={`${category}-${index}`}
                   className="bg-secondary rounded-lg border border-border-color overflow-hidden transition-all duration-300">
                   <button
                     type="button"
@@ -259,7 +406,7 @@ const InventoryView: React.FC<InventoryViewProps> = ({
                     <div
                       className="p-4 border-t border-border-color"
                       id={`category-panel-${category}`}>
-                      <InventoryTable
+                      <EnhancedInventoryTable
                         items={items}
                         onEdit={onEdit}
                         onDelete={deleteItem}
@@ -272,6 +419,10 @@ const InventoryView: React.FC<InventoryViewProps> = ({
                         sortConfig={sortConfig}
                         onSort={handleSort}
                         showCategory={false}
+                        enableRecommendations={true}
+                        onAcceptAlternative={handleAcceptAlternative}
+                        onAddToWishlist={handleAddToWishlist}
+                        onReorderItem={handleReorderItem}
                       />
                     </div>
                   )}
