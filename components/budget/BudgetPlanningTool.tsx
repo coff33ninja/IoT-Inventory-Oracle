@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SpendingAnalysis, Project, InventoryItem } from '../../types';
+import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
 import { 
   CalendarIcon,
   CurrencyDollarIcon,
@@ -39,6 +40,7 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
   inventory,
   onBudgetUpdate
 }) => {
+  const { formatCurrency } = useCurrencyFormat();
   const [budgetPlan, setBudgetPlan] = useState<BudgetPlan>({
     totalBudget: 1000,
     timeframe: 'monthly',
@@ -175,16 +177,16 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
   return (
     <div className="space-y-6">
       {/* Budget Settings */}
-      <div className="bg-white p-6 rounded-lg shadow border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Budget Settings</h3>
+      <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">Budget Settings</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               Total Budget
             </label>
             <div className="relative">
-              <CurrencyDollarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <CurrencyDollarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-text-secondary" />
               <input
                 type="number"
                 value={budgetPlan.totalBudget}
@@ -196,7 +198,7 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               Timeframe
             </label>
             <select
@@ -214,29 +216,29 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
       </div>
 
       {/* Budget Overview */}
-      <div className="bg-white p-6 rounded-lg shadow border">
-        <h4 className="text-lg font-semibold text-gray-900 mb-4">Budget Overview</h4>
+      <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
+        <h4 className="text-lg font-semibold text-text-primary mb-4">Budget Overview</h4>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">${budgetPlan.totalBudget.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(budgetPlan.totalBudget)}</div>
             <div className="text-sm text-blue-600">Total Budget</div>
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">${getTotalPlannedCost().toFixed(2)}</div>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(getTotalPlannedCost())}</div>
             <div className="text-sm text-green-600">Planned Spending</div>
           </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">${(budgetPlan.totalBudget - getTotalPlannedCost()).toFixed(2)}</div>
-            <div className="text-sm text-purple-600">Remaining Budget</div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(budgetPlan.totalBudget - getTotalPlannedCost())}</div>
+            <div className="text-sm text-green-600">Remaining Budget</div>
           </div>
         </div>
         
         {/* Budget Utilization Bar */}
         <div>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600">Budget Utilization</span>
-            <span className="font-medium">{budgetUtilization.toFixed(1)}%</span>
+            <span className="text-text-secondary">Budget Utilization</span>
+            <span className="font-medium text-text-primary">{budgetUtilization.toFixed(1)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3">
             <div 
@@ -249,16 +251,16 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
           </div>
           {budgetUtilization > 100 && (
             <p className="text-sm text-red-600 mt-1">
-              ⚠️ Planned spending exceeds budget by ${(getTotalPlannedCost() - budgetPlan.totalBudget).toFixed(2)}
+              ⚠️ Planned spending exceeds budget by {formatCurrency(getTotalPlannedCost() - budgetPlan.totalBudget)}
             </p>
           )}
         </div>
       </div>
 
       {/* Category Limits */}
-      <div className="bg-white p-6 rounded-lg shadow border">
+      <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-semibold text-gray-900">Category Limits</h4>
+          <h4 className="text-lg font-semibold text-text-primary">Category Limits</h4>
           <button
             onClick={addCategoryLimit}
             className="flex items-center px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
@@ -269,7 +271,7 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
         </div>
         
         {budgetPlan.categoryLimits.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">No category limits set</p>
+          <p className="text-text-secondary text-center py-4">No category limits set</p>
         ) : (
           <div className="space-y-3">
             {budgetPlan.categoryLimits.map((limit, index) => {
@@ -280,10 +282,10 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-900">{limit.category}</span>
+                      <span className="font-medium text-text-primary">{limit.category}</span>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600">
-                          ${spending?.amount.toFixed(2) || '0.00'} / ${limit.limit.toFixed(2)}
+                        <span className="text-sm text-text-secondary">
+                          {formatCurrency(spending?.amount || 0)} / {formatCurrency(limit.limit)}
                         </span>
                         <button
                           onClick={() => removeCategoryLimit(index)}
@@ -312,9 +314,9 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
       </div>
 
       {/* Planned Projects */}
-      <div className="bg-white p-6 rounded-lg shadow border">
+      <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-semibold text-gray-900">Planned Projects</h4>
+          <h4 className="text-lg font-semibold text-text-primary">Planned Projects</h4>
           <button
             onClick={() => setShowProjectForm(true)}
             className="flex items-center px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600"
@@ -325,15 +327,15 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
         </div>
         
         {budgetPlan.plannedProjects.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No planned projects yet</p>
+          <p className="text-text-secondary text-center py-8">No planned projects yet</p>
         ) : (
           <div className="space-y-4">
             {budgetPlan.plannedProjects.map((project) => (
               <div key={project.id} className="p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <h5 className="font-medium text-gray-900">{project.name}</h5>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <h5 className="font-medium text-text-primary">{project.name}</h5>
+                    <div className="flex items-center space-x-4 text-sm text-text-secondary">
                       <span>Category: {project.category}</span>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         project.priority === 'high' ? 'bg-red-100 text-red-800' :
@@ -346,8 +348,8 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-lg font-semibold text-gray-900">
-                      ${project.estimatedCost.toFixed(2)}
+                    <span className="text-lg font-semibold text-text-primary">
+                      {formatCurrency(project.estimatedCost)}
                     </span>
                     <button
                       onClick={() => removePlannedProject(project.id)}
@@ -361,8 +363,8 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
                 
                 {project.components.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-200">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Components:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                    <p className="text-sm font-medium text-text-primary mb-2">Components:</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-text-secondary">
                       {project.components.map((comp, index) => (
                         <div key={index} className="flex justify-between">
                           <span>{comp.name} (x{comp.quantity})</span>
@@ -383,13 +385,14 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowProjectForm(false)} />
           <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="relative bg-secondary rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border-color">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Add Planned Project</h3>
+                  <h3 className="text-lg font-semibold text-text-primary">Add Planned Project</h3>
                   <button
+                    type="button"
                     onClick={() => setShowProjectForm(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-text-secondary hover:text-text-primary"
                     aria-label="Close project form"
                   >
                     <XMarkIcon className="h-6 w-6" />
@@ -399,7 +402,7 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-text-primary mb-1">
                         Project Name
                       </label>
                       <input
@@ -466,8 +469,8 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
                       <label className="block text-sm font-medium text-gray-700">
                         Components
                       </label>
-                      <span className="text-sm text-gray-500">
-                        Total: ${calculateProjectCost(newProject).toFixed(2)}
+                      <span className="text-sm text-text-secondary">
+                        Total: {formatCurrency(calculateProjectCost(newProject))}
                       </span>
                     </div>
                     
@@ -511,7 +514,7 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
                           <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
                             <span>{comp.name} (x{comp.quantity})</span>
                             <div className="flex items-center space-x-2">
-                              <span>${(comp.quantity * comp.estimatedPrice).toFixed(2)}</span>
+                              <span>{formatCurrency(comp.quantity * comp.estimatedPrice)}</span>
                               <button
                                 onClick={() => removeComponentFromProject(index)}
                                 className="text-red-500 hover:text-red-700"

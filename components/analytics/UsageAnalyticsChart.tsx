@@ -81,7 +81,7 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
   };
 
   return (
-    <div className={`bg-white p-6 rounded-lg shadow border ${className}`}>
+    <div className={`bg-secondary p-6 rounded-lg shadow border border-border-color ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
@@ -216,9 +216,9 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-secondary divide-y divide-border-color">
                   {sortedData.map((item, index) => (
-                    <tr key={item.componentId} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <tr key={item.componentId} className={index % 2 === 0 ? 'bg-secondary' : 'bg-primary'}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           {item.componentName}

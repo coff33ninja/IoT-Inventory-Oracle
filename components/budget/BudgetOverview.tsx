@@ -1,6 +1,7 @@
 import React from 'react';
 import { SpendingAnalysis } from '../../types';
 import { BudgetFilters } from '../BudgetManagementDashboard';
+import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
 import { 
   CurrencyDollarIcon,
   TrendingUpIcon,
@@ -29,6 +30,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
   filters,
   onFiltersChange
 }) => {
+  const { formatCurrency } = useCurrencyFormat();
   const getTrendIcon = (trend: 'increasing' | 'stable' | 'decreasing') => {
     switch (trend) {
       case 'increasing': return TrendingUpIcon;
@@ -127,7 +129,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
           {/* Monthly Budget */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-text-secondary">Monthly Average:</span>
-            <span className="text-sm font-medium text-text-primary">${summary.monthlyBudget.toFixed(2)}</span>
+            <span className="text-sm font-medium text-text-primary">{formatCurrency(summary.monthlyBudget)}</span>
           </div>
         </div>
       </div>
@@ -149,7 +151,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
                   <span className="text-sm font-medium text-text-primary">{category.category}</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-semibold text-text-primary">${category.amount.toFixed(2)}</div>
+                  <div className="text-sm font-semibold text-text-primary">{formatCurrency(category.amount)}</div>
                   <div className="text-xs text-text-secondary">{category.percentage.toFixed(1)}%</div>
                 </div>
               </div>
@@ -173,7 +175,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-text-secondary">Total Spent</p>
-              <p className="text-2xl font-bold text-text-primary">${summary.totalSpent.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-text-primary">{formatCurrency(summary.totalSpent)}</p>
               <p className="text-xs text-text-secondary">Last {filters.timeframe}</p>
             </div>
             <CurrencyDollarIcon className="h-8 w-8 text-green-500" />
@@ -185,7 +187,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-text-secondary">Avg Project Cost</p>
-              <p className="text-2xl font-bold text-text-primary">${summary.averageProjectCost.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-text-primary">{formatCurrency(summary.averageProjectCost)}</p>
               <p className="text-xs text-text-secondary">Per project</p>
             </div>
             <ChartBarIcon className="h-8 w-8 text-green-500" />

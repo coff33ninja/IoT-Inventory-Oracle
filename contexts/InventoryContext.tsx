@@ -23,6 +23,8 @@ import {
 } from "../types";
 import { RecommendationPreferences } from "../components/RecommendationSettingsPanel";
 import apiClient from "../services/apiClient";
+import AnalyticsService from "../services/analyticsService";
+import BudgetService from "../services/budgetService";
 
 interface InventoryContextType {
   inventory: InventoryItem[];
@@ -158,12 +160,12 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
   // Load initial recommendation data
   const loadInitialRecommendationData = async () => {
     try {
-      // Load usage analytics
-      const analytics = await apiClient.getUsagePatterns();
+      // Load usage analytics from real data
+      const analytics = AnalyticsService.calculateUsageAnalytics(inventory, projects);
       setUsageAnalytics(analytics);
 
-      // Load spending analysis
-      const spending = await apiClient.getSpendingInsights();
+      // Load spending analysis from real data
+      const spending = BudgetService.calculateSpendingAnalysis(inventory, projects);
       setSpendingAnalysis(spending);
 
       // Load project patterns (using a default user ID for now)
@@ -657,7 +659,8 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
   // Analytics methods
   const getUsagePatterns = async (timeframe: string = '30d'): Promise<UsageAnalytics> => {
     try {
-      const analytics = await apiClient.getUsagePatterns(timeframe);
+      // Calculate real analytics from current inventory and projects
+      const analytics = AnalyticsService.calculateUsageAnalytics(inventory, projects);
       setUsageAnalytics(analytics);
       
       // Notify subscribers
@@ -696,7 +699,8 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
 
   const getSpendingInsights = async (timeframe: string = '30d'): Promise<SpendingAnalysis> => {
     try {
-      const analysis = await apiClient.getSpendingInsights(timeframe);
+      // Calculate real spending analysis from current inventory and projects
+      const analysis = BudgetService.calculateSpendingAnalysis(inventory, projects);
       setSpendingAnalysis(analysis);
       
       // Notify subscribers

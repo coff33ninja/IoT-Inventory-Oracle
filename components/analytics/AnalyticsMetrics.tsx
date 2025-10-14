@@ -1,5 +1,6 @@
 import React from "react";
 import { UsageAnalytics, SpendingAnalysis } from "../../types";
+import { useCurrencyFormat } from "../../hooks/useCurrencyFormat";
 import {
   CubeIcon,
   TrendingUpIcon,
@@ -18,6 +19,7 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
   analytics,
   spendingAnalysis,
 }) => {
+  const { formatCurrency } = useCurrencyFormat();
   const calculateAverageUtilization = () => {
     if (analytics.componentUtilization.length === 0) return 0;
     const total = analytics.componentUtilization.reduce(
@@ -93,7 +95,7 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
     metrics.push(
       {
         title: "Total Spent",
-        value: `$${spendingAnalysis.totalSpent.toFixed(2)}`,
+        value: formatCurrency(spendingAnalysis.totalSpent),
         icon: CurrencyDollarIcon,
         color: "text-yellow-500",
         bgColor: "bg-yellow-50",
@@ -158,7 +160,7 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
                     {category.totalComponents} components
                   </p>
                   <p className="text-xs text-text-secondary">
-                    Avg: ${category.averagePrice.toFixed(2)}
+                    Avg: {formatCurrency(category.averagePrice)}
                   </p>
                 </div>
                 <div className="flex items-center">
@@ -212,7 +214,7 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
                       </div>
                       <div className="text-right">
                         <div className="text-sm font-semibold text-text-primary">
-                          ${item.amount.toFixed(2)}
+                          {formatCurrency(item.amount)}
                         </div>
                         <div className="text-xs text-text-secondary">
                           {item.percentage.toFixed(1)}%

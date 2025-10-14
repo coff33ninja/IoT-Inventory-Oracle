@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CategoryUsage } from '../../types';
+import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
 import { 
   ChartPieIcon, 
   TrendingUpIcon, 
@@ -18,6 +19,7 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
   title, 
   className = '' 
 }) => {
+  const { formatCurrency } = useCurrencyFormat();
   const [viewMode, setViewMode] = useState<'pie' | 'bar' | 'table'>('pie');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -203,7 +205,7 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                           <div>
                             <div className="text-sm font-medium text-text-primary">{item.category}</div>
                             <div className="text-xs text-text-secondary">
-                              {item.totalComponents} components • ${item.averagePrice.toFixed(2)} avg
+                              {item.totalComponents} components • {formatCurrency(item.averagePrice)} avg
                             </div>
                           </div>
                         </div>
@@ -238,7 +240,7 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                           <div className="flex items-center space-x-2 text-xs text-text-secondary">
                             <span>{item.totalComponents} components</span>
                             <span>•</span>
-                            <span>${item.averagePrice.toFixed(2)} avg</span>
+                            <span>{formatCurrency(item.averagePrice)} avg</span>
                           </div>
                         </div>
                       </div>
@@ -260,7 +262,7 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                         />
                       </div>
                       <span className="text-xs text-text-secondary w-16">
-                        ${(item.totalQuantityUsed * item.averagePrice).toFixed(0)}
+                        {formatCurrency(item.totalQuantityUsed * item.averagePrice)}
                       </span>
                     </div>
                   </div>
@@ -318,10 +320,10 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                           {item.totalQuantityUsed}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
-                          ${item.averagePrice.toFixed(2)}
+                          {formatCurrency(item.averagePrice)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
-                          ${totalValue.toFixed(2)}
+                          {formatCurrency(totalValue)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className={`flex items-center ${trendColor}`}>
@@ -349,12 +351,12 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                 <div className="text-sm text-text-secondary">Total Components</div>
               </div>
               <div className="p-3 bg-primary rounded-lg border border-border-color">
-                <div className="text-2xl font-bold text-text-primary">${totalValue.toFixed(0)}</div>
+                <div className="text-2xl font-bold text-text-primary">{formatCurrency(totalValue)}</div>
                 <div className="text-sm text-text-secondary">Total Value</div>
               </div>
               <div className="p-3 bg-primary rounded-lg border border-border-color">
                 <div className="text-2xl font-bold text-text-primary">
-                  ${data.length > 0 ? (totalValue / totalQuantity).toFixed(2) : '0.00'}
+                  {data.length > 0 ? formatCurrency(totalValue / totalQuantity) : formatCurrency(0)}
                 </div>
                 <div className="text-sm text-text-secondary">Avg Component Price</div>
               </div>

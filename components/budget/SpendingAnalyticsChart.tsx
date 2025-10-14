@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SpendingAnalysis, Project, InventoryItem } from '../../types';
 import { BudgetFilters } from '../BudgetManagementDashboard';
+import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
 import { 
   ChartBarIcon,
   CalendarIcon,
@@ -25,6 +26,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
   filters,
   onFiltersChange
 }) => {
+  const { formatCurrency } = useCurrencyFormat();
   const [chartType, setChartType] = useState<'category' | 'timeline' | 'projects'>('category');
   const [sortBy, setSortBy] = useState<'amount' | 'percentage' | 'name'>('amount');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -110,10 +112,10 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="bg-white p-4 rounded-lg shadow border">
+      <div className="bg-secondary p-4 rounded-lg shadow border border-border-color">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h3 className="text-lg font-semibold text-gray-900">Spending Analytics</h3>
+            <h3 className="text-lg font-semibold text-text-primary">Spending Analytics</h3>
             <div className="flex items-center space-x-2">
               {[
                 { id: 'category', label: 'By Category' },
@@ -126,7 +128,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                   className={`px-3 py-1 rounded text-sm font-medium ${
                     chartType === type.id
                       ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-primary text-text-secondary hover:bg-secondary'
                   }`}
                 >
                   {type.label}
@@ -136,7 +138,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
           </div>
           
           <div className="flex items-center space-x-2">
-            <CalendarIcon className="h-4 w-4 text-gray-500" />
+            <CalendarIcon className="h-4 w-4 text-text-secondary" />
             <select
               value={filters.timeframe}
               onChange={(e) => onFiltersChange({ timeframe: e.target.value as any })}
@@ -153,10 +155,10 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
       </div>
 
       {/* Chart Content */}
-      <div className="bg-white p-6 rounded-lg shadow border">
+      <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
         {chartType === 'category' && spendingAnalysis ? (
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-6">Spending by Category</h4>
+            <h4 className="text-lg font-semibold text-text-primary mb-6">Spending by Category</h4>
             <div className="space-y-4">
               {spendingAnalysis.spendingByCategory.map((category, index) => (
                 <div key={`budget-spending-${category.category}`} className="space-y-2">
@@ -166,11 +168,11 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                         className="w-4 h-4 rounded mr-3"
                         style={{ backgroundColor: `hsl(${(index * 60) % 360}, 70%, 50%)` }}
                       />
-                      <span className="text-sm font-medium text-gray-900">{category.category}</span>
+                      <span className="text-sm font-medium text-text-primary">{category.category}</span>
                     </div>
                     <div className="flex items-center space-x-4 text-sm">
-                      <span className="font-semibold">${category.amount.toFixed(2)}</span>
-                      <span className="text-gray-500">{category.percentage.toFixed(1)}%</span>
+                      <span className="font-semibold">{formatCurrency(category.amount)}</span>
+                      <span className="text-text-secondary">{category.percentage.toFixed(1)}%</span>
                     </div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -188,11 +190,11 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
           </div>
         ) : chartType === 'timeline' ? (
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-6">Spending Timeline (Last 30 Days)</h4>
+            <h4 className="text-lg font-semibold text-text-primary mb-6">Spending Timeline (Last 30 Days)</h4>
             <div className="space-y-2">
               {timelineData.map((day, index) => (
                 <div key={day.date} className="flex items-center space-x-4">
-                  <div className="w-20 text-xs text-gray-500">
+                  <div className="w-20 text-xs text-text-secondary">
                     {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </div>
                   <div className="flex-1 flex items-center">
@@ -202,11 +204,11 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                         style={{ width: `${maxTimelineAmount > 0 ? (day.amount / maxTimelineAmount) * 100 : 0}%` }}
                       />
                     </div>
-                    <div className="text-sm font-medium text-gray-900 w-20 text-right">
-                      ${day.amount.toFixed(2)}
+                    <div className="text-sm font-medium text-text-primary w-20 text-right">
+                      {formatCurrency(day.amount)}
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 w-16 text-right">
+                  <div className="text-xs text-text-secondary w-16 text-right">
                     {day.projects} project{day.projects !== 1 ? 's' : ''}
                   </div>
                 </div>
@@ -216,22 +218,22 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
             <div className="mt-6 pt-4 border-t border-gray-200">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    ${timelineData.reduce((sum, day) => sum + day.amount, 0).toFixed(2)}
+                  <div className="text-2xl font-bold text-text-primary">
+                    {formatCurrency(timelineData.reduce((sum, day) => sum + day.amount, 0))}
                   </div>
-                  <div className="text-sm text-gray-500">Total Spent</div>
+                  <div className="text-sm text-text-secondary">Total Spent</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    ${(timelineData.reduce((sum, day) => sum + day.amount, 0) / 30).toFixed(2)}
+                  <div className="text-2xl font-bold text-text-primary">
+                    {formatCurrency((timelineData.reduce((sum, day) => sum + day.amount, 0) / 30))}
                   </div>
-                  <div className="text-sm text-gray-500">Daily Average</div>
+                  <div className="text-sm text-text-secondary">Daily Average</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-text-primary">
                     {timelineData.reduce((sum, day) => sum + day.projects, 0)}
                   </div>
-                  <div className="text-sm text-gray-500">Total Projects</div>
+                  <div className="text-sm text-text-secondary">Total Projects</div>
                 </div>
               </div>
             </div>
@@ -239,13 +241,13 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
         ) : (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h4 className="text-lg font-semibold text-gray-900">Project Spending</h4>
+              <h4 className="text-lg font-semibold text-text-primary">Project Spending</h4>
               <div className="flex items-center space-x-2 text-sm">
-                <span className="text-gray-600">Sort by:</span>
+                <span className="text-text-secondary">Sort by:</span>
                 <button
                   onClick={() => handleSort('name')}
                   className={`flex items-center px-2 py-1 rounded ${
-                    sortBy === 'name' ? 'bg-green-100 text-green-800' : 'text-gray-600 hover:bg-gray-100'
+                    sortBy === 'name' ? 'bg-green-100 text-green-800' : 'text-text-secondary hover:bg-primary'
                   }`}
                 >
                   Name <SortIcon field="name" />
@@ -253,7 +255,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                 <button
                   onClick={() => handleSort('amount')}
                   className={`flex items-center px-2 py-1 rounded ${
-                    sortBy === 'amount' ? 'bg-green-100 text-green-800' : 'text-gray-600 hover:bg-gray-100'
+                    sortBy === 'amount' ? 'bg-green-100 text-green-800' : 'text-text-secondary hover:bg-primary'
                   }`}
                 >
                   Cost <SortIcon field="amount" />
@@ -263,18 +265,18 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
             
             <div className="space-y-3">
               {projectSpendingData.slice(0, 20).map((project, index) => (
-                <div key={project.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={project.id} className="flex items-center justify-between p-3 bg-primary rounded-lg border border-border-color">
                   <div className="flex items-center space-x-3">
-                    <span className="text-sm font-medium text-gray-600 w-6">{index + 1}.</span>
+                    <span className="text-sm font-medium text-text-secondary w-6">{index + 1}.</span>
                     <div>
-                      <h5 className="font-medium text-gray-900">{project.name}</h5>
-                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <h5 className="font-medium text-text-primary">{project.name}</h5>
+                      <div className="flex items-center space-x-2 text-sm text-text-secondary">
                         <span>{project.components} components</span>
                         <span>•</span>
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           project.status === 'Completed' ? 'bg-green-100 text-green-800' :
                           project.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
+                          'bg-primary text-text-secondary border border-border-color'
                         }`}>
                           {project.status}
                         </span>
@@ -282,8 +284,8 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-semibold text-gray-900">${project.cost.toFixed(2)}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-lg font-semibold text-text-primary">{formatCurrency(project.cost)}</div>
+                    <div className="text-xs text-text-secondary">
                       {new Date(project.createdAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -293,7 +295,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
             
             {projectSpendingData.length > 20 && (
               <div className="text-center pt-4">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-text-secondary">
                   Showing top 20 of {projectSpendingData.length} projects
                 </p>
               </div>
@@ -304,36 +306,36 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
             <CurrencyDollarIcon className="h-8 w-8 text-green-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Spending</p>
-              <p className="text-2xl font-bold text-gray-900">
-                ${spendingAnalysis?.totalSpent.toFixed(2) || '0.00'}
+              <p className="text-sm font-medium text-text-secondary">Total Spending</p>
+              <p className="text-2xl font-bold text-text-primary">
+                {formatCurrency(spendingAnalysis?.totalSpent || 0)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <ChartBarIcon className="h-8 w-8 text-blue-500 mr-3" />
+            <ChartBarIcon className="h-8 w-8 text-green-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Categories</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-text-secondary">Categories</p>
+              <p className="text-2xl font-bold text-text-primary">
                 {spendingAnalysis?.spendingByCategory.length || 0}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <TrendingUpIcon className="h-8 w-8 text-purple-500 mr-3" />
+            <TrendingUpIcon className="h-8 w-8 text-green-500 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-600">Trend</p>
-              <p className="text-2xl font-bold text-gray-900 capitalize">
+              <p className="text-sm font-medium text-text-secondary">Trend</p>
+              <p className="text-2xl font-bold text-text-primary capitalize">
                 {spendingAnalysis?.budgetEfficiency && spendingAnalysis.budgetEfficiency > 75 ? 'Improving' : 
                  spendingAnalysis?.budgetEfficiency && spendingAnalysis.budgetEfficiency > 50 ? 'Stable' : 'Declining'}
               </p>

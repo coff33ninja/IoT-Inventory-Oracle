@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SpendingAnalysis, Project, InventoryItem } from '../../types';
 import { BudgetFilters } from '../BudgetManagementDashboard';
+import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
 import { 
   ChartPieIcon,
   CubeIcon,
@@ -22,6 +23,7 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
   inventory,
   filters
 }) => {
+  const { formatCurrency } = useCurrencyFormat();
   const [breakdownType, setBreakdownType] = useState<'category' | 'project' | 'component' | 'supplier'>('category');
   const [showDetails, setShowDetails] = useState(false);
 
@@ -140,13 +142,13 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
               className="w-4 h-4 rounded mr-3"
               style={{ backgroundColor: `hsl(${(index * 60) % 360}, 70%, 50%)` }}
             />
-            <h4 className="font-medium text-gray-900">
+            <h4 className="font-medium text-text-primary">
               {item.category || item.name || 'Unknown'}
             </h4>
           </div>
           <div className="text-right">
-            <div className="text-lg font-semibold text-gray-900">${amount.toFixed(2)}</div>
-            <div className="text-sm text-gray-500">{percentage.toFixed(1)}%</div>
+            <div className="text-lg font-semibold text-text-primary">{formatCurrency(amount)}</div>
+            <div className="text-sm text-text-secondary">{percentage.toFixed(1)}%</div>
           </div>
         </div>
         
@@ -161,7 +163,7 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
         </div>
         
         {showDetails && (
-          <div className="text-sm text-gray-600 space-y-1">
+          <div className="text-sm text-text-secondary space-y-1">
             {breakdownType === 'category' && (
               <p>Category spending breakdown</p>
             )}
@@ -182,7 +184,7 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
             {breakdownType === 'supplier' && (
               <>
                 <p>Items purchased: {item.items}</p>
-                <p>Average cost per item: ${(item.totalCost / item.items).toFixed(2)}</p>
+                <p>Average cost per item: {formatCurrency(item.totalCost / item.items)}</p>
               </>
             )}
           </div>
@@ -197,10 +199,10 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="bg-white p-4 rounded-lg shadow border">
+      <div className="bg-secondary p-4 rounded-lg shadow border border-border-color">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h3 className="text-lg font-semibold text-gray-900">Cost Breakdown</h3>
+            <h3 className="text-lg font-semibold text-text-primary">Cost Breakdown</h3>
             <div className="flex items-center space-x-2">
               {[
                 { id: 'category', label: 'By Category', icon: ChartPieIcon },
@@ -214,7 +216,7 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
                   className={`flex items-center px-3 py-1 rounded text-sm font-medium ${
                     breakdownType === type.id
                       ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-primary text-text-secondary hover:bg-secondary'
                   }`}
                 >
                   <type.icon className="h-4 w-4 mr-1" />
@@ -235,48 +237,48 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
       </div>
 
       {/* Summary */}
-      <div className="bg-white p-6 rounded-lg shadow border">
+      <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900">${totalAmount.toFixed(2)}</div>
-            <div className="text-sm text-gray-500">Total Amount</div>
+            <div className="text-3xl font-bold text-text-primary">{formatCurrency(totalAmount)}</div>
+            <div className="text-sm text-text-secondary">Total Amount</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900">{data.length}</div>
-            <div className="text-sm text-gray-500">
+            <div className="text-3xl font-bold text-text-primary">{data.length}</div>
+            <div className="text-sm text-text-secondary">
               {breakdownType === 'category' ? 'Categories' :
                breakdownType === 'project' ? 'Projects' :
                breakdownType === 'component' ? 'Components' : 'Suppliers'}
             </div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900">
-              ${data.length > 0 ? (totalAmount / data.length).toFixed(2) : '0.00'}
+            <div className="text-3xl font-bold text-text-primary">
+              {data.length > 0 ? formatCurrency(totalAmount / data.length) : formatCurrency(0)}
             </div>
-            <div className="text-sm text-gray-500">Average Cost</div>
+            <div className="text-sm text-text-secondary">Average Cost</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-text-primary">
               {data.length > 0 ? Math.max(...data.map((item: any) => item.amount || item.cost || item.totalCost || 0)).toFixed(0) : '0'}%
             </div>
-            <div className="text-sm text-gray-500">Highest Share</div>
+            <div className="text-sm text-text-secondary">Highest Share</div>
           </div>
         </div>
       </div>
 
       {/* Breakdown Items */}
-      <div className="bg-white p-6 rounded-lg shadow border">
+      <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
         <div className="flex items-center justify-between mb-6">
-          <h4 className="text-lg font-semibold text-gray-900">
+          <h4 className="text-lg font-semibold text-text-primary">
             Breakdown by {breakdownType.charAt(0).toUpperCase() + breakdownType.slice(1)}
           </h4>
-          <span className="text-sm text-gray-500">{data.length} items</span>
+          <span className="text-sm text-text-secondary">{data.length} items</span>
         </div>
         
         {data.length === 0 ? (
           <div className="text-center py-12">
-            <ChartPieIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No data available for the selected breakdown type</p>
+            <ChartPieIcon className="h-12 w-12 text-text-secondary mx-auto mb-4" />
+            <p className="text-text-secondary">No data available for the selected breakdown type</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -286,7 +288,7 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
         
         {data.length > 20 && (
           <div className="text-center pt-6">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-text-secondary">
               Showing top 20 of {data.length} items
             </p>
           </div>
@@ -295,15 +297,15 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
 
       {/* Cost Saving Opportunities */}
       {spendingAnalysis?.recommendations && spendingAnalysis.recommendations.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
+          <h4 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
             <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500 mr-2" />
             Spending Recommendations
           </h4>
           <div className="space-y-4">
             {spendingAnalysis.recommendations.slice(0, 5).map((recommendation, index) => (
-              <div key={index} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-gray-900">{recommendation}</p>
+              <div key={index} className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-text-primary">{recommendation}</p>
               </div>
             ))}
           </div>

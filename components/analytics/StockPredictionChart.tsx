@@ -143,7 +143,7 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
   };
 
   return (
-    <div className={`bg-white p-6 rounded-lg shadow border ${className}`}>
+    <div className={`bg-secondary p-6 rounded-lg shadow border border-border-color ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">

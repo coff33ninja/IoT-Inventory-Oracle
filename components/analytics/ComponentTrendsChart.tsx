@@ -49,7 +49,7 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
   const maxTrendScore = Math.max(...data.map(item => item.trendScore));
 
   return (
-    <div className={`bg-white p-6 rounded-lg shadow border ${className}`}>
+    <div className={`bg-secondary p-6 rounded-lg shadow border border-border-color ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
@@ -206,13 +206,13 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-secondary divide-y divide-border-color">
                   {sortedData.map((trend, index) => {
                     const TrendIcon = getTrendIcon(trend.usageGrowth);
                     const trendColor = getTrendColor(trend.usageGrowth);
                     
                     return (
-                      <tr key={trend.componentId} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <tr key={trend.componentId} className={index % 2 === 0 ? 'bg-secondary' : 'bg-primary'}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           #{index + 1}
                         </td>

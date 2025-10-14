@@ -61,7 +61,7 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow border">
+    <div className="bg-secondary p-4 rounded-lg shadow border border-border-color">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <FunnelIcon className="h-5 w-5 text-gray-500 mr-2" />
