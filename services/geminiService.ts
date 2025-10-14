@@ -12,11 +12,29 @@ import {
   MarketDataItem,
 } from "../types";
 
-if (!import.meta.env.VITE_API_KEY) {
-  throw new Error("VITE_API_KEY environment variable not set");
-}
+// Handle both browser (Vite) and Node.js environments
+const getApiKey = () => {
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    return import.meta.env.VITE_API_KEY;
+  }
+  return process.env.VITE_API_KEY || process.env.GEMINI_API_KEY;
+};
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
+// Initialize AI client lazily
+let ai: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (!ai) {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      throw new Error(
+        "GEMINI_API_KEY or VITE_API_KEY environment variable not set"
+      );
+    }
+    ai = new GoogleGenAI({ apiKey });
+  }
+  return ai;
+};
 
 const model = "gemini-2.5-flash";
 
@@ -26,7 +44,7 @@ const getChat = (history: ChatMessage[]): Chat => {
     parts: [{ text: msg.content }],
   }));
 
-  return ai.chats.create({
+  return getAI().chats.create({
     model: model,
     history: formattedHistory,
     config: {
@@ -777,7 +795,7 @@ export const generateDescription = async (
 ): Promise<string> => {
   try {
     const prompt = `Provide a concise, one-sentence technical description for the following electronics component: "${itemName}". Focus on its primary function and key specifications.`;
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: model,
       contents: prompt,
     });
@@ -854,7 +872,7 @@ export const suggestCategory = async (itemName: string): Promise<string> => {
         - Miscellaneous
 
         Your response must be ONLY the category name, with no extra text or explanation.`;
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: model,
       contents: prompt,
     });
@@ -868,7 +886,7 @@ export const suggestCategory = async (itemName: string): Promise<string> => {
 
 export const getComponentIntelligence = async (
   itemName: string,
-  userCurrency: string = 'USD'
+  userCurrency: string = "USD"
 ): Promise<{ aiInsights: AiInsights; marketData: MarketDataItem[] }> => {
   try {
     const prompt = `
@@ -885,7 +903,9 @@ export const getComponentIntelligence = async (
               "marketData": [
                 {
                   "supplier": "Supplier Name",
-                  "price": "${userCurrency === 'USD' ? '$' : userCurrency + ' '}12.99",
+                  "price": "${
+                    userCurrency === "USD" ? "$" : userCurrency + " "
+                  }12.99",
                   "link": "https://example.com/product_link"
                 }
               ]
@@ -894,7 +914,7 @@ export const getComponentIntelligence = async (
             Remember: All prices must be in ${userCurrency} currency format.
         `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: model,
       contents: prompt,
       config: {
@@ -953,7 +973,7 @@ export const analyzeGithubRepo = async (
             The JSON object should be an array where each item represents a component and has a 'name' (string) and 'quantity' (integer).
         `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: model,
       contents: prompt,
       config: {
@@ -1022,7 +1042,7 @@ export const suggestProjectCategory = async (
 
         Your response must be ONLY the category name, with no extra text or explanation.`;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: model,
       contents: prompt,
     });
@@ -1052,7 +1072,7 @@ export const enhanceProjectDescription = async (
         
         Keep it concise but informative (2-3 sentences maximum).`;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: model,
       contents: prompt,
     });
@@ -1096,7 +1116,7 @@ export const suggestProjectImprovements = async (
             "optimizations": ["optimization 1", "optimization 2"]
         }`;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: model,
       contents: prompt,
       config: {
@@ -1189,7 +1209,7 @@ export const generateProjectInstructions = async (
             }
         ]`;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: model,
       contents: prompt,
       config: {
@@ -1274,7 +1294,7 @@ export const analyzeProjectComplexity = async (
             "reasoning": "Explanation of why this breakdown makes sense"
         }`;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: model,
       contents: prompt,
       config: {

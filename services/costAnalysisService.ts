@@ -229,7 +229,7 @@ export class CostAnalysisService {
         monthlyTrend: monthlyTrend,
         topExpenses: [],
         budgetEfficiency: budgetUtilization,
-        recommendations: costSavingOpportunities.map(opp => opp.description),
+        recommendations: costSavingOpportunities.map((opp) => opp.description),
       };
 
       // Cache the analysis
@@ -628,14 +628,19 @@ export class CostAnalysisService {
     return categorySpending;
   }
 
-  private calculateMonthlyTrend(expenses: BudgetEntry[]): { month: string; amount: number }[] {
+  private calculateMonthlyTrend(
+    expenses: BudgetEntry[]
+  ): { month: string; amount: number }[] {
     const monthlySpending = new Map<string, number>();
-    
-    expenses.forEach(expense => {
+
+    expenses.forEach((expense) => {
       const month = new Date(expense.date).toISOString().slice(0, 7); // YYYY-MM format
-      monthlySpending.set(month, (monthlySpending.get(month) || 0) + expense.amount);
+      monthlySpending.set(
+        month,
+        (monthlySpending.get(month) || 0) + expense.amount
+      );
     });
-    
+
     return Array.from(monthlySpending.entries())
       .map(([month, amount]) => ({ month, amount }))
       .sort((a, b) => a.month.localeCompare(b.month));
@@ -707,7 +712,7 @@ export class CostAnalysisService {
           description: `Consider bulk purchasing for ${category} components`,
           potentialSavings: amount * 0.15, // 15% potential saving
           effort: "medium",
-          components: [] // Would be populated with actual component IDs
+          components: [], // Would be populated with actual component IDs
         });
       }
     });

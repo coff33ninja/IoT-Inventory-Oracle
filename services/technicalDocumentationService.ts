@@ -235,19 +235,70 @@ class TechnicalDocumentationService {
   }
 
   private generateDatasheetUrl(item: InventoryItem): string {
-    // In a real implementation, this would link to actual datasheets
-    const cleanName = item.name.replace(/\s+/g, '-').toLowerCase();
-    return `https://datasheets.example.com/${cleanName}.pdf`;
+    // Map to real datasheet sources based on component type
+    const name = item.name.toLowerCase();
+    
+    if (name.includes('arduino uno')) {
+      return 'https://docs.arduino.cc/resources/datasheets/A000066-datasheet.pdf';
+    }
+    if (name.includes('esp32')) {
+      return 'https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf';
+    }
+    if (name.includes('hc-sr04')) {
+      return 'https://cdn.sparkfun.com/datasheets/Sensors/Proximity/HCSR04.pdf';
+    }
+    if (name.includes('dht22')) {
+      return 'https://www.sparkfun.com/datasheets/Sensors/Temperature/DHT22.pdf';
+    }
+    if (name.includes('sg90')) {
+      return 'http://www.ee.ic.ac.uk/pcheung/teaching/DE1_EE/stores/sg90_datasheet.pdf';
+    }
+    if (name.includes('raspberry pi')) {
+      return 'https://datasheets.raspberrypi.com/rpi4/raspberry-pi-4-datasheet.pdf';
+    }
+    
+    // Generic search URL for unknown components
+    const searchName = encodeURIComponent(item.name);
+    return `https://www.google.com/search?q=${searchName}+datasheet+filetype:pdf`;
   }
 
   private generateManualUrl(item: InventoryItem): string {
-    const cleanName = item.name.replace(/\s+/g, '-').toLowerCase();
-    return `https://manuals.example.com/${cleanName}.pdf`;
+    const name = item.name.toLowerCase();
+    
+    if (name.includes('arduino')) {
+      return 'https://docs.arduino.cc/';
+    }
+    if (name.includes('esp32')) {
+      return 'https://docs.espressif.com/projects/esp-idf/en/latest/esp32/';
+    }
+    if (name.includes('raspberry pi')) {
+      return 'https://www.raspberrypi.org/documentation/';
+    }
+    
+    // Generic documentation search
+    const searchName = encodeURIComponent(item.name);
+    return `https://www.google.com/search?q=${searchName}+documentation+manual`;
   }
 
   private generateExampleUrl(item: InventoryItem): string {
-    const cleanName = item.name.replace(/\s+/g, '-').toLowerCase();
-    return `https://github.com/examples/${cleanName}-examples`;
+    const name = item.name.toLowerCase();
+    
+    if (name.includes('arduino')) {
+      return 'https://github.com/arduino/arduino-examples';
+    }
+    if (name.includes('esp32')) {
+      return 'https://github.com/espressif/esp-idf/tree/master/examples';
+    }
+    if (name.includes('raspberry pi')) {
+      return 'https://github.com/raspberrypi/pico-examples';
+    }
+    if (name.includes('hc-sr04')) {
+      return 'https://github.com/search?q=HC-SR04+arduino+example';
+    }
+    
+    // Generic GitHub search for examples
+    const searchName = encodeURIComponent(item.name.replace(/\s+/g, '+'));
+    return `https://github.com/search?q=${searchName}+example`;
   }
 
   private generatePinoutDiagramUrl(item: InventoryItem): string {
@@ -296,82 +347,159 @@ class TechnicalDocumentationService {
   }
 
   private generateSpecsForComponent(item: InventoryItem): { [key: string]: string | number | boolean } {
-    // Generate realistic specifications based on component type
+    const name = item.name.toLowerCase();
     const category = item.category?.toLowerCase() || '';
     
-    if (category.includes('microcontroller') || category.includes('arduino')) {
+    // Specific component specifications
+    if (name.includes('arduino uno')) {
       return {
-        'Supply Voltage': '3.3V - 5V',
-        'Operating Current': '20mA',
+        'Microcontroller': 'ATmega328P',
+        'Operating Voltage': '5V',
+        'Input Voltage': '7-12V',
+        'Digital I/O Pins': 14,
+        'PWM Pins': 6,
+        'Analog Input Pins': 6,
+        'DC Current per I/O Pin': '20mA',
         'Flash Memory': '32KB',
         'SRAM': '2KB',
         'EEPROM': '1KB',
-        'Digital I/O Pins': 14,
-        'Analog Input Pins': 6,
-        'PWM Pins': 6,
-        'Operating Temperature': '-40°C to +85°C',
         'Clock Speed': '16MHz'
       };
-    } else if (category.includes('sensor')) {
+    }
+    
+    if (name.includes('esp32')) {
       return {
-        'Supply Voltage': '3.3V - 5V',
-        'Operating Current': '0.5mA',
-        'Resolution': '12-bit',
-        'Accuracy': '±0.5%',
-        'Operating Temperature': '-40°C to +85°C',
-        'Communication Protocol': 'I2C, SPI',
-        'Response Time': '100ms',
-        'Package Type': 'QFN-16'
-      };
-    } else if (category.includes('resistor')) {
-      return {
-        'Resistance': item.description?.match(/(\d+(?:\.\d+)?)\s*[kKmM]?[Ωω]/)?.[0] || '1kΩ',
-        'Tolerance': '±5%',
-        'Power Rating': '0.25W',
-        'Temperature Coefficient': '±100ppm/°C',
-        'Operating Temperature': '-55°C to +155°C',
-        'Package Type': '0805'
-      };
-    } else if (category.includes('capacitor')) {
-      return {
-        'Capacitance': item.description?.match(/(\d+(?:\.\d+)?)\s*[pnuμmf]F/i)?.[0] || '100nF',
-        'Voltage Rating': '50V',
-        'Tolerance': '±10%',
-        'Temperature Coefficient': 'X7R',
-        'Operating Temperature': '-55°C to +125°C',
-        'Package Type': '0805'
-      };
-    } else {
-      return {
-        'Supply Voltage': '3.3V - 5V',
-        'Operating Current': '10mA',
-        'Operating Temperature': '-40°C to +85°C',
-        'Package Type': 'Generic'
+        'CPU': 'Xtensa dual-core 32-bit LX6',
+        'Clock Speed': '240MHz',
+        'Flash Memory': '4MB',
+        'SRAM': '520KB',
+        'WiFi': '802.11 b/g/n',
+        'Bluetooth': 'v4.2 BR/EDR and BLE',
+        'GPIO Pins': 34,
+        'ADC': '12-bit',
+        'Operating Voltage': '3.3V',
+        'Input Voltage': '3.0V - 3.6V'
       };
     }
+    
+    if (name.includes('hc-sr04')) {
+      return {
+        'Working Voltage': '5V DC',
+        'Working Current': '15mA',
+        'Working Frequency': '40Hz',
+        'Max Range': '4m',
+        'Min Range': '2cm',
+        'Measuring Angle': '15°',
+        'Trigger Input Signal': '10µS TTL pulse',
+        'Echo Output Signal': 'Input TTL lever signal',
+        'Dimensions': '45mm x 20mm x 15mm'
+      };
+    }
+    
+    if (name.includes('dht22')) {
+      return {
+        'Power Supply': '3.3V - 6V DC',
+        'Output Signal': 'Digital signal via single-bus',
+        'Sensing Element': 'Polymer capacitor',
+        'Operating Range': '-40°C to 80°C, 0-100% RH',
+        'Accuracy': '±0.5°C, ±1% RH',
+        'Resolution': '0.1°C, 0.1% RH',
+        'Repeatability': '±0.2°C, ±0.1% RH',
+        'Humidity Hysteresis': '±0.3% RH',
+        'Long-term Stability': '±0.5% RH/year'
+      };
+    }
+    
+    if (name.includes('sg90')) {
+      return {
+        'Weight': '9g',
+        'Dimension': '22.2 x 11.8 x 31mm',
+        'Stall Torque': '1.8kgf·cm',
+        'Operating Speed': '0.1s/60°',
+        'Operating Voltage': '4.8V - 6V',
+        'Dead Band Width': '10µs',
+        'Operating Angle': '180°',
+        'Control System': 'Analog',
+        'Gear Type': 'Plastic'
+      };
+    }
+    
+    // Fallback based on category
+    if (category.includes('microcontroller')) {
+      return {
+        'Type': 'Microcontroller',
+        'Operating Voltage': '3.3V - 5V',
+        'Flash Memory': 'Varies',
+        'GPIO Pins': 'Multiple',
+        'Communication': 'UART, SPI, I2C'
+      };
+    }
+    
+    if (category.includes('sensor')) {
+      return {
+        'Type': 'Sensor',
+        'Operating Voltage': '3.3V - 5V',
+        'Output': 'Digital/Analog',
+        'Interface': 'GPIO/I2C/SPI'
+      };
+    }
+    
+    return {
+      'Type': category || 'Electronic Component',
+      'Status': 'Available in inventory'
+    };
   }
 
   private generatePinoutForComponent(item: InventoryItem): PinConfiguration[] | undefined {
-    const category = item.category?.toLowerCase() || '';
+    const name = item.name.toLowerCase();
     
-    if (category.includes('microcontroller') || category.includes('arduino')) {
+    if (name.includes('hc-sr04')) {
       return [
-        { pin: 1, name: 'VCC', type: 'power', voltage: 5, description: 'Power supply input' },
-        { pin: 2, name: 'GND', type: 'ground', description: 'Ground connection' },
-        { pin: 3, name: 'RESET', type: 'input', description: 'Reset input (active low)' },
-        { pin: 4, name: 'D0', type: 'bidirectional', description: 'Digital I/O pin 0' },
-        { pin: 5, name: 'D1', type: 'bidirectional', description: 'Digital I/O pin 1' },
-        { pin: 6, name: 'D2', type: 'bidirectional', description: 'Digital I/O pin 2' },
-        { pin: 7, name: 'D3', type: 'bidirectional', description: 'Digital I/O pin 3 (PWM)' },
-        { pin: 8, name: 'A0', type: 'analog', description: 'Analog input 0' }
+        { pin: 1, name: 'VCC', type: 'power', voltage: 5, description: '5V power supply' },
+        { pin: 2, name: 'Trig', type: 'input', description: 'Trigger input pin' },
+        { pin: 3, name: 'Echo', type: 'output', description: 'Echo output pin' },
+        { pin: 4, name: 'GND', type: 'ground', description: 'Ground connection' }
       ];
-    } else if (category.includes('sensor')) {
+    }
+    
+    if (name.includes('dht22')) {
       return [
-        { pin: 1, name: 'VCC', type: 'power', voltage: 5, description: 'Power supply input' },
-        { pin: 2, name: 'GND', type: 'ground', description: 'Ground connection' },
-        { pin: 3, name: 'SDA', type: 'bidirectional', description: 'I2C data line' },
-        { pin: 4, name: 'SCL', type: 'input', description: 'I2C clock line' },
-        { pin: 5, name: 'INT', type: 'output', description: 'Interrupt output' }
+        { pin: 1, name: 'VDD', type: 'power', voltage: 3.3, description: '3.3V-5V power supply' },
+        { pin: 2, name: 'DATA', type: 'bidirectional', description: 'Serial data, single bus' },
+        { pin: 3, name: 'NC', type: 'input', description: 'Not connected' },
+        { pin: 4, name: 'GND', type: 'ground', description: 'Ground connection' }
+      ];
+    }
+    
+    if (name.includes('sg90')) {
+      return [
+        { pin: 1, name: 'GND', type: 'ground', description: 'Ground (Brown wire)' },
+        { pin: 2, name: 'VCC', type: 'power', voltage: 5, description: '5V power (Red wire)' },
+        { pin: 3, name: 'Signal', type: 'input', description: 'PWM control signal (Orange wire)' }
+      ];
+    }
+    
+    if (name.includes('esp32')) {
+      return [
+        { pin: 1, name: '3V3', type: 'power', voltage: 3.3, description: '3.3V power output' },
+        { pin: 2, name: 'GND', type: 'ground', description: 'Ground' },
+        { pin: 3, name: 'GPIO0', type: 'bidirectional', description: 'General purpose I/O' },
+        { pin: 4, name: 'GPIO2', type: 'bidirectional', description: 'General purpose I/O' },
+        { pin: 5, name: 'GPIO4', type: 'bidirectional', description: 'General purpose I/O' },
+        { pin: 6, name: 'GPIO5', type: 'bidirectional', description: 'General purpose I/O' },
+        { pin: 7, name: 'VIN', type: 'power', voltage: 5, description: 'External power input' },
+        { pin: 8, name: 'EN', type: 'input', description: 'Enable pin (active high)' }
+      ];
+    }
+    
+    // Generic microcontroller pinout
+    const category = item.category?.toLowerCase() || '';
+    if (category.includes('microcontroller')) {
+      return [
+        { pin: 1, name: 'VCC', type: 'power', voltage: 5, description: 'Power supply' },
+        { pin: 2, name: 'GND', type: 'ground', description: 'Ground' },
+        { pin: 3, name: 'RST', type: 'input', description: 'Reset pin' },
+        { pin: 4, name: 'GPIO', type: 'bidirectional', description: 'General purpose I/O' }
       ];
     }
     
@@ -397,62 +525,144 @@ class TechnicalDocumentationService {
   }
 
   private generateFeatures(item: InventoryItem): string[] {
-    const category = item.category?.toLowerCase() || '';
+    const name = item.name.toLowerCase();
     
-    if (category.includes('microcontroller')) {
+    if (name.includes('arduino uno')) {
       return [
-        'Low power consumption',
-        'Built-in ADC',
-        'PWM outputs',
-        'I2C and SPI interfaces',
-        'Programmable interrupt',
-        'Wide operating voltage range'
+        'ATmega328P microcontroller',
+        'USB programming interface',
+        '14 digital I/O pins',
+        '6 analog inputs',
+        'Built-in LED on pin 13',
+        'Auto-reset capability',
+        'Extensive library support'
       ];
-    } else if (category.includes('sensor')) {
+    }
+    
+    if (name.includes('esp32')) {
       return [
-        'High accuracy measurements',
+        'Dual-core processor',
+        'Built-in WiFi and Bluetooth',
         'Low power consumption',
-        'I2C and SPI interfaces',
-        'Programmable interrupt',
-        'Wide operating voltage range',
-        'Integrated temperature compensation'
+        'Rich peripheral interfaces',
+        'Security features',
+        'Real-time operating system',
+        'Arduino IDE compatible'
+      ];
+    }
+    
+    if (name.includes('hc-sr04')) {
+      return [
+        'Non-contact measurement',
+        '2cm to 400cm range',
+        'High accuracy',
+        'Stable performance',
+        'Easy to use',
+        'Low cost',
+        'Widely supported'
+      ];
+    }
+    
+    if (name.includes('dht22')) {
+      return [
+        'Digital output',
+        'High precision',
+        'Excellent long-term stability',
+        'Fast response',
+        'Anti-interference ability',
+        'Cost-effective',
+        'Single wire interface'
+      ];
+    }
+    
+    if (name.includes('sg90')) {
+      return [
+        'Lightweight design',
+        'High precision',
+        'Smooth operation',
+        'Easy control',
+        'Standard servo interface',
+        'Affordable price',
+        'Reliable performance'
       ];
     }
     
     return [
-      'Reliable performance',
-      'Industry standard package',
-      'RoHS compliant',
-      'Wide operating temperature range'
+      'Standard electronic component',
+      'Reliable operation',
+      'Industry standard',
+      'Cost effective'
     ];
   }
 
   private generateApplications(item: InventoryItem): string[] {
-    const category = item.category?.toLowerCase() || '';
+    const name = item.name.toLowerCase();
     
-    if (category.includes('microcontroller')) {
+    if (name.includes('arduino uno')) {
       return [
-        'IoT devices',
-        'Home automation',
-        'Robotics projects',
-        'Data logging',
-        'Sensor networks'
+        'Learning programming and electronics',
+        'Prototyping IoT devices',
+        'Home automation systems',
+        'Robotics control',
+        'Sensor data collection',
+        'LED matrix displays',
+        'Motor control projects'
       ];
-    } else if (category.includes('sensor')) {
+    }
+    
+    if (name.includes('esp32')) {
       return [
-        'IoT sensor nodes',
-        'Environmental monitoring',
-        'Industrial automation',
-        'Smart home devices',
-        'Wearable electronics'
+        'WiFi-enabled IoT projects',
+        'Bluetooth communication',
+        'Web server applications',
+        'Remote monitoring systems',
+        'Smart home controllers',
+        'Wireless sensor networks',
+        'Edge computing devices'
+      ];
+    }
+    
+    if (name.includes('hc-sr04')) {
+      return [
+        'Distance measurement',
+        'Obstacle avoidance robots',
+        'Parking sensors',
+        'Water level monitoring',
+        'Security systems',
+        'Automatic doors',
+        'Range finding applications'
+      ];
+    }
+    
+    if (name.includes('dht22')) {
+      return [
+        'Weather stations',
+        'Greenhouse monitoring',
+        'HVAC control systems',
+        'Indoor air quality monitoring',
+        'Data logging applications',
+        'Smart thermostats',
+        'Environmental research'
+      ];
+    }
+    
+    if (name.includes('sg90')) {
+      return [
+        'Robot arm joints',
+        'Camera pan/tilt mechanisms',
+        'RC vehicle steering',
+        'Automated blinds/curtains',
+        'Robotic grippers',
+        'Antenna positioning',
+        'Educational robotics'
       ];
     }
     
     return [
-      'General electronics projects',
-      'Prototyping',
+      'Electronics prototyping',
       'Educational projects',
-      'Hobby electronics'
+      'Hobby applications',
+      'System integration'
     ];
   }
 
