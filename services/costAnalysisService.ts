@@ -199,7 +199,7 @@ export class CostAnalysisService {
       );
 
       // Analyze spending trend
-      const spendingTrend = this.analyzeSpendingTrend(expenses);
+      const monthlyTrend = this.calculateMonthlyTrend(expenses);
 
       // Calculate average project cost
       const projectCosts = this.calculateProjectCosts(expenses);
@@ -226,10 +226,10 @@ export class CostAnalysisService {
       const analysis: SpendingAnalysis = {
         totalSpent,
         spendingByCategory,
-        spendingTrend,
-        averageProjectCost,
-        budgetUtilization,
-        costSavingOpportunities,
+        monthlyTrend: monthlyTrend,
+        topExpenses: [],
+        budgetEfficiency: budgetUtilization,
+        recommendations: costSavingOpportunities.map(opp => opp.description),
       };
 
       // Cache the analysis
@@ -607,10 +607,10 @@ export class CostAnalysisService {
     return {
       totalSpent: 0,
       spendingByCategory: [],
-      spendingTrend: "stable",
-      averageProjectCost: 0,
-      budgetUtilization: 0,
-      costSavingOpportunities: [],
+      monthlyTrend: [],
+      topExpenses: [],
+      budgetEfficiency: 0,
+      recommendations: [],
     };
   }
 
@@ -626,6 +626,19 @@ export class CostAnalysisService {
     });
 
     return categorySpending;
+  }
+
+  private calculateMonthlyTrend(expenses: BudgetEntry[]): { month: string; amount: number }[] {
+    const monthlySpending = new Map<string, number>();
+    
+    expenses.forEach(expense => {
+      const month = new Date(expense.date).toISOString().slice(0, 7); // YYYY-MM format
+      monthlySpending.set(month, (monthlySpending.get(month) || 0) + expense.amount);
+    });
+    
+    return Array.from(monthlySpending.entries())
+      .map(([month, amount]) => ({ month, amount }))
+      .sort((a, b) => a.month.localeCompare(b.month));
   }
 
   private analyzeSpendingTrend(
