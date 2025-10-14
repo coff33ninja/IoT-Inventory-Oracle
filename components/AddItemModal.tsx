@@ -68,11 +68,16 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
     if (itemToEdit) {
       setName(itemToEdit.name);
       setQuantity(itemToEdit.quantity);
-      const [cont, comp = ""] = itemToEdit.location
-        .split(" - ")
-        .map((s) => s.trim());
-      setContainer(cont || "");
-      setCompartment(comp || "");
+      if (itemToEdit.location) {
+        const [cont, comp = ""] = itemToEdit.location
+          .split(" - ")
+          .map((s) => s.trim());
+        setContainer(cont || "");
+        setCompartment(comp || "");
+      } else {
+        setContainer("");
+        setCompartment("");
+      }
       setStatus(itemToEdit.status);
       setCategory(itemToEdit.category || "");
       setDescription(itemToEdit.description || "");

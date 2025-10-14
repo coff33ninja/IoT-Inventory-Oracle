@@ -347,7 +347,7 @@ class DatabaseService {
       newItem.id,
       newItem.name,
       newItem.quantity,
-      newItem.location,
+      newItem.location || "",
       newItem.status,
       newItem.category || null,
       newItem.description || null,
