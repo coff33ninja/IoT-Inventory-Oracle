@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { PersonalizedRecommendation } from '../../types';
+import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
 import { 
   XMarkIcon,
   SparklesIcon,
@@ -20,6 +21,7 @@ const RecommendationTooltip: React.FC<RecommendationTooltipProps> = ({
   onClose
 }) => {
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const { formatCurrency } = useCurrencyFormat();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -210,7 +212,7 @@ const RecommendationTooltip: React.FC<RecommendationTooltipProps> = ({
           {recommendation.estimatedCost && (
             <div>
               <span className="text-xs font-medium text-gray-500">Est. Cost</span>
-              <p className="text-sm text-gray-900">${recommendation.estimatedCost.toFixed(2)}</p>
+              <p className="text-sm text-gray-900">{formatCurrency(recommendation.estimatedCost)}</p>
             </div>
           )}
           {recommendation.estimatedTime && (

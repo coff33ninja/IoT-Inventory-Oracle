@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PersonalizedRecommendation } from '../../types';
+import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
 import RecommendationTooltip from './RecommendationTooltip';
 import { 
   CubeIcon,
@@ -23,6 +24,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const { formatCurrency } = useCurrencyFormat();
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -64,7 +66,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
   const formatCost = (cost?: number) => {
     if (!cost) return 'Cost not specified';
-    return `$${cost.toFixed(2)}`;
+    return formatCurrency(cost);
   };
 
   const TypeIcon = getTypeIcon(recommendation.type);

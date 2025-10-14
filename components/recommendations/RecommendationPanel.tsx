@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { InventoryItem, ComponentAlternative, ComponentPrediction } from '../../types';
+import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
 
 interface RecommendationPanelProps {
   item: InventoryItem;
@@ -62,12 +63,7 @@ const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
     onAddToWishlist?.(alternativeId);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(price);
-  };
+  const { formatCurrency } = useCurrencyFormat();
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
@@ -170,7 +166,7 @@ const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
                           </div>
                           <div className="text-right">
                             <div className="text-sm font-medium text-text-primary">
-                              {formatPrice(alt.priceComparison.alternative)}
+                              {formatCurrency(alt.priceComparison.alternative)}
                             </div>
                             <div className={`text-xs ${
                               alt.priceComparison.percentageDifference < 0 ? 'text-green-400' : 'text-red-400'

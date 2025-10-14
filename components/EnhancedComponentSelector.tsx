@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { InventoryItem, ItemStatus, ComponentSuggestion } from '../types';
 import { useInventory } from '../contexts/InventoryContext';
 import { useRecommendationPreferences, shouldShowRecommendationType, getConfidenceThreshold } from '../contexts/RecommendationPreferencesContext';
+import { useCurrencyFormat } from '../hooks/useCurrencyFormat';
 import { PlusIcon } from './icons/PlusIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { SpinnerIcon } from './icons/SpinnerIcon';
@@ -44,6 +45,7 @@ const EnhancedComponentSelector: React.FC<EnhancedComponentSelectorProps> = ({
 }) => {
   const { inventory, addItem } = useInventory();
   const { preferences } = useRecommendationPreferences();
+  const { formatCurrency } = useCurrencyFormat();
   const [selectedComponents, setSelectedComponents] = useState<SelectedComponent[]>([]);
   const [manualComponentText, setManualComponentText] = useState(initialComponents || '');
   const [showInventorySelector, setShowInventorySelector] = useState(false);
@@ -394,7 +396,7 @@ const EnhancedComponentSelector: React.FC<EnhancedComponentSelectorProps> = ({
                         <span>Confidence: {Math.round(suggestion.confidence * 100)}%</span>
                         <span>Qty: {suggestion.quantity}</span>
                         {suggestion.estimatedCost > 0 && (
-                          <span>Cost: ${suggestion.estimatedCost.toFixed(2)}</span>
+                          <span>Cost: {formatCurrency(suggestion.estimatedCost)}</span>
                         )}
                       </div>
                     </div>

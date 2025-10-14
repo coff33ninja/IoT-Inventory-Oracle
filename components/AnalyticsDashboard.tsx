@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useInventory } from '../contexts/InventoryContext';
+import { useCurrencyFormat } from '../hooks/useCurrencyFormat';
 import { UsageAnalytics, ComponentUtilization, CategoryUsage, TrendingComponent } from '../types';
 import UsageAnalyticsChart from './analytics/UsageAnalyticsChart';
 import ComponentTrendsChart from './analytics/ComponentTrendsChart';
@@ -32,6 +33,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ className = '' 
     spendingAnalysis,
     inventory 
   } = useInventory();
+  const { formatCurrency } = useCurrencyFormat();
 
   const [filters, setFilters] = useState<DashboardFilters>({
     timeframe: '30d',
@@ -256,7 +258,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ className = '' 
                     </div>
                     <div className="text-center p-4 bg-yellow-50 rounded-lg">
                       <div className="text-2xl font-bold text-yellow-600">
-                        ${filteredData.wasteAnalysis.totalWasteValue.toFixed(2)}
+                        {formatCurrency(filteredData.wasteAnalysis.totalWasteValue)}
                       </div>
                       <div className="text-sm text-yellow-600">Total Waste Value</div>
                     </div>

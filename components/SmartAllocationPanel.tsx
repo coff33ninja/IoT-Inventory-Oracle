@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Project, InventoryItem } from '../types';
 import { useInventory } from '../contexts/InventoryContext';
 import { SmartAllocationService, AllocationResult, AllocationOptions } from '../services/smartAllocationService';
+import { useCurrencyFormat } from '../hooks/useCurrencyFormat';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { SpinnerIcon } from './icons/SpinnerIcon';
 import { CheckIcon } from './icons/CheckIcon';
@@ -18,6 +19,7 @@ const SmartAllocationPanel: React.FC<SmartAllocationPanelProps> = ({
   onClose
 }) => {
   const { inventory } = useInventory();
+  const { formatCurrency } = useCurrencyFormat();
   const [allocationResult, setAllocationResult] = useState<AllocationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState<AllocationOptions>({
@@ -228,7 +230,7 @@ const SmartAllocationPanel: React.FC<SmartAllocationPanelProps> = ({
                         <span>Quantity: {allocation.quantity}</span>
                         <span>Location: {inventoryItem?.location}</span>
                         {inventoryItem?.purchasePrice && (
-                          <span>Cost: ${(inventoryItem.purchasePrice * allocation.quantity).toFixed(2)}</span>
+                          <span>Cost: {formatCurrency(inventoryItem.purchasePrice * allocation.quantity)}</span>
                         )}
                       </div>
                     </div>

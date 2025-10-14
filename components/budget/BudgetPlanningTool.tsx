@@ -368,7 +368,7 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
                       {project.components.map((comp, index) => (
                         <div key={index} className="flex justify-between">
                           <span>{comp.name} (x{comp.quantity})</span>
-                          <span>${(comp.quantity * comp.estimatedPrice).toFixed(2)}</span>
+                          <span>{formatCurrency(comp.quantity * comp.estimatedPrice)}</span>
                         </div>
                       ))}
                     </div>
