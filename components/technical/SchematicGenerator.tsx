@@ -139,7 +139,7 @@ const SchematicGenerator: React.FC<SchematicGeneratorProps> = ({
         <svg
           width={width + 40}
           height={height + 40}
-          className="border border-gray-300 bg-white">
+          className="border border-border-color bg-white">
           {/* Symbol Body */}
           {symbolType === "ic" && (
             <rect
@@ -306,8 +306,8 @@ const SchematicGenerator: React.FC<SchematicGeneratorProps> = ({
     <div className="space-y-6">
       {/* Component Selection */}
       {!selectedComponent ? (
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
+          <h3 className="text-lg font-semibold text-text-primary mb-4">
             Select a Component
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -315,10 +315,10 @@ const SchematicGenerator: React.FC<SchematicGeneratorProps> = ({
               <button
                 key={component.id}
                 onClick={() => onComponentSelect(component)}
-                className="p-4 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
-                <h4 className="font-medium text-gray-900">{component.name}</h4>
+                className="p-4 text-left border border-border-color rounded-lg hover:border-green-300 hover:bg-primary transition-colors">
+                <h4 className="font-medium text-text-primary">{component.name}</h4>
                 {component.category && (
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-text-secondary mt-1">
                     {component.category}
                   </p>
                 )}
@@ -329,14 +329,14 @@ const SchematicGenerator: React.FC<SchematicGeneratorProps> = ({
       ) : (
         <>
           {/* Component Header */}
-          <div className="bg-white p-6 rounded-lg shadow border">
+          <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                  <CircuitBoardIcon className="h-6 w-6 text-purple-500 mr-2" />
+                <h3 className="text-xl font-semibold text-text-primary flex items-center">
+                  <CircuitBoardIcon className="h-6 w-6 text-green-500 mr-2" />
                   {selectedComponent.name} Schematic
                 </h3>
-                <p className="text-gray-600 mt-1">
+                <p className="text-text-secondary mt-1">
                   Generate schematic symbols and circuit diagrams
                 </p>
               </div>
@@ -345,8 +345,8 @@ const SchematicGenerator: React.FC<SchematicGeneratorProps> = ({
                   onClick={() => setViewMode("symbol")}
                   className={`px-3 py-1 rounded text-sm ${
                     viewMode === "symbol"
-                      ? "bg-purple-100 text-purple-800"
-                      : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-green-100 text-green-800"
+                      : "text-text-secondary hover:bg-primary"
                   }`}>
                   Symbol
                 </button>
@@ -354,8 +354,8 @@ const SchematicGenerator: React.FC<SchematicGeneratorProps> = ({
                   onClick={() => setViewMode("circuit")}
                   className={`px-3 py-1 rounded text-sm ${
                     viewMode === "circuit"
-                      ? "bg-purple-100 text-purple-800"
-                      : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-green-100 text-green-800"
+                      : "text-text-secondary hover:bg-primary"
                   }`}>
                   Circuit
                 </button>
@@ -363,8 +363,8 @@ const SchematicGenerator: React.FC<SchematicGeneratorProps> = ({
                   onClick={() => setViewMode("library")}
                   className={`px-3 py-1 rounded text-sm ${
                     viewMode === "library"
-                      ? "bg-purple-100 text-purple-800"
-                      : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-green-100 text-green-800"
+                      : "text-text-secondary hover:bg-primary"
                   }`}>
                   Library
                 </button>
@@ -373,23 +373,25 @@ const SchematicGenerator: React.FC<SchematicGeneratorProps> = ({
           </div>
 
           {/* Content */}
-          <div className="bg-white rounded-lg shadow border">
+          <div className="bg-secondary rounded-lg shadow border border-border-color">
             {viewMode === "symbol" && (
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h4 className="text-lg font-semibold text-gray-900">
+                  <h4 className="text-lg font-semibold text-text-primary">
                     Schematic Symbol
                   </h4>
                   <div className="flex items-center space-x-2">
                     <button
+                      type="button"
                       onClick={() => exportSchematic("svg")}
-                      className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 flex items-center">
+                      className="px-3 py-1 text-sm text-text-secondary hover:text-text-primary flex items-center">
                       <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
                       SVG
                     </button>
                     <button
+                      type="button"
                       onClick={() => exportSchematic("png")}
-                      className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 flex items-center">
+                      className="px-3 py-1 text-sm text-text-secondary hover:text-text-primary flex items-center">
                       PNG
                     </button>
                   </div>
@@ -401,20 +403,20 @@ const SchematicGenerator: React.FC<SchematicGeneratorProps> = ({
                   )}
                 </div>
 
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h5 className="font-medium text-gray-900 mb-2">
+                <div className="mt-6 p-4 bg-primary rounded-lg border border-border-color">
+                  <h5 className="font-medium text-text-primary mb-2">
                     Symbol Information
                   </h5>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-600">Symbol Type:</span>
-                      <span className="ml-2 font-medium">
+                      <span className="text-text-secondary">Symbol Type:</span>
+                      <span className="ml-2 font-medium text-text-primary">
                         {detectSymbolType(selectedComponent)}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">Pin Count:</span>
-                      <span className="ml-2 font-medium">
+                      <span className="text-text-secondary">Pin Count:</span>
+                      <span className="ml-2 font-medium text-text-primary">
                         {specification?.pinout?.length || "N/A"}
                       </span>
                     </div>

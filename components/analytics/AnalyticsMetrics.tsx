@@ -115,19 +115,23 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => (
-          <div key={index} className="bg-white p-6 rounded-lg shadow border">
+          <div
+            key={index}
+            className="bg-secondary p-6 rounded-lg shadow border border-border-color">
             <div className="flex items-center">
               <div className={`p-2 rounded-lg ${metric.bgColor}`}>
                 <metric.icon className={`h-6 w-6 ${metric.color}`} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-text-secondary">
                   {metric.title}
                 </p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-2xl font-semibold text-text-primary">
                   {metric.value}
                 </p>
-                <p className="text-xs text-gray-500">{metric.description}</p>
+                <p className="text-xs text-text-secondary">
+                  {metric.description}
+                </p>
               </div>
             </div>
           </div>
@@ -135,8 +139,8 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
       </div>
 
       {/* Trending Categories */}
-      <div className="bg-white p-6 rounded-lg shadow border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">
           Category Trends
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -145,15 +149,15 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
             return (
               <div
                 key={`analytics-trend-${category.category}`}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                className="flex items-center justify-between p-4 bg-primary rounded-lg border border-border-color">
                 <div>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-text-primary">
                     {category.category}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-text-secondary">
                     {category.totalComponents} components
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-text-secondary">
                     Avg: ${category.averagePrice.toFixed(2)}
                   </p>
                 </div>
@@ -171,14 +175,14 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
 
       {/* Spending Analysis */}
       {spendingAnalysis && (
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
+          <h3 className="text-lg font-semibold text-text-primary mb-4">
             Spending Analysis
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Spending Breakdown */}
             <div>
-              <h4 className="font-medium text-gray-900 mb-3">
+              <h4 className="font-medium text-text-primary mb-3">
                 Spending by Category
               </h4>
               <div className="space-y-2">
@@ -191,22 +195,26 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
                       <div className="flex items-center">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            index === 0 ? 'bg-blue-500' :
-                            index === 1 ? 'bg-green-500' :
-                            index === 2 ? 'bg-yellow-500' :
-                            index === 3 ? 'bg-red-500' :
-                            'bg-purple-500'
+                            index === 0
+                              ? "bg-blue-500"
+                              : index === 1
+                              ? "bg-green-500"
+                              : index === 2
+                              ? "bg-yellow-500"
+                              : index === 3
+                              ? "bg-red-500"
+                              : "bg-purple-500"
                           }`}
                         />
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium text-text-primary">
                           {item.category}
                         </span>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-semibold">
+                        <div className="text-sm font-semibold text-text-primary">
                           ${item.amount.toFixed(2)}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-text-secondary">
                           {item.percentage.toFixed(1)}%
                         </div>
                       </div>
@@ -217,14 +225,16 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
 
             {/* Budget Utilization */}
             <div>
-              <h4 className="font-medium text-gray-900 mb-3">Budget Status</h4>
+              <h4 className="font-medium text-text-primary mb-3">
+                Budget Status
+              </h4>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
                     <span>Budget Efficiency</span>
                     <span>{spendingAnalysis.budgetEfficiency.toFixed(1)}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-primary rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all duration-300 ${
                         spendingAnalysis.budgetEfficiency > 90
@@ -242,10 +252,10 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-text-secondary">
                     Recommendations:
                   </span>
-                  <span className="text-sm text-gray-900">
+                  <span className="text-sm text-text-primary">
                     {spendingAnalysis.recommendations?.length || 0} available
                   </span>
                 </div>
@@ -254,23 +264,28 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
           </div>
 
           {/* Recommendations */}
-          {spendingAnalysis.recommendations && spendingAnalysis.recommendations.length > 0 && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                <ExclamationTriangleIcon className="h-5 w-5 text-blue-500 mr-2" />
-                Spending Recommendations
-              </h4>
-              <div className="space-y-2">
-                {spendingAnalysis.recommendations
-                  .slice(0, 3)
-                  .map((recommendation: string, index: number) => (
-                    <div key={index} className="p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-gray-900">{recommendation}</p>
-                    </div>
-                  ))}
+          {spendingAnalysis.recommendations &&
+            spendingAnalysis.recommendations.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-border-color">
+                <h4 className="font-medium text-text-primary mb-3 flex items-center">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-accent mr-2" />
+                  Spending Recommendations
+                </h4>
+                <div className="space-y-2">
+                  {spendingAnalysis.recommendations
+                    .slice(0, 3)
+                    .map((recommendation: string, index: number) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <p className="text-sm text-text-primary">
+                          {recommendation}
+                        </p>
+                      </div>
+                    ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       )}
 

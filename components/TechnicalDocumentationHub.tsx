@@ -188,16 +188,17 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              <DocumentTextIcon className="h-8 w-8 text-blue-500 mr-3" />
+            <h1 className="text-2xl font-bold text-text-primary flex items-center">
+              <DocumentTextIcon className="h-8 w-8 text-green-500 mr-3" />
               Technical Documentation
             </h1>
-            <p className="text-gray-600">Access datasheets, pinouts, schematics, and technical specifications</p>
+            <p className="text-text-secondary">Access datasheets, pinouts, schematics, and technical specifications</p>
           </div>
           <button
+            type="button"
             onClick={loadTechnicalData}
             disabled={isLoading}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center"
+            className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center"
           >
             {isLoading ? (
               <>
@@ -216,58 +217,58 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-blue-50">
-              <DocumentTextIcon className="h-6 w-6 text-blue-600" />
+            <div className="p-2 rounded-lg bg-green-50">
+              <DocumentTextIcon className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Documents</p>
-              <p className="text-2xl font-semibold text-gray-900">{documents.length}</p>
-              <p className="text-xs text-gray-500">Available resources</p>
+              <p className="text-sm font-medium text-text-secondary">Total Documents</p>
+              <p className="text-2xl font-semibold text-text-primary">{documents.length}</p>
+              <p className="text-xs text-text-secondary">Available resources</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
             <div className="p-2 rounded-lg bg-green-50">
               <CpuChipIcon className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Components</p>
-              <p className="text-2xl font-semibold text-gray-900">{specifications.length}</p>
-              <p className="text-xs text-gray-500">With specifications</p>
+              <p className="text-sm font-medium text-text-secondary">Components</p>
+              <p className="text-2xl font-semibold text-text-primary">{specifications.length}</p>
+              <p className="text-xs text-text-secondary">With specifications</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-purple-50">
-              <CircuitBoardIcon className="h-6 w-6 text-purple-600" />
+            <div className="p-2 rounded-lg bg-green-50">
+              <CircuitBoardIcon className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pinout Diagrams</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-text-secondary">Pinout Diagrams</p>
+              <p className="text-2xl font-semibold text-text-primary">
                 {specifications.filter(s => s.pinout && s.pinout.length > 0).length}
               </p>
-              <p className="text-xs text-gray-500">Available</p>
+              <p className="text-xs text-text-secondary">Available</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
             <div className="p-2 rounded-lg bg-yellow-50">
               <LinkIcon className="h-6 w-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">External Links</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-text-secondary">External Links</p>
+              <p className="text-2xl font-semibold text-text-primary">
                 {documents.filter(d => d.url.startsWith('http')).length}
               </p>
-              <p className="text-xs text-gray-500">To resources</p>
+              <p className="text-xs text-text-secondary">To resources</p>
             </div>
           </div>
         </div>
@@ -275,7 +276,7 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
 
       {/* Tab Navigation */}
       <div className="mb-6">
-        <nav className="flex space-x-8 border-b border-gray-200">
+        <nav className="flex space-x-8 border-b border-border-color">
           {[
             { id: 'search', label: 'Search & Browse', icon: MagnifyingGlassIcon },
             { id: 'datasheets', label: 'Datasheets', icon: DocumentTextIcon },
@@ -288,8 +289,8 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border-color'
               }`}
             >
               <tab.icon className="h-5 w-5 mr-2" />
@@ -304,8 +305,8 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading technical documentation...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
+              <p className="text-text-secondary">Loading technical documentation...</p>
             </div>
           </div>
         ) : (
@@ -314,12 +315,12 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
       </div>
 
       {/* Help Section */}
-      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
         <div className="flex items-start">
-          <DocumentTextIcon className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
-          <div className="text-sm text-blue-700">
+          <DocumentTextIcon className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+          <div className="text-sm text-green-700">
             <p className="font-medium mb-1">Technical Documentation Features:</p>
-            <ul className="list-disc list-inside space-y-1 text-blue-600">
+            <ul className="list-disc list-inside space-y-1 text-green-600">
               <li>Search and browse component documentation and datasheets</li>
               <li>View and generate pinout diagrams with detailed pin descriptions</li>
               <li>Access schematic symbols and connection diagrams</li>

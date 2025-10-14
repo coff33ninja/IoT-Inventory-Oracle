@@ -113,7 +113,7 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading budget data...</p>
+            <p className="text-text-secondary">Loading budget data...</p>
           </div>
         </div>
       );
@@ -179,11 +179,11 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-2xl font-bold text-text-primary flex items-center">
               <CurrencyDollarIcon className="h-8 w-8 text-green-500 mr-3" />
               Budget Management
             </h1>
-            <p className="text-gray-600">
+            <p className="text-text-secondary">
               Track spending, analyze costs, and plan future budgets
             </p>
           </div>
@@ -208,68 +208,68 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
             <div className="p-2 rounded-lg bg-green-50">
               <CurrencyDollarIcon className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Spent</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-text-secondary">Total Spent</p>
+              <p className="text-2xl font-semibold text-text-primary">
                 {formatCurrency(summary.totalSpent)}
               </p>
-              <p className="text-xs text-gray-500">Last {filters.timeframe}</p>
+              <p className="text-xs text-text-secondary">Last {filters.timeframe}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-blue-50">
-              <ChartBarIcon className="h-6 w-6 text-blue-600" />
+            <div className="p-2 rounded-lg bg-green-50">
+              <ChartBarIcon className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-text-secondary">
                 Avg Project Cost
               </p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-2xl font-semibold text-text-primary">
                 {formatCurrency(summary.averageProjectCost)}
               </p>
-              <p className="text-xs text-gray-500">Per project</p>
+              <p className="text-xs text-text-secondary">Per project</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-purple-50">
-              <CalendarIcon className="h-6 w-6 text-purple-600" />
+            <div className="p-2 rounded-lg bg-green-50">
+              <CalendarIcon className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-text-secondary">
                 Budget Efficiency
               </p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-2xl font-semibold text-text-primary">
                 {summary.budgetEfficiency.toFixed(1)}%
               </p>
-              <p className="text-xs text-gray-500">Efficiency rating</p>
+              <p className="text-xs text-text-secondary">Efficiency rating</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
             <div className="p-2 rounded-lg bg-yellow-50">
               <ExclamationTriangleIcon className="h-6 w-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-text-secondary">
                 Recommendations
               </p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-2xl font-semibold text-text-primary">
                 {summary.recommendationsCount}
               </p>
-              <p className="text-xs text-gray-500">Available</p>
+              <p className="text-xs text-text-secondary">Available</p>
             </div>
           </div>
         </div>
@@ -287,7 +287,7 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
 
       {/* Tab Navigation */}
       <div className="mb-6">
-        <nav className="flex space-x-8 border-b border-gray-200">
+        <nav className="flex space-x-8 border-b border-border-color">
           {[
             { id: "overview", label: "Overview", icon: ChartBarIcon },
             { id: "analytics", label: "Analytics", icon: ChartBarIcon },
@@ -304,7 +304,7 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
               className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? "border-green-500 text-green-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-text-secondary hover:text-text-primary hover:border-border-color"
               }`}>
               <tab.icon className="h-5 w-5 mr-2" />
               {tab.label}
@@ -317,12 +317,12 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
       <div className="min-h-96">{renderTabContent()}</div>
 
       {/* Footer Info */}
-      <div className="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+      <div className="mt-8 p-4 bg-primary border border-border-color rounded-lg">
         <div className="flex items-start">
-          <CurrencyDollarIcon className="h-5 w-5 text-gray-500 mr-2 mt-0.5" />
-          <div className="text-sm text-gray-700">
+          <CurrencyDollarIcon className="h-5 w-5 text-text-secondary mr-2 mt-0.5" />
+          <div className="text-sm text-text-primary">
             <p className="font-medium mb-1">Budget Management Tips:</p>
-            <ul className="list-disc list-inside space-y-1 text-gray-600">
+            <ul className="list-disc list-inside space-y-1 text-text-secondary">
               <li>
                 Set realistic budgets based on historical spending patterns
               </li>

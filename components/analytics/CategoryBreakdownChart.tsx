@@ -30,21 +30,14 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
 
   const getColor = (index: number) => {
     const colors = [
-      'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 
-      'bg-purple-500', 'bg-indigo-500', 'bg-pink-500', 'bg-gray-500',
-      'bg-blue-400', 'bg-green-400', 'bg-yellow-400', 'bg-red-400'
+      'bg-emerald-500', 'bg-green-500', 'bg-teal-500', 'bg-cyan-500', 
+      'bg-blue-500', 'bg-indigo-500', 'bg-green-600', 'bg-emerald-600',
+      'bg-emerald-400', 'bg-green-400', 'bg-teal-400', 'bg-cyan-400'
     ];
     return colors[index % colors.length];
   };
 
-  const getTextColor = (index: number) => {
-    const colors = [
-      'text-blue-600', 'text-green-600', 'text-yellow-600', 'text-red-600', 
-      'text-purple-600', 'text-indigo-600', 'text-pink-600', 'text-gray-600',
-      'text-blue-500', 'text-green-500', 'text-yellow-500', 'text-red-500'
-    ];
-    return colors[index % colors.length];
-  };
+
 
   const getTrendIcon = (trend: 'increasing' | 'stable' | 'decreasing') => {
     switch (trend) {
@@ -56,9 +49,9 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
 
   const getTrendColor = (trend: 'increasing' | 'stable' | 'decreasing') => {
     switch (trend) {
-      case 'increasing': return 'text-green-500';
+      case 'increasing': return 'text-emerald-500';
       case 'decreasing': return 'text-red-500';
-      default: return 'text-gray-500';
+      default: return 'text-slate-500';
     }
   };
 
@@ -87,40 +80,43 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
   const pieSegments = createPieSegments();
 
   return (
-    <div className={`bg-white p-6 rounded-lg shadow border ${className}`}>
+    <div className={`bg-secondary p-6 rounded-lg shadow border border-border-color ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <ChartPieIcon className="h-6 w-6 text-gray-500 mr-2" />
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <ChartPieIcon className="h-6 w-6 text-accent mr-2" />
+          <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
         </div>
         <div className="flex items-center space-x-2">
           <button
+            type="button"
             onClick={() => setViewMode('pie')}
             className={`px-3 py-1 rounded text-sm font-medium ${
               viewMode === 'pie' 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-accent text-white' 
+                : 'bg-primary text-text-secondary hover:text-text-primary'
             }`}
           >
             Pie
           </button>
           <button
+            type="button"
             onClick={() => setViewMode('bar')}
             className={`px-3 py-1 rounded text-sm font-medium ${
               viewMode === 'bar' 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-accent text-white' 
+                : 'bg-primary text-text-secondary hover:text-text-primary'
             }`}
           >
             Bar
           </button>
           <button
+            type="button"
             onClick={() => setViewMode('table')}
             className={`px-3 py-1 rounded text-sm font-medium ${
               viewMode === 'table' 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-accent text-white' 
+                : 'bg-primary text-text-secondary hover:text-text-primary'
             }`}
           >
             Table
@@ -130,8 +126,8 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
 
       {data.length === 0 ? (
         <div className="text-center py-12">
-          <ChartPieIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">No category data available</p>
+          <ChartPieIcon className="h-12 w-12 text-text-secondary mx-auto mb-4" />
+          <p className="text-text-secondary">No category data available</p>
         </div>
       ) : (
         <>
@@ -142,7 +138,7 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
               <div className="flex items-center justify-center">
                 <div className="relative w-64 h-64">
                   {/* Background circle */}
-                  <div className="w-full h-full rounded-full bg-gray-200"></div>
+                  <div className="w-full h-full rounded-full bg-primary"></div>
                   
                   {/* Pie segments (simplified representation) */}
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -150,11 +146,9 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                       {pieSegments.slice(0, 4).map((segment, index) => (
                         <div
                           key={`chart-segment-${segment.category}`}
-                          className={`${segment.color} rounded-sm flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity`}
-                          style={{ 
-                            height: `${Math.max(20, segment.percentage * 2)}px`,
-                            opacity: selectedCategory === segment.category ? 1 : 0.8
-                          }}
+                          className={`${segment.color} rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ${
+                            selectedCategory === segment.category ? 'ring-2 ring-green-400' : ''
+                          }`}
                           onClick={() => setSelectedCategory(
                             selectedCategory === segment.category ? null : segment.category
                           )}
@@ -170,10 +164,10 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                   
                   {/* Center label */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white rounded-full w-20 h-20 flex items-center justify-center shadow-lg">
+                    <div className="bg-secondary rounded-full w-20 h-20 flex items-center justify-center shadow border border-border-color">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-gray-900">{data.length}</div>
-                        <div className="text-xs text-gray-500">Categories</div>
+                        <div className="text-lg font-bold text-green-600">{data.length}</div>
+                        <div className="text-xs text-text-secondary">Categories</div>
                       </div>
                     </div>
                   </div>
@@ -182,7 +176,10 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
               
               {/* Legend */}
               <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Categories</h4>
+                <h4 className="font-medium text-text-primary flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Categories
+                </h4>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {sortedData.map((item, index) => {
                     const TrendIcon = getTrendIcon(item.popularityTrend);
@@ -193,7 +190,9 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                       <div 
                         key={`chart-item-${item.category}`}
                         className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
-                          selectedCategory === item.category ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'
+                          selectedCategory === item.category 
+                            ? 'bg-green-50 border border-green-200' 
+                            : 'hover:bg-primary'
                         }`}
                         onClick={() => setSelectedCategory(
                           selectedCategory === item.category ? null : item.category
@@ -202,8 +201,8 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                         <div className="flex items-center space-x-3">
                           <div className={`w-4 h-4 rounded ${getColor(index)}`}></div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{item.category}</div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-sm font-medium text-text-primary">{item.category}</div>
+                            <div className="text-xs text-text-secondary">
                               {item.totalComponents} components • ${item.averagePrice.toFixed(2)} avg
                             </div>
                           </div>
@@ -231,12 +230,12 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                   <div key={`chart-detail-${item.category}`} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <span className="text-sm font-medium text-gray-600 w-6">
+                        <span className="text-sm font-medium text-text-secondary w-6">
                           {index + 1}.
                         </span>
                         <div>
-                          <span className="text-sm font-medium text-gray-900">{item.category}</span>
-                          <div className="flex items-center space-x-2 text-xs text-gray-500">
+                          <span className="text-sm font-medium text-text-primary">{item.category}</span>
+                          <div className="flex items-center space-x-2 text-xs text-text-secondary">
                             <span>{item.totalComponents} components</span>
                             <span>•</span>
                             <span>${item.averagePrice.toFixed(2)} avg</span>
@@ -249,18 +248,18 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                           <span className={trendColor}>{item.popularityTrend}</span>
                         </div>
                         <span className="font-medium">{item.totalQuantityUsed}</span>
-                        <span className="text-gray-500">({percentage.toFixed(1)}%)</span>
+                        <span className="text-text-secondary">({percentage.toFixed(1)}%)</span>
                       </div>
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <div className="flex-1 bg-gray-200 rounded-full h-3">
+                      <div className="flex-1 bg-primary rounded-full h-3">
                         <div 
                           className={`h-3 rounded-full ${getColor(index)} transition-all duration-300`}
                           style={{ width: `${barWidth}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500 w-16">
+                      <span className="text-xs text-text-secondary w-16">
                         ${(item.totalQuantityUsed * item.averagePrice).toFixed(0)}
                       </span>
                     </div>
@@ -271,30 +270,30 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
           ) : (
             /* Table View */
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-border-color">
+                <thead className="bg-primary">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Category
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Components
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Total Used
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Avg Price
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Total Value
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Trend
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-secondary divide-y divide-border-color">
                   {sortedData.map((item, index) => {
                     const TrendIcon = getTrendIcon(item.popularityTrend);
                     const trendColor = getTrendColor(item.popularityTrend);
@@ -302,26 +301,26 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                     const totalValue = item.totalQuantityUsed * item.averagePrice;
                     
                     return (
-                      <tr key={`chart-table-${item.category}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <tr key={`chart-table-${item.category}`} className={index % 2 === 0 ? 'bg-secondary' : 'bg-primary'}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className={`w-3 h-3 rounded ${getColor(index)} mr-3`}></div>
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{item.category}</div>
-                              <div className="text-xs text-gray-500">{percentage.toFixed(1)}% of total</div>
+                              <div className="text-sm font-medium text-text-primary">{item.category}</div>
+                              <div className="text-xs text-text-secondary">{percentage.toFixed(1)}% of total</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
                           {item.totalComponents}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
                           {item.totalQuantityUsed}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
                           ${item.averagePrice.toFixed(2)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
                           ${totalValue.toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -339,25 +338,25 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
           )}
           
           {/* Summary Stats */}
-          <div className="mt-6 pt-4 border-t border-gray-200">
+          <div className="mt-6 pt-4 border-t border-border-color">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{data.length}</div>
-                <div className="text-sm text-gray-500">Categories</div>
+              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="text-2xl font-bold text-green-600">{data.length}</div>
+                <div className="text-sm text-text-secondary">Categories</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{totalQuantity}</div>
-                <div className="text-sm text-gray-500">Total Components</div>
+              <div className="p-3 bg-primary rounded-lg border border-border-color">
+                <div className="text-2xl font-bold text-text-primary">{totalQuantity}</div>
+                <div className="text-sm text-text-secondary">Total Components</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">${totalValue.toFixed(0)}</div>
-                <div className="text-sm text-gray-500">Total Value</div>
+              <div className="p-3 bg-primary rounded-lg border border-border-color">
+                <div className="text-2xl font-bold text-text-primary">${totalValue.toFixed(0)}</div>
+                <div className="text-sm text-text-secondary">Total Value</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
+              <div className="p-3 bg-primary rounded-lg border border-border-color">
+                <div className="text-2xl font-bold text-text-primary">
                   ${data.length > 0 ? (totalValue / totalQuantity).toFixed(2) : '0.00'}
                 </div>
-                <div className="text-sm text-gray-500">Avg Component Price</div>
+                <div className="text-sm text-text-secondary">Avg Component Price</div>
               </div>
             </div>
           </div>

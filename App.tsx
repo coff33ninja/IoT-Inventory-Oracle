@@ -142,7 +142,7 @@ const App: React.FC = () => {
       {currentView === "inventory" && (
         <button
           onClick={openModalForNewItem}
-          className="fixed bottom-6 right-6 bg-accent hover:bg-blue-600 text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-accent z-20"
+          className="fixed bottom-6 right-6 bg-accent hover:bg-green-600 text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-accent z-20"
           aria-label="Add new inventory item">
           <PlusIcon />
         </button>
