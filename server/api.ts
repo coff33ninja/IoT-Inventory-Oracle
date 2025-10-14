@@ -505,7 +505,9 @@ app.get("/api/recommendations/personalized/:userId", async (req, res) => {
 app.get("/api/analytics/usage-patterns", async (req, res) => {
   try {
     const { timeframe = '30d' } = req.query;
-    const patterns = await analyticsService.analyzeUsagePatterns(timeframe as string);
+    const inventory = dbService.getAllItems();
+    const projects = await projectService.getAllProjects();
+    const patterns = await analyticsService.analyzeUsagePatterns(timeframe as string, inventory, projects);
     res.json(patterns);
   } catch (error) {
     console.error('Failed to get usage patterns:', error);
@@ -520,7 +522,9 @@ app.get("/api/analytics/usage-patterns", async (req, res) => {
 app.get("/api/analytics/stock-predictions/:componentId", async (req, res) => {
   try {
     const { componentId } = req.params;
-    const prediction = await analyticsService.predictStockDepletion(componentId);
+    const inventory = dbService.getAllItems();
+    const projects = await projectService.getAllProjects();
+    const prediction = await analyticsService.predictStockDepletion(componentId, inventory, projects);
     res.json(prediction);
   } catch (error) {
     console.error('Failed to get stock prediction:', error);
@@ -535,7 +539,9 @@ app.get("/api/analytics/stock-predictions/:componentId", async (req, res) => {
 app.get("/api/analytics/popularity", async (req, res) => {
   try {
     const { category } = req.query;
-    const popularity = await analyticsService.calculateComponentPopularity(category as string);
+    const inventory = dbService.getAllItems();
+    const projects = await projectService.getAllProjects();
+    const popularity = await analyticsService.calculateComponentPopularity(category as string, inventory, projects);
     res.json(popularity);
   } catch (error) {
     console.error('Failed to get component popularity:', error);
@@ -550,7 +556,9 @@ app.get("/api/analytics/popularity", async (req, res) => {
 app.get("/api/analytics/spending", async (req, res) => {
   try {
     const { timeframe = '30d' } = req.query;
-    const insights = await analyticsService.generateSpendingInsights(timeframe as string);
+    const inventory = dbService.getAllItems();
+    const projects = await projectService.getAllProjects();
+    const insights = await analyticsService.generateSpendingInsights(timeframe as string, inventory, projects);
     res.json(insights);
   } catch (error) {
     console.error('Failed to get spending insights:', error);
@@ -565,7 +573,9 @@ app.get("/api/analytics/spending", async (req, res) => {
 app.get("/api/analytics/project-patterns/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const patterns = await analyticsService.identifyProjectPatterns(userId);
+    const inventory = dbService.getAllItems();
+    const projects = await projectService.getAllProjects();
+    const patterns = await analyticsService.identifyProjectPatterns(userId, inventory, projects);
     res.json(patterns);
   } catch (error) {
     console.error('Failed to get project patterns:', error);

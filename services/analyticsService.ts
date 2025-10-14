@@ -361,7 +361,7 @@ export class AnalyticsService {
       suggestions.push(`Consider using ${unusedComponents.length} unused components in upcoming projects`);
       
       if (totalWasteValue > 100) {
-        suggestions.push(`Unused inventory worth $${totalWasteValue.toFixed(2)} could be repurposed`);
+        suggestions.push(`Unused inventory worth ${totalWasteValue.toFixed(2)} could be repurposed`);
       }
       
       const topWasteCategory = Array.from(wasteByCategory.entries())
@@ -464,6 +464,291 @@ export class AnalyticsService {
     return predictions
       .filter(p => p.consumptionRate > 0 && isFinite(p.consumptionRate))
       .sort((a, b) => new Date(a.predictedDepletionDate).getTime() - new Date(b.predictedDepletionDate).getTime());
+  }
+
+  /**
+   * Identify project patterns for a user
+   */
+  static async identifyProjectPatterns(userId: string, inventory: InventoryItem[], projects: Project[]): Promise<any[]> {
+    try {
+      // Analyze project patterns from existing data
+      const patterns = new Map<string, {
+        name: string;
+        description: string;
+        commonComponents: string[];
+        averageCost: number;
+        averageTime: string;
+        successRate: number;
+        difficulty: string;
+        tags: string[];
+        projectCount: number;
+        totalCost: number;
+      }>();
+
+      // Group projects by similar characteristics
+      projects.forEach(project => {
+        const category = project.category || 'General';
+        const existing = patterns.get(category) || {
+          name: `${category} Projects`,
+          description: `Common pattern for ${category.toLowerCase()} projects`,
+          commonComponents: [],
+          averageCost: 0,
+          averageTime: 'Unknown',
+          successRate: 0,
+          difficulty: 'Intermediate',
+          tags: [category.toLowerCase()],
+          projectCount: 0,
+          totalCost: 0
+        };
+
+        existing.projectCount += 1;
+        
+        // Calculate project cost
+        let projectCost = 0;
+        project.components.forEach(component => {
+          const inventoryItem = inventory.find(item => item.id === component.inventoryItemId);
+          if (inventoryItem && inventoryItem.purchasePrice) {
+            projectCost += inventoryItem.purchasePrice * component.quantity;
+          }
+        });
+        existing.totalCost += projectCost;
+
+        // Track common components
+        project.components.forEach(component => {
+          const inventoryItem = inventory.find(item => item.id === component.inventoryItemId);
+          if (inventoryItem && !existing.commonComponents.includes(inventoryItem.name)) {
+            existing.commonComponents.push(inventoryItem.name);
+          }
+        });
+
+        // Estimate success rate based on completion status
+        if (project.status === 'Completed') {
+          existing.successRate += 1;
+        }
+
+        patterns.set(category, existing);
+      });
+
+      // Convert to array and calculate final metrics
+      const result = Array.from(patterns.values()).map(pattern => ({
+        id: pattern.name.toLowerCase().replace(/\s+/g, '-'),
+        name: pattern.name,
+        description: pattern.description,
+        commonComponents: pattern.commonComponents.slice(0, 10), // Top 10 components
+        averageCost: pattern.projectCount > 0 ? pattern.totalCost / pattern.projectCount : 0,
+        averageTime: pattern.projectCount > 5 ? '2-4 weeks' : 'Unknown',
+        successRate: pattern.projectCount > 0 ? (pattern.successRate / pattern.projectCount) * 100 : 0,
+        difficulty: pattern.commonComponents.length > 10 ? 'Advanced' : 
+                   pattern.commonComponents.length > 5 ? 'Intermediate' : 'Beginner',
+        tags: pattern.tags,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+
+      return result;
+    } catch (error) {
+      console.error('Error identifying project patterns:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Analyze usage patterns for a specific timeframe
+   */
+  static async analyzeUsagePatterns(timeframe: string, inventory: InventoryItem[], projects: Project[]): Promise<any> {
+    try {
+      const now = new Date();
+      let startDate = new Date();
+      
+      // Calculate start date based on timeframe
+      switch (timeframe) {
+        case '7d':
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case '30d':
+          startDate.setDate(now.getDate() - 30);
+          break;
+        case '90d':
+          startDate.setDate(now.getDate() - 90);
+          break;
+        case '1y':
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+        default:
+          startDate.setDate(now.getDate() - 30);
+      }
+
+      // Filter projects within timeframe
+      const filteredProjects = projects.filter(project => 
+        new Date(project.createdAt) >= startDate
+      );
+
+      // Calculate usage analytics for the timeframe
+      const analytics = this.calculateUsageAnalytics(inventory, filteredProjects);
+      
+      return {
+        timeframe,
+        startDate: startDate.toISOString(),
+        endDate: now.toISOString(),
+        ...analytics,
+        summary: {
+          totalProjectsInPeriod: filteredProjects.length,
+          mostUsedCategory: analytics.categoryBreakdown[0]?.category || 'None',
+          topTrendingComponent: analytics.trendingComponents[0]?.componentName || 'None'
+        }
+      };
+    } catch (error) {
+      console.error('Error analyzing usage patterns:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Predict stock depletion for a specific component
+   */
+  static async predictStockDepletion(componentId: string, inventory: InventoryItem[], projects: Project[]): Promise<any> {
+    try {
+      const predictions = this.generateStockPredictions(inventory, projects);
+      const componentPrediction = predictions.find(p => p.componentId === componentId);
+      
+      if (!componentPrediction) {
+        return null;
+      }
+
+      return componentPrediction;
+    } catch (error) {
+      console.error('Error predicting stock depletion:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Calculate component popularity by category
+   */
+  static async calculateComponentPopularity(category: string | undefined, inventory: InventoryItem[], projects: Project[]): Promise<any[]> {
+    try {
+      const componentUsage = new Map<string, {
+        name: string;
+        category: string;
+        usageCount: number;
+        projectCount: number;
+        lastUsed: Date;
+      }>();
+
+      // Analyze component usage across projects
+      projects.forEach(project => {
+        const projectDate = new Date(project.createdAt);
+        
+        project.components.forEach(component => {
+          if (!component.inventoryItemId) return;
+          
+          const inventoryItem = inventory.find(item => item.id === component.inventoryItemId);
+          if (!inventoryItem) return;
+          
+          // Filter by category if specified
+          if (category && inventoryItem.category !== category) return;
+
+          const existing = componentUsage.get(component.inventoryItemId) || {
+            name: inventoryItem.name,
+            category: inventoryItem.category || 'Uncategorized',
+            usageCount: 0,
+            projectCount: 0,
+            lastUsed: projectDate
+          };
+
+          existing.usageCount += component.quantity;
+          existing.projectCount += 1;
+          
+          if (projectDate > existing.lastUsed) {
+            existing.lastUsed = projectDate;
+          }
+          
+          componentUsage.set(component.inventoryItemId, existing);
+        });
+      });
+
+      // Convert to array and sort by popularity
+      const result = Array.from(componentUsage.entries()).map(([componentId, data]) => ({
+        componentId,
+        componentName: data.name,
+        category: data.category,
+        popularityScore: data.usageCount * 0.7 + data.projectCount * 0.3,
+        totalUsage: data.usageCount,
+        projectCount: data.projectCount,
+        lastUsed: data.lastUsed.toISOString()
+      }));
+
+      return result.sort((a, b) => b.popularityScore - a.popularityScore);
+    } catch (error) {
+      console.error('Error calculating component popularity:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Generate spending insights for a timeframe
+   */
+  static async generateSpendingInsights(timeframe: string, inventory: InventoryItem[], projects: Project[]): Promise<any> {
+    try {
+      const now = new Date();
+      let startDate = new Date();
+      
+      // Calculate start date based on timeframe
+      switch (timeframe) {
+        case '7d':
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case '30d':
+          startDate.setDate(now.getDate() - 30);
+          break;
+        case '90d':
+          startDate.setDate(now.getDate() - 90);
+          break;
+        case '1y':
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+        default:
+          startDate.setDate(now.getDate() - 30);
+      }
+
+      // Calculate spending from inventory items purchased in timeframe
+      const relevantItems = inventory.filter(item => {
+        if (!item.purchaseDate) return false;
+        return new Date(item.purchaseDate) >= startDate;
+      });
+
+      const totalSpent = relevantItems.reduce((sum, item) => 
+        sum + ((item.purchasePrice || 0) * item.quantity), 0
+      );
+
+      // Group spending by category
+      const spendingByCategory = new Map<string, number>();
+      relevantItems.forEach(item => {
+        const category = item.category || 'Uncategorized';
+        const current = spendingByCategory.get(category) || 0;
+        spendingByCategory.set(category, current + ((item.purchasePrice || 0) * item.quantity));
+      });
+
+      const categoryBreakdown = Array.from(spendingByCategory.entries()).map(([category, amount]) => ({
+        category,
+        amount,
+        percentage: totalSpent > 0 ? (amount / totalSpent) * 100 : 0
+      }));
+
+      return {
+        timeframe,
+        totalSpent,
+        spendingByCategory: categoryBreakdown,
+        budgetEfficiency: 75, // Placeholder calculation
+        recommendations: [
+          'Consider bulk purchasing for frequently used components',
+          'Review spending patterns to identify cost optimization opportunities'
+        ]
+      };
+    } catch (error) {
+      console.error('Error generating spending insights:', error);
+      return {};
+    }
   }
 
   /**
