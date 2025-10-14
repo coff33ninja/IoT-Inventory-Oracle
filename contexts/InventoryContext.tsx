@@ -19,12 +19,25 @@ import {
   StockPrediction,
   SpendingAnalysis,
   ProjectPattern,
-  UserPreferences
+  UserPreferences,
+  BudgetStatus,
+  SpendingForecast,
+  ProjectROI,
+  BudgetOptimization,
+  BudgetNotification,
+  BudgetThreshold,
+  BudgetMonitoringConfig,
+  BudgetHealthSummary,
+  ProjectCostBreakdown,
+  ProjectBudgetPlan,
+  CostOptimizationSuggestion
 } from "../types";
 import { RecommendationPreferences } from "../components/RecommendationSettingsPanel";
 import apiClient from "../services/apiClient";
 import AnalyticsService from "../services/analyticsService";
 import BudgetService from "../services/budgetService";
+import BudgetNotificationService from "../services/budgetNotificationService";
+import ProjectCostService from "../services/projectCostService";
 
 interface InventoryContextType {
   inventory: InventoryItem[];
@@ -86,6 +99,38 @@ interface InventoryContextType {
   getStockPrediction: (componentId: string) => Promise<StockPrediction>;
   getSpendingInsights: (timeframe?: string) => Promise<SpendingAnalysis>;
   getProjectPatterns: (userId: string) => Promise<ProjectPattern[]>;
+  
+  // Budget tracking methods
+  getBudgetStatus: (budgetLimits?: { [category: string]: number }, totalBudgetLimit?: number) => BudgetStatus;
+  getSpendingForecast: (forecastPeriodDays?: number) => SpendingForecast;
+  getProjectROI: (projectId: string) => ProjectROI | null;
+  getBudgetOptimization: (budgetConstraints?: {
+    totalBudget?: number;
+    categoryLimits?: { [category: string]: number };
+    timeframe?: number;
+  }) => BudgetOptimization;
+  
+  // Budget notification methods
+  getBudgetNotifications: () => BudgetNotification[];
+  getUnreadNotificationCount: () => number;
+  markNotificationAsRead: (notificationId: string) => void;
+  dismissNotification: (notificationId: string) => void;
+  setBudgetThreshold: (threshold: BudgetThreshold) => void;
+  getBudgetThresholds: () => BudgetThreshold[];
+  updateNotificationConfig: (config: Partial<BudgetMonitoringConfig>) => void;
+  getNotificationConfig: () => BudgetMonitoringConfig;
+  getBudgetHealthSummary: (budgetLimits?: { [category: string]: number }, totalBudgetLimit?: number) => BudgetHealthSummary;
+  
+  // Project cost calculation methods
+  getProjectCostBreakdown: (projectId: string, budgetLimit?: number) => ProjectCostBreakdown | null;
+  createProjectBudgetPlan: (projectId: string, plannedBudget: number, contingencyPercentage?: number) => ProjectBudgetPlan | null;
+  getProjectOptimizationSuggestions: (projectId: string) => CostOptimizationSuggestion | null;
+  calculateMultiProjectCosts: () => {
+    totalCost: number;
+    projectCosts: Array<{ projectId: string; projectName: string; cost: number }>;
+    categoryBreakdown: Array<{ category: string; totalCost: number; projectCount: number }>;
+    optimizationOpportunities: number;
+  };
   
   // User preferences
   getUserPreferences: (userId: string) => Promise<RecommendationPreferences>;
@@ -806,6 +851,118 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
+  // Budget tracking methods
+  const getBudgetStatus = (
+    budgetLimits?: { [category: string]: number }, 
+    totalBudgetLimit?: number
+  ): BudgetStatus => {
+    return BudgetService.calculateBudgetStatus(inventory, projects, budgetLimits, totalBudgetLimit);
+  };
+
+  const getSpendingForecast = (forecastPeriodDays: number = 30): SpendingForecast => {
+    return BudgetService.generateSpendingForecast(inventory, projects, forecastPeriodDays);
+  };
+
+  const getProjectROI = (projectId: string): ProjectROI | null => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return null;
+    
+    return BudgetService.calculateProjectROI(project, inventory);
+  };
+
+  const getBudgetOptimization = (budgetConstraints?: {
+    totalBudget?: number;
+    categoryLimits?: { [category: string]: number };
+    timeframe?: number;
+  }): BudgetOptimization => {
+    return BudgetService.generateBudgetOptimization(inventory, projects, budgetConstraints);
+  };
+
+  // Budget notification methods
+  const getBudgetNotifications = (): BudgetNotification[] => {
+    // Monitor budget and get notifications
+    BudgetNotificationService.monitorBudgetStatus(inventory, projects);
+    return BudgetNotificationService.getActiveNotifications();
+  };
+
+  const getUnreadNotificationCount = (): number => {
+    return BudgetNotificationService.getUnreadCount();
+  };
+
+  const markNotificationAsRead = (notificationId: string): void => {
+    BudgetNotificationService.markAsRead(notificationId);
+    // Notify subscribers of notification changes
+    notifySubscribers({ type: 'notification_read', notificationId });
+  };
+
+  const dismissNotification = (notificationId: string): void => {
+    BudgetNotificationService.dismissNotification(notificationId);
+    // Notify subscribers of notification changes
+    notifySubscribers({ type: 'notification_dismissed', notificationId });
+  };
+
+  const setBudgetThreshold = (threshold: BudgetThreshold): void => {
+    BudgetNotificationService.setBudgetThreshold(threshold);
+    // Notify subscribers of threshold changes
+    notifySubscribers({ type: 'threshold_updated', threshold });
+  };
+
+  const getBudgetThresholds = (): BudgetThreshold[] => {
+    return BudgetNotificationService.getBudgetThresholds();
+  };
+
+  const updateNotificationConfig = (config: Partial<BudgetMonitoringConfig>): void => {
+    BudgetNotificationService.updateConfig(config);
+    // Notify subscribers of config changes
+    notifySubscribers({ type: 'notification_config_updated', config });
+  };
+
+  const getNotificationConfig = (): BudgetMonitoringConfig => {
+    return BudgetNotificationService.getConfig();
+  };
+
+  const getBudgetHealthSummary = (
+    budgetLimits?: { [category: string]: number }, 
+    totalBudgetLimit?: number
+  ): BudgetHealthSummary => {
+    return BudgetNotificationService.generateBudgetHealthSummary(
+      inventory, 
+      projects, 
+      budgetLimits, 
+      totalBudgetLimit
+    );
+  };
+
+  // Project cost calculation methods
+  const getProjectCostBreakdown = (projectId: string, budgetLimit?: number): ProjectCostBreakdown | null => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return null;
+    
+    return ProjectCostService.calculateProjectCostBreakdown(project, inventory, budgetLimit);
+  };
+
+  const createProjectBudgetPlan = (
+    projectId: string, 
+    plannedBudget: number, 
+    contingencyPercentage: number = 15
+  ): ProjectBudgetPlan | null => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return null;
+    
+    return ProjectCostService.createProjectBudgetPlan(project, inventory, plannedBudget, contingencyPercentage);
+  };
+
+  const getProjectOptimizationSuggestions = (projectId: string): CostOptimizationSuggestion | null => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return null;
+    
+    return ProjectCostService.generateCostOptimizationSuggestions(project, inventory);
+  };
+
+  const calculateMultiProjectCosts = () => {
+    return ProjectCostService.calculateMultiProjectCosts(projects, inventory);
+  };
+
   return (
     <InventoryContext.Provider
       value={{
@@ -854,6 +1011,29 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({
         // Real-time updates
         refreshRecommendations,
         subscribeToRecommendationUpdates,
+        
+        // Budget tracking methods
+        getBudgetStatus,
+        getSpendingForecast,
+        getProjectROI,
+        getBudgetOptimization,
+        
+        // Budget notification methods
+        getBudgetNotifications,
+        getUnreadNotificationCount,
+        markNotificationAsRead,
+        dismissNotification,
+        setBudgetThreshold,
+        getBudgetThresholds,
+        updateNotificationConfig,
+        getNotificationConfig,
+        getBudgetHealthSummary,
+        
+        // Project cost calculation methods
+        getProjectCostBreakdown,
+        createProjectBudgetPlan,
+        getProjectOptimizationSuggestions,
+        calculateMultiProjectCosts,
       }}>
       {children}
     </InventoryContext.Provider>

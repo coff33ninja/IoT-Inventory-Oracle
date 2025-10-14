@@ -7,6 +7,8 @@ import SpendingAnalyticsChart from "./budget/SpendingAnalyticsChart";
 import CostBreakdownView from "./budget/CostBreakdownView";
 import BudgetPlanningTool from "./budget/BudgetPlanningTool";
 import BudgetAlerts from "./budget/BudgetAlerts";
+import BudgetNotificationCenter from "./budget/BudgetNotificationCenter";
+import BudgetHealthDashboard from "./budget/BudgetHealthDashboard";
 import {
   CurrencyDollarIcon,
   ChartBarIcon,
@@ -36,7 +38,7 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
   const { formatCurrency } = useCurrencyFormat();
 
   const [activeTab, setActiveTab] = useState<
-    "overview" | "analytics" | "breakdown" | "planning"
+    "overview" | "analytics" | "breakdown" | "planning" | "health" | "notifications"
   >("overview");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -168,6 +170,16 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
           />
         );
 
+      case "health":
+        return (
+          <BudgetHealthDashboard />
+        );
+
+      case "notifications":
+        return (
+          <BudgetNotificationCenter />
+        );
+
       default:
         return null;
     }
@@ -297,6 +309,8 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
               icon: CurrencyDollarIcon,
             },
             { id: "planning", label: "Budget Planning", icon: CalendarIcon },
+            { id: "health", label: "Budget Health", icon: ExclamationTriangleIcon },
+            { id: "notifications", label: "Alerts", icon: ExclamationTriangleIcon },
           ].map((tab) => (
             <button
               key={tab.id}

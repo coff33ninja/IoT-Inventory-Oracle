@@ -1,6 +1,7 @@
 import React from "react";
 import { SpendingAnalysis, Project, InventoryItem } from "../../types";
 import { useCurrencyFormat } from "../../hooks/useCurrencyFormat";
+import { useInventory } from "../../contexts/InventoryContext";
 import {
   ExclamationTriangleIcon,
   InformationCircleIcon,
@@ -29,8 +30,39 @@ const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
   inventory,
 }) => {
   const { formatCurrency } = useCurrencyFormat();
+  const { getBudgetStatus, getBudgetOptimization } = useInventory();
   const generateAlerts = (): Alert[] => {
     const alerts: Alert[] = [];
+
+    // Get real budget status and optimization data
+    const budgetStatus = getBudgetStatus();
+    const budgetOptimization = getBudgetOptimization();
+
+    // Real budget alerts from BudgetService
+    budgetStatus.alerts.forEach((alert, index) => {
+      alerts.push({
+        id: `budget-alert-${index}`,
+        type: alert.type === 'danger' ? 'error' : alert.type === 'warning' ? 'warning' : 'info',
+        title: alert.category,
+        message: alert.message,
+        action: alert.limit ? "Adjust Budget" : "Review Spending",
+        severity: alert.type === 'danger' ? 'high' : alert.type === 'warning' ? 'medium' : 'low',
+      });
+    });
+
+    // Budget optimization opportunities
+    budgetOptimization.optimizationOpportunities
+      .filter(opp => opp.impact === 'high' || opp.potentialSavings > 50)
+      .forEach((opportunity, index) => {
+        alerts.push({
+          id: `optimization-${index}`,
+          type: opportunity.impact === 'high' ? 'warning' : 'info',
+          title: opportunity.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          message: `${opportunity.description}. Potential savings: ${formatCurrency(opportunity.potentialSavings)}`,
+          action: "Optimize Budget",
+          severity: opportunity.impact === 'high' ? 'high' : 'medium',
+        });
+      });
 
     // Budget utilization alerts
     if (spendingAnalysis) {
@@ -54,19 +86,6 @@ const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
             1
           )}%. Monitor spending closely.`,
           action: "Check Spending",
-          severity: "medium",
-        });
-      }
-
-      // Spending trend alerts
-      if (spendingAnalysis.budgetEfficiency < 75) {
-        alerts.push({
-          id: "spending-increase",
-          type: "warning",
-          title: "Increasing Spending Trend",
-          message:
-            "Your spending has been increasing compared to previous periods. Review recent purchases.",
-          action: "Analyze Trends",
           severity: "medium",
         });
       }

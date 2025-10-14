@@ -380,6 +380,306 @@ export class BudgetService {
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 10); // Top 10 expenses
   }
+
+  /**
+   * Calculate budget status with limits and alerts
+   */
+  static calculateBudgetStatus(
+    inventory: InventoryItem[],
+    projects: Project[],
+    budgetLimits?: { [category: string]: number },
+    totalBudgetLimit?: number
+  ): {
+    totalSpent: number;
+    totalBudgetLimit?: number;
+    remainingBudget?: number;
+    budgetUtilization?: number;
+    categoryStatus: Array<{
+      category: string;
+      spent: number;
+      limit?: number;
+      utilization?: number;
+      status: 'under' | 'near' | 'over';
+    }>;
+    alerts: Array<{
+      type: 'warning' | 'danger' | 'info';
+      category: string;
+      message: string;
+      currentSpending: number;
+      limit?: number;
+    }>;
+  } {
+    const spendingByCategory = this.calculateSpendingByCategory(inventory, projects);
+    const totalSpent = spendingByCategory.reduce((sum, cat) => sum + cat.amount, 0);
+    
+    const categoryStatus = spendingByCategory.map(({ category, amount }) => {
+      const limit = budgetLimits?.[category];
+      const utilization = limit ? (amount / limit) * 100 : undefined;
+      
+      let status: 'under' | 'near' | 'over' = 'under';
+      if (utilization !== undefined) {
+        if (utilization >= 100) status = 'over';
+        else if (utilization >= 80) status = 'near';
+      }
+      
+      return {
+        category,
+        spent: amount,
+        limit,
+        utilization,
+        status
+      };
+    });
+
+    const alerts = this.generateBudgetAlerts(inventory, projects, budgetLimits);
+    
+    return {
+      totalSpent,
+      totalBudgetLimit,
+      remainingBudget: totalBudgetLimit ? totalBudgetLimit - totalSpent : undefined,
+      budgetUtilization: totalBudgetLimit ? (totalSpent / totalBudgetLimit) * 100 : undefined,
+      categoryStatus,
+      alerts
+    };
+  }
+
+  /**
+   * Generate spending forecasts based on historical data
+   */
+  static generateSpendingForecast(
+    inventory: InventoryItem[],
+    projects: Project[],
+    forecastPeriodDays: number = 30
+  ): {
+    projectedSpending: number;
+    confidence: number;
+    breakdown: Array<{
+      category: string;
+      projectedAmount: number;
+      trend: 'increasing' | 'stable' | 'decreasing';
+    }>;
+  } {
+    const monthlyTrend = this.calculateMonthlyTrend(projects, inventory);
+    const spendingByCategory = this.calculateSpendingByCategory(inventory, projects);
+    
+    // Calculate average monthly spending
+    const averageMonthlySpending = monthlyTrend.length > 0 
+      ? monthlyTrend.reduce((sum, month) => sum + month.amount, 0) / monthlyTrend.length
+      : 0;
+    
+    // Project spending for the forecast period
+    const projectedSpending = (averageMonthlySpending / 30) * forecastPeriodDays;
+    
+    // Calculate confidence based on data consistency
+    const spendingVariance = monthlyTrend.length > 1 
+      ? monthlyTrend.reduce((sum, month) => sum + Math.pow(month.amount - averageMonthlySpending, 2), 0) / monthlyTrend.length
+      : 0;
+    const confidence = Math.max(0, Math.min(100, 100 - (spendingVariance / averageMonthlySpending) * 100));
+    
+    // Generate category breakdown with trends
+    const breakdown = spendingByCategory.map(({ category, amount, percentage }) => {
+      const categoryProjected = (projectedSpending * percentage) / 100;
+      
+      // Simple trend analysis based on recent vs older data
+      const recentMonths = monthlyTrend.slice(-3);
+      const olderMonths = monthlyTrend.slice(0, -3);
+      const recentAvg = recentMonths.length > 0 ? recentMonths.reduce((sum, m) => sum + m.amount, 0) / recentMonths.length : 0;
+      const olderAvg = olderMonths.length > 0 ? olderMonths.reduce((sum, m) => sum + m.amount, 0) / olderMonths.length : 0;
+      
+      let trend: 'increasing' | 'stable' | 'decreasing' = 'stable';
+      if (recentAvg > olderAvg * 1.1) trend = 'increasing';
+      else if (recentAvg < olderAvg * 0.9) trend = 'decreasing';
+      
+      return {
+        category,
+        projectedAmount: categoryProjected,
+        trend
+      };
+    });
+    
+    return {
+      projectedSpending,
+      confidence,
+      breakdown
+    };
+  }
+
+  /**
+   * Calculate return on investment for projects
+   */
+  static calculateProjectROI(
+    project: Project,
+    inventory: InventoryItem[]
+  ): {
+    totalInvestment: number;
+    estimatedValue: number;
+    roi: number;
+    paybackPeriod?: number;
+    riskLevel: 'low' | 'medium' | 'high';
+  } {
+    const projectCosts = this.calculateProjectCosts(project, inventory);
+    const totalInvestment = projectCosts.totalCost;
+    
+    // Estimate project value based on complexity and component quality
+    const componentCount = project.components.length;
+    const averageComponentValue = totalInvestment / Math.max(componentCount, 1);
+    
+    // Simple heuristic for project value estimation
+    let estimatedValue = totalInvestment * 1.2; // Base 20% value increase
+    
+    // Adjust based on project status
+    if (project.status === 'Completed') {
+      estimatedValue *= 1.5; // Completed projects have higher realized value
+    } else if (project.status === 'In Progress') {
+      estimatedValue *= 1.2; // In progress projects have some realized value
+    }
+    
+    // Adjust based on component diversity (more diverse = potentially more valuable)
+    const uniqueCategories = new Set(
+      project.components
+        .map(comp => inventory.find(item => item.id === comp.inventoryItemId)?.category)
+        .filter(Boolean)
+    ).size;
+    
+    if (uniqueCategories > 3) {
+      estimatedValue *= 1.3; // Multi-category projects often more valuable
+    }
+    
+    const roi = totalInvestment > 0 ? ((estimatedValue - totalInvestment) / totalInvestment) * 100 : 0;
+    
+    // Calculate risk level based on project complexity and investment size
+    let riskLevel: 'low' | 'medium' | 'high' = 'low';
+    if (totalInvestment > 500 || componentCount > 20) riskLevel = 'high';
+    else if (totalInvestment > 200 || componentCount > 10) riskLevel = 'medium';
+    
+    // Estimate payback period (simplified)
+    const paybackPeriod = roi > 0 ? (totalInvestment / (estimatedValue - totalInvestment)) * 12 : undefined; // months
+    
+    return {
+      totalInvestment,
+      estimatedValue,
+      roi,
+      paybackPeriod,
+      riskLevel
+    };
+  }
+
+  /**
+   * Generate budget optimization recommendations
+   */
+  static generateBudgetOptimization(
+    inventory: InventoryItem[],
+    projects: Project[],
+    budgetConstraints?: {
+      totalBudget?: number;
+      categoryLimits?: { [category: string]: number };
+      timeframe?: number; // days
+    }
+  ): {
+    currentEfficiency: number;
+    optimizationOpportunities: Array<{
+      type: 'reduce_waste' | 'bulk_purchase' | 'alternative_components' | 'project_prioritization';
+      description: string;
+      potentialSavings: number;
+      effort: 'low' | 'medium' | 'high';
+      impact: 'low' | 'medium' | 'high';
+    }>;
+    recommendedActions: string[];
+  } {
+    const spendingAnalysis = this.calculateSpendingAnalysis(inventory, projects);
+    const currentEfficiency = spendingAnalysis.budgetEfficiency;
+    
+    const optimizationOpportunities: Array<{
+      type: 'reduce_waste' | 'bulk_purchase' | 'alternative_components' | 'project_prioritization';
+      description: string;
+      potentialSavings: number;
+      effort: 'low' | 'medium' | 'high';
+      impact: 'low' | 'medium' | 'high';
+    }> = [];
+    
+    // Identify unused inventory waste
+    const unusedItems = inventory.filter(item => 
+      !projects.some(project => 
+        project.components.some(comp => comp.inventoryItemId === item.id)
+      )
+    );
+    
+    if (unusedItems.length > 0) {
+      const wasteValue = unusedItems.reduce((sum, item) => 
+        sum + (item.purchasePrice || 0) * item.quantity, 0
+      );
+      
+      optimizationOpportunities.push({
+        type: 'reduce_waste',
+        description: `${unusedItems.length} unused components worth ${wasteValue.toFixed(2)} could be utilized in future projects`,
+        potentialSavings: wasteValue * 0.8, // 80% of waste value could be recovered
+        effort: 'low',
+        impact: wasteValue > 100 ? 'high' : wasteValue > 50 ? 'medium' : 'low'
+      });
+    }
+    
+    // Identify bulk purchase opportunities
+    const lowQuantityItems = inventory.filter(item => 
+      item.quantity < 5 && (item.purchasePrice || 0) < 10
+    );
+    
+    if (lowQuantityItems.length > 5) {
+      const bulkSavings = lowQuantityItems.length * 2; // Estimated $2 savings per item
+      
+      optimizationOpportunities.push({
+        type: 'bulk_purchase',
+        description: `${lowQuantityItems.length} low-quantity items could benefit from bulk purchasing`,
+        potentialSavings: bulkSavings,
+        effort: 'medium',
+        impact: 'medium'
+      });
+    }
+    
+    // Identify expensive components that could have alternatives
+    const expensiveComponents = inventory.filter(item => 
+      (item.purchasePrice || 0) > 50
+    );
+    
+    if (expensiveComponents.length > 0) {
+      const alternativeSavings = expensiveComponents.reduce((sum, item) => 
+        sum + (item.purchasePrice || 0) * 0.2, 0 // Assume 20% savings with alternatives
+      );
+      
+      optimizationOpportunities.push({
+        type: 'alternative_components',
+        description: `${expensiveComponents.length} expensive components could have lower-cost alternatives`,
+        potentialSavings: alternativeSavings,
+        effort: 'high',
+        impact: alternativeSavings > 100 ? 'high' : 'medium'
+      });
+    }
+    
+    // Project prioritization recommendations
+    const incompleteProjects = projects.filter(p => p.status !== 'Completed');
+    if (incompleteProjects.length > 5) {
+      optimizationOpportunities.push({
+        type: 'project_prioritization',
+        description: `${incompleteProjects.length} incomplete projects could be prioritized to improve ROI`,
+        potentialSavings: 0, // Indirect savings through better resource utilization
+        effort: 'medium',
+        impact: 'high'
+      });
+    }
+    
+    // Generate recommended actions
+    const recommendedActions = [
+      ...spendingAnalysis.recommendations,
+      ...optimizationOpportunities
+        .filter(opp => opp.impact === 'high')
+        .map(opp => opp.description)
+    ].slice(0, 5);
+    
+    return {
+      currentEfficiency,
+      optimizationOpportunities: optimizationOpportunities.sort((a, b) => b.potentialSavings - a.potentialSavings),
+      recommendedActions
+    };
+  }
 }
 
 export default BudgetService;

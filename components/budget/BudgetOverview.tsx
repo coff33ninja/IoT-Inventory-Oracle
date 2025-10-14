@@ -2,6 +2,7 @@ import React from 'react';
 import { SpendingAnalysis } from '../../types';
 import { BudgetFilters } from '../BudgetManagementDashboard';
 import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
+import { useInventory } from '../../contexts/InventoryContext';
 import { 
   CurrencyDollarIcon,
   TrendingUpIcon,
@@ -31,6 +32,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
   onFiltersChange
 }) => {
   const { formatCurrency } = useCurrencyFormat();
+  const { getSpendingForecast, getBudgetOptimization } = useInventory();
   const getTrendIcon = (trend: 'increasing' | 'stable' | 'decreasing') => {
     switch (trend) {
       case 'increasing': return TrendingUpIcon;
@@ -58,6 +60,10 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
     if (utilization > 75) return 'Near Limit';
     return 'On Track';
   };
+
+  // Get real-time budget insights
+  const spendingForecast = getSpendingForecast(30);
+  const budgetOptimization = getBudgetOptimization();
 
   return (
     <div className="space-y-6">
@@ -209,7 +215,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Budget Insights */}
       <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
         <h4 className="text-lg font-semibold text-text-primary mb-4">Budget Insights</h4>
         <div className="space-y-3">
@@ -228,16 +234,33 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
               </div>
               
               <div className="flex items-start">
-                <div className="p-2 bg-green-900/20 rounded-lg mr-3">
-                  <CurrencyDollarIcon className="h-4 w-4 text-green-400" />
+                <div className="p-2 bg-blue-900/20 rounded-lg mr-3">
+                  <TrendingUpIcon className="h-4 w-4 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Spending Pattern</p>
+                  <p className="text-sm font-medium text-text-primary">Spending Forecast</p>
                   <p className="text-sm text-text-secondary">
-                    Budget efficiency: {spendingAnalysis.budgetEfficiency.toFixed(1)}%
+                    Projected next 30 days: {formatCurrency(spendingForecast.projectedSpending)} 
+                    ({spendingForecast.confidence.toFixed(0)}% confidence)
                   </p>
                 </div>
               </div>
+              
+              {budgetOptimization.optimizationOpportunities.length > 0 && (
+                <div className="flex items-start">
+                  <div className="p-2 bg-yellow-900/20 rounded-lg mr-3">
+                    <ExclamationTriangleIcon className="h-4 w-4 text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-text-primary">Optimization Opportunities</p>
+                    <p className="text-sm text-text-secondary">
+                      {budgetOptimization.optimizationOpportunities.length} opportunities to save up to {formatCurrency(
+                        budgetOptimization.optimizationOpportunities.reduce((sum, opp) => sum + opp.potentialSavings, 0)
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
               
               {spendingAnalysis.recommendations && spendingAnalysis.recommendations.length > 0 && (
                 <div className="flex items-start">

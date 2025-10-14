@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { SpendingAnalysis, Project, InventoryItem } from '../../types';
 import { useCurrencyFormat } from '../../hooks/useCurrencyFormat';
+import { useInventory } from '../../contexts/InventoryContext';
+import BudgetOptimizationPanel from './BudgetOptimizationPanel';
 import { 
   CalendarIcon,
   CurrencyDollarIcon,
   PlusIcon,
   XMarkIcon,
   ChartBarIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  LightBulbIcon
 } from '../icons/AnalyticsIcons';
 
 interface BudgetPlanningToolProps {
@@ -41,6 +44,7 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
   onBudgetUpdate
 }) => {
   const { formatCurrency } = useCurrencyFormat();
+  const { getBudgetStatus, getProjectROI } = useInventory();
   const [budgetPlan, setBudgetPlan] = useState<BudgetPlan>({
     totalBudget: 1000,
     timeframe: 'monthly',
@@ -58,6 +62,7 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
   });
 
   const [showProjectForm, setShowProjectForm] = useState(false);
+  const [showOptimization, setShowOptimization] = useState(false);
   const [newComponent, setNewComponent] = useState({ name: '', quantity: 1, estimatedPrice: 0 });
 
   const categories = Array.from(new Set([
@@ -173,6 +178,14 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
 
   const categorySpending = getCategorySpending();
   const budgetUtilization = getBudgetUtilization();
+  
+  // Get real budget status with current limits
+  const budgetLimits = budgetPlan.categoryLimits.reduce((acc, limit) => {
+    acc[limit.category] = limit.limit;
+    return acc;
+  }, {} as { [category: string]: number });
+  
+  const budgetStatus = getBudgetStatus(budgetLimits, budgetPlan.totalBudget);
 
   return (
     <div className="space-y-6">
@@ -317,13 +330,24 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
       <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-lg font-semibold text-text-primary">Planned Projects</h4>
-          <button
-            onClick={() => setShowProjectForm(true)}
-            className="flex items-center px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-          >
-            <PlusIcon className="h-4 w-4 mr-1" />
-            Add Project
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={() => setShowOptimization(!showOptimization)}
+              className="flex items-center px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              <LightBulbIcon className="h-4 w-4 mr-1" />
+              {showOptimization ? 'Hide' : 'Show'} Optimization
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowProjectForm(true)}
+              className="flex items-center px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              <PlusIcon className="h-4 w-4 mr-1" />
+              Add Project
+            </button>
+          </div>
         </div>
         
         {budgetPlan.plannedProjects.length === 0 ? (
@@ -551,6 +575,40 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
         </div>
       )}
 
+      {/* Budget Optimization Panel */}
+      {showOptimization && (
+        <BudgetOptimizationPanel className="mb-6" />
+      )}
+
+      {/* Budget Status Alerts */}
+      {budgetStatus.alerts.length > 0 && (
+        <div className="bg-secondary p-6 rounded-lg shadow border border-border-color mb-6">
+          <h4 className="text-lg font-semibold text-text-primary mb-4">Budget Alerts</h4>
+          <div className="space-y-3">
+            {budgetStatus.alerts.slice(0, 5).map((alert, index) => (
+              <div key={index} className={`p-3 rounded-lg border ${
+                alert.type === 'danger' ? 'bg-red-900/20 border-red-500/20 text-red-400' :
+                alert.type === 'warning' ? 'bg-yellow-900/20 border-yellow-500/20 text-yellow-400' :
+                'bg-blue-900/20 border-blue-500/20 text-blue-400'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{alert.category}</p>
+                    <p className="text-sm opacity-90">{alert.message}</p>
+                  </div>
+                  {alert.limit && (
+                    <div className="text-right text-sm">
+                      <div>{formatCurrency(alert.currentSpending)}</div>
+                      <div className="opacity-75">of {formatCurrency(alert.limit)}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Budget Recommendations */}
       <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-4">
         <div className="flex items-start">
@@ -562,6 +620,7 @@ const BudgetPlanningTool: React.FC<BudgetPlanningToolProps> = ({
               <li>Include a 10-20% buffer for unexpected costs</li>
               <li>Prioritize projects based on importance and urgency</li>
               <li>Review and adjust budgets regularly</li>
+              <li>Use the optimization panel to identify cost-saving opportunities</li>
             </ul>
           </div>
         </div>
