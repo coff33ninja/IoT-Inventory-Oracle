@@ -1,5 +1,5 @@
 import { InventoryItem, Project, ItemStatus, AiInsights, MarketDataItem, ChatMessage, ComponentAlternative, ComponentPrediction, ComponentSuggestion, PersonalizedRecommendation, CompatibilityAnalysis, ProjectContext, UserPreferences } from '../types';
-import { ChatConversation, ChatContext } from './chatService';
+import { ChatConversation, ChatContext } from './clientChatService';
 import { RecommendationPreferences } from '../components/RecommendationSettingsPanel';
 
 const API_BASE_URL = 'http://localhost:3001/api';

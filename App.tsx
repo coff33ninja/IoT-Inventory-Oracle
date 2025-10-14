@@ -12,6 +12,7 @@ import TechnicalDocumentationHub from "./components/TechnicalDocumentationHub";
 import AddItemModal from "./components/AddItemModal";
 import { PlusIcon } from "./components/icons/PlusIcon";
 import { useInventory } from "./contexts/InventoryContext";
+import { useServiceInitialization } from "./hooks/useServiceInitialization";
 
 type View =
   | "inventory"
@@ -26,6 +27,9 @@ type View =
 const App: React.FC = () => {
   const { inventory, addItem, updateItem, addProject, projects } =
     useInventory();
+  
+  // Initialize services on app startup
+  useServiceInitialization();
   const [currentView, setCurrentView] = useState<View>("inventory");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | undefined>(

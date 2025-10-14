@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChatConversation } from '../services/chatService';
+import { ChatConversation } from '../services/clientChatService';
 import { TrashIcon } from './icons/TrashIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';

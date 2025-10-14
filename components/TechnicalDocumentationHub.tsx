@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useInventory } from '../contexts/InventoryContext';
-import { InventoryItem } from '../types';
-import DatasheetViewer from './technical/DatasheetViewer';
-import PinoutGenerator from './technical/PinoutGenerator';
-import SchematicGenerator from './technical/SchematicGenerator';
-import TechnicalSpecsPanel from './technical/TechnicalSpecsPanel';
-import DocumentationSearch from './technical/DocumentationSearch';
-import { 
+import React, { useState, useEffect } from "react";
+import { useInventory } from "../contexts/InventoryContext";
+import { InventoryItem } from "../types";
+import DatasheetViewer from "./technical/DatasheetViewer";
+import PinoutGenerator from "./technical/PinoutGenerator";
+import SchematicGenerator from "./technical/SchematicGenerator";
+import TechnicalSpecsPanel from "./technical/TechnicalSpecsPanel";
+import DocumentationSearch from "./technical/DocumentationSearch";
+import {
   DocumentTextIcon,
   CpuChipIcon,
   CircuitBoardIcon,
   MagnifyingGlassIcon,
   LinkIcon,
-  DocumentArrowDownIcon
-} from './icons/AnalyticsIcons';
+  DocumentArrowDownIcon,
+} from "./icons/AnalyticsIcons";
 
 interface TechnicalDocumentationHubProps {
   className?: string;
@@ -22,7 +22,13 @@ interface TechnicalDocumentationHubProps {
 export interface TechnicalDocument {
   id: string;
   componentId: string;
-  type: 'datasheet' | 'manual' | 'schematic' | 'pinout' | 'example' | 'tutorial';
+  type:
+    | "datasheet"
+    | "manual"
+    | "schematic"
+    | "pinout"
+    | "example"
+    | "tutorial";
   title: string;
   url: string;
   description?: string;
@@ -56,23 +62,35 @@ export interface ComponentSpecification {
 export interface PinConfiguration {
   pin: number | string;
   name: string;
-  type: 'input' | 'output' | 'bidirectional' | 'power' | 'ground' | 'analog' | 'digital';
+  type:
+    | "input"
+    | "output"
+    | "bidirectional"
+    | "power"
+    | "ground"
+    | "analog"
+    | "digital";
   voltage?: number;
   description?: string;
   alternateFunction?: string;
 }
 
-const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({ 
-  className = '' 
+const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
+  className = "",
 }) => {
   const { inventory } = useInventory();
-  
-  const [activeTab, setActiveTab] = useState<'search' | 'datasheets' | 'pinouts' | 'schematics' | 'specs'>('search');
-  const [selectedComponent, setSelectedComponent] = useState<InventoryItem | null>(null);
+
+  const [activeTab, setActiveTab] = useState<
+    "search" | "datasheets" | "pinouts" | "schematics" | "specs"
+  >("search");
+  const [selectedComponent, setSelectedComponent] =
+    useState<InventoryItem | null>(null);
   const [documents, setDocuments] = useState<TechnicalDocument[]>([]);
-  const [specifications, setSpecifications] = useState<ComponentSpecification[]>([]);
+  const [specifications, setSpecifications] = useState<
+    ComponentSpecification[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     loadTechnicalData();
@@ -81,21 +99,56 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
   const loadTechnicalData = async () => {
     setIsLoading(true);
     try {
+      // First check if API server is running
+      const healthCheck = await fetch("/api/health").catch(() => null);
+      if (!healthCheck || !healthCheck.ok) {
+        console.error(
+          "API server is not responding. Make sure to run: npm run dev:full"
+        );
+        setDocuments([]);
+        setSpecifications([]);
+        setIsLoading(false);
+        return;
+      }
+
       // Load technical documentation from API
       const [documentsResponse, specificationsResponse] = await Promise.all([
-        fetch('/api/technical/documents'),
-        fetch('/api/technical/specifications')
+        fetch("/api/technical/documents"),
+        fetch("/api/technical/specifications"),
       ]);
-      
+
       if (documentsResponse.ok && specificationsResponse.ok) {
-        const documentsData = await documentsResponse.json();
-        const specificationsData = await specificationsResponse.json();
-        
-        setDocuments(documentsData);
-        setSpecifications(specificationsData);
+        try {
+          const documentsData = await documentsResponse.json();
+          const specificationsData = await specificationsResponse.json();
+
+          setDocuments(documentsData);
+          setSpecifications(specificationsData);
+        } catch (jsonError) {
+          console.error("Failed to parse JSON response:", jsonError);
+          // Fallback to empty arrays if JSON parsing fails
+          setDocuments([]);
+          setSpecifications([]);
+        }
+      } else {
+        console.error("API request failed:", {
+          documentsStatus: documentsResponse.status,
+          specificationsStatus: specificationsResponse.status,
+        });
+        // Fallback to empty arrays if API fails
+        setDocuments([]);
+        setSpecifications([]);
       }
     } catch (error) {
-      console.error('Failed to load technical data:', error);
+      console.error("Failed to load technical data:", error);
+
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        console.error(
+          "Network error - is the API server running on port 3001?"
+        );
+      }
+
       // Fallback to empty arrays if API fails
       setDocuments([]);
       setSpecifications([]);
@@ -104,29 +157,28 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
     }
   };
 
-
-
   const getDocumentsForComponent = (componentId: string) => {
-    return documents.filter(doc => doc.componentId === componentId);
+    return documents.filter((doc) => doc.componentId === componentId);
   };
 
   const getSpecificationForComponent = (componentId: string) => {
-    return specifications.find(spec => spec.componentId === componentId);
+    return specifications.find((spec) => spec.componentId === componentId);
   };
 
   const handleComponentSelect = (component: InventoryItem) => {
     setSelectedComponent(component);
   };
 
-  const filteredInventory = inventory.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredInventory = inventory.filter(
+    (item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'search':
+      case "search":
         return (
           <DocumentationSearch
             inventory={filteredInventory}
@@ -136,47 +188,53 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
             onSearchChange={setSearchQuery}
           />
         );
-        
-      case 'datasheets':
+
+      case "datasheets":
         return (
           <DatasheetViewer
             selectedComponent={selectedComponent}
-            documents={getDocumentsForComponent(selectedComponent?.id || '')}
+            documents={getDocumentsForComponent(selectedComponent?.id || "")}
             onComponentSelect={handleComponentSelect}
             inventory={inventory}
           />
         );
-        
-      case 'pinouts':
+
+      case "pinouts":
         return (
           <PinoutGenerator
             selectedComponent={selectedComponent}
-            specification={getSpecificationForComponent(selectedComponent?.id || '')}
+            specification={getSpecificationForComponent(
+              selectedComponent?.id || ""
+            )}
             onComponentSelect={handleComponentSelect}
             inventory={inventory}
           />
         );
-        
-      case 'schematics':
+
+      case "schematics":
         return (
           <SchematicGenerator
             selectedComponent={selectedComponent}
-            specification={getSpecificationForComponent(selectedComponent?.id || '')}
+            specification={getSpecificationForComponent(
+              selectedComponent?.id || ""
+            )}
             onComponentSelect={handleComponentSelect}
             inventory={inventory}
           />
         );
-        
-      case 'specs':
+
+      case "specs":
         return (
           <TechnicalSpecsPanel
             selectedComponent={selectedComponent}
-            specification={getSpecificationForComponent(selectedComponent?.id || '')}
+            specification={getSpecificationForComponent(
+              selectedComponent?.id || ""
+            )}
             onComponentSelect={handleComponentSelect}
             inventory={inventory}
           />
         );
-        
+
       default:
         return null;
     }
@@ -192,14 +250,16 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
               <DocumentTextIcon className="h-8 w-8 text-green-500 mr-3" />
               Technical Documentation
             </h1>
-            <p className="text-text-secondary">Access datasheets, pinouts, schematics, and technical specifications</p>
+            <p className="text-text-secondary">
+              Access datasheets, pinouts, schematics, and technical
+              specifications
+            </p>
           </div>
           <button
             type="button"
             onClick={loadTechnicalData}
             disabled={isLoading}
-            className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center"
-          >
+            className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center">
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -223,8 +283,12 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
               <DocumentTextIcon className="h-6 w-6 text-blue-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-text-secondary">Total Documents</p>
-              <p className="text-2xl font-semibold text-text-primary">{documents.length}</p>
+              <p className="text-sm font-medium text-text-secondary">
+                Total Documents
+              </p>
+              <p className="text-2xl font-semibold text-text-primary">
+                {documents.length}
+              </p>
               <p className="text-xs text-text-secondary">Available resources</p>
             </div>
           </div>
@@ -236,8 +300,12 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
               <CpuChipIcon className="h-6 w-6 text-green-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-text-secondary">Components</p>
-              <p className="text-2xl font-semibold text-text-primary">{specifications.length}</p>
+              <p className="text-sm font-medium text-text-secondary">
+                Components
+              </p>
+              <p className="text-2xl font-semibold text-text-primary">
+                {specifications.length}
+              </p>
               <p className="text-xs text-text-secondary">With specifications</p>
             </div>
           </div>
@@ -249,9 +317,14 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
               <CircuitBoardIcon className="h-6 w-6 text-purple-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-text-secondary">Pinout Diagrams</p>
+              <p className="text-sm font-medium text-text-secondary">
+                Pinout Diagrams
+              </p>
               <p className="text-2xl font-semibold text-text-primary">
-                {specifications.filter(s => s.pinout && s.pinout.length > 0).length}
+                {
+                  specifications.filter((s) => s.pinout && s.pinout.length > 0)
+                    .length
+                }
               </p>
               <p className="text-xs text-text-secondary">Available</p>
             </div>
@@ -264,9 +337,11 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
               <LinkIcon className="h-6 w-6 text-yellow-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-text-secondary">External Links</p>
+              <p className="text-sm font-medium text-text-secondary">
+                External Links
+              </p>
               <p className="text-2xl font-semibold text-text-primary">
-                {documents.filter(d => d.url.startsWith('http')).length}
+                {documents.filter((d) => d.url.startsWith("http")).length}
               </p>
               <p className="text-xs text-text-secondary">To resources</p>
             </div>
@@ -278,21 +353,24 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
       <div className="mb-6">
         <nav className="flex space-x-8 border-b border-border-color">
           {[
-            { id: 'search', label: 'Search & Browse', icon: MagnifyingGlassIcon },
-            { id: 'datasheets', label: 'Datasheets', icon: DocumentTextIcon },
-            { id: 'pinouts', label: 'Pinout Diagrams', icon: CpuChipIcon },
-            { id: 'schematics', label: 'Schematics', icon: CircuitBoardIcon },
-            { id: 'specs', label: 'Specifications', icon: DocumentTextIcon }
-          ].map(tab => (
+            {
+              id: "search",
+              label: "Search & Browse",
+              icon: MagnifyingGlassIcon,
+            },
+            { id: "datasheets", label: "Datasheets", icon: DocumentTextIcon },
+            { id: "pinouts", label: "Pinout Diagrams", icon: CpuChipIcon },
+            { id: "schematics", label: "Schematics", icon: CircuitBoardIcon },
+            { id: "specs", label: "Specifications", icon: DocumentTextIcon },
+          ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
-                  ? 'border-accent text-accent'
-                  : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border-color'
-              }`}
-            >
+                  ? "border-accent text-accent"
+                  : "border-transparent text-text-secondary hover:text-text-primary hover:border-border-color"
+              }`}>
               <tab.icon className="h-5 w-5 mr-2" />
               {tab.label}
             </button>
@@ -306,7 +384,9 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
-              <p className="text-text-secondary">Loading technical documentation...</p>
+              <p className="text-text-secondary">
+                Loading technical documentation...
+              </p>
             </div>
           </div>
         ) : (
@@ -319,12 +399,19 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
         <div className="flex items-start">
           <DocumentTextIcon className="h-5 w-5 text-blue-400 mr-2 mt-0.5" />
           <div className="text-sm text-text-primary">
-            <p className="font-medium mb-1 text-blue-300">Technical Documentation Features:</p>
+            <p className="font-medium mb-1 text-blue-300">
+              Technical Documentation Features:
+            </p>
             <ul className="list-disc list-inside space-y-1 text-text-secondary">
               <li>Search and browse component documentation and datasheets</li>
-              <li>View and generate pinout diagrams with detailed pin descriptions</li>
+              <li>
+                View and generate pinout diagrams with detailed pin descriptions
+              </li>
               <li>Access schematic symbols and connection diagrams</li>
-              <li>Browse detailed technical specifications and operating conditions</li>
+              <li>
+                Browse detailed technical specifications and operating
+                conditions
+              </li>
               <li>Link to external resources, code examples, and tutorials</li>
             </ul>
           </div>

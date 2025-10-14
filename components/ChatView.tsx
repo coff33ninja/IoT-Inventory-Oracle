@@ -20,7 +20,7 @@ import { ChatIcon } from "./icons/ChatIcon";
 import { ProjectsIcon } from "./icons/ProjectsIcon";
 import { PaperclipIcon } from "./icons/PaperclipIcon";
 import apiClient from "../services/apiClient";
-import { ChatConversation } from "../services/chatService";
+import { ChatConversation } from "../services/clientChatService";
 import ChatHistorySidebar from "./ChatHistorySidebar";
 
 interface ChatViewProps {

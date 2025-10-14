@@ -780,9 +780,11 @@ app.post("/api/recommendations/batch/alternatives", async (req, res) => {
 app.get("/api/technical/documents", async (req, res) => {
   try {
     const documents = await technicalDocService.getTechnicalDocuments();
+    res.setHeader('Content-Type', 'application/json');
     res.json(documents);
   } catch (error) {
     console.error('Failed to get technical documents:', error);
+    res.setHeader('Content-Type', 'application/json');
     res.status(500).json({ 
       error: "Failed to get technical documents",
       fallback: []
@@ -793,9 +795,11 @@ app.get("/api/technical/documents", async (req, res) => {
 app.get("/api/technical/specifications", async (req, res) => {
   try {
     const specifications = await technicalDocService.getTechnicalSpecifications();
+    res.setHeader('Content-Type', 'application/json');
     res.json(specifications);
   } catch (error) {
     console.error('Failed to get technical specifications:', error);
+    res.setHeader('Content-Type', 'application/json');
     res.status(500).json({ 
       error: "Failed to get technical specifications",
       fallback: []
@@ -870,6 +874,18 @@ app.use('/api/recommendations', handleRecommendationError);
 app.use('/api/analytics', handleRecommendationError);
 app.use('/api/predictions', handleRecommendationError);
 app.use('/api/preferences', handleRecommendationError);
+
+// User currency preference endpoint
+app.post("/api/user/currency", (req, res) => {
+  try {
+    const { currency } = req.body;
+    // In a real app, you'd save this to user preferences
+    // For now, just acknowledge the request
+    res.json({ success: true, currency });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update currency preference" });
+  }
+});
 
 // Health check endpoint
 app.get("/health", (req, res) => {

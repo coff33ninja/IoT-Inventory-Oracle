@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CURRENCIES, DEFAULT_CURRENCY, formatCurrency, parseCurrency, convertCurrency, Currency } from '../constants/currencies';
-import { getCurrencyAwareServiceManager } from '../services/currencyAwareServices';
 
 interface CurrencyContextType {
   currentCurrency: string;
@@ -38,15 +37,16 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
     }
   }, []);
 
-  // Notify service manager when currency changes
+  // Notify backend about currency changes via API
   useEffect(() => {
-    try {
-      const serviceManager = getCurrencyAwareServiceManager();
-      serviceManager.setUserCurrency(currentCurrency);
-    } catch (error) {
-      // Service manager not initialized yet, that's okay
-      console.debug('Service manager not initialized yet');
-    }
+    // Send currency preference to backend
+    fetch('/api/user/currency', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currency: currentCurrency })
+    }).catch(() => {
+      // Silently ignore API errors during initialization
+    });
   }, [currentCurrency]);
 
   const setCurrency = (currencyCode: string) => {
@@ -54,14 +54,14 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
       setCurrentCurrency(currencyCode);
       localStorage.setItem(CURRENCY_STORAGE_KEY, currencyCode);
       
-      // Update service manager with new currency
-      try {
-        const serviceManager = getCurrencyAwareServiceManager();
-        serviceManager.setUserCurrency(currencyCode);
-      } catch (error) {
-        // Service manager not initialized yet, that's okay
-        console.debug('Service manager not initialized yet');
-      }
+      // Update backend with new currency
+      fetch('/api/user/currency', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currency: currencyCode })
+      }).catch(() => {
+        // Silently ignore API errors
+      });
     } else {
       console.warn(`Invalid currency code: ${currencyCode}`);
     }
