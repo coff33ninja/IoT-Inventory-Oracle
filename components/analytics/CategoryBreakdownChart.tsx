@@ -193,7 +193,7 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                         key={`chart-item-${item.category}`}
                         className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
                           selectedCategory === item.category 
-                            ? 'bg-green-50 border border-green-200' 
+                            ? 'bg-green-500/10 border border-green-500/20' 
                             : 'hover:bg-primary'
                         }`}
                         onClick={() => setSelectedCategory(
@@ -342,8 +342,8 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
           {/* Summary Stats */}
           <div className="mt-6 pt-4 border-t border-border-color">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                <div className="text-2xl font-bold text-green-600">{data.length}</div>
+              <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                <div className="text-2xl font-bold text-green-400">{data.length}</div>
                 <div className="text-sm text-text-secondary">Categories</div>
               </div>
               <div className="p-3 bg-primary rounded-lg border border-border-color">

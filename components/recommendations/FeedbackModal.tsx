@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { PersonalizedRecommendation } from '../../types';
-import { 
+import React, { useState } from "react";
+import { PersonalizedRecommendation } from "../../types";
+import {
   XMarkIcon,
   HandThumbUpIcon,
   HandThumbDownIcon,
   StarIcon,
-  ChatBubbleLeftIcon
-} from '../icons/AnalyticsIcons';
+  ChatBubbleLeftIcon,
+} from "../icons/AnalyticsIcons";
 
 interface FeedbackModalProps {
   recommendation: PersonalizedRecommendation;
@@ -24,63 +24,63 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
   recommendation,
   isOpen,
   onClose,
-  onSubmit
+  onSubmit,
 }) => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [helpful, setHelpful] = useState<boolean | null>(null);
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const feedbackReasons = [
-    'Relevant to my projects',
-    'Good price point',
-    'Appropriate difficulty level',
-    'Clear explanation',
-    'Matches my preferences',
-    'Not relevant to me',
-    'Too expensive',
-    'Wrong difficulty level',
-    'Poor explanation',
-    'Already have this',
-    'Not interested in this type',
-    'Recommendation seems random'
+    "Relevant to my projects",
+    "Good price point",
+    "Appropriate difficulty level",
+    "Clear explanation",
+    "Matches my preferences",
+    "Not relevant to me",
+    "Too expensive",
+    "Wrong difficulty level",
+    "Poor explanation",
+    "Already have this",
+    "Not interested in this type",
+    "Recommendation seems random",
   ];
 
   const handleReasonToggle = (reason: string) => {
-    setSelectedReasons(prev => 
+    setSelectedReasons((prev) =>
       prev.includes(reason)
-        ? prev.filter(r => r !== reason)
+        ? prev.filter((r) => r !== reason)
         : [...prev, reason]
     );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (helpful === null || rating === 0) {
       return; // Don't submit if required fields are missing
     }
 
     setIsSubmitting(true);
-    
+
     try {
       await onSubmit({
         rating,
         comment,
         helpful,
-        reasons: selectedReasons
+        reasons: selectedReasons,
       });
-      
+
       // Reset form
       setRating(0);
       setHoveredRating(0);
-      setComment('');
+      setComment("");
       setHelpful(null);
       setSelectedReasons([]);
     } catch (error) {
-      console.error('Failed to submit feedback:', error);
+      console.error("Failed to submit feedback:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +90,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
     // Reset form when closing
     setRating(0);
     setHoveredRating(0);
-    setComment('');
+    setComment("");
     setHelpful(null);
     setSelectedReasons([]);
     onClose();
@@ -101,16 +101,21 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={handleClose} />
-      
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        onClick={handleClose}
+      />
+
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-secondary rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border-color">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-border-color">
             <div className="flex items-center">
               <ChatBubbleLeftIcon className="h-6 w-6 text-blue-500 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Recommendation Feedback</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Recommendation Feedback
+              </h3>
             </div>
             <button
               onClick={handleClose}
@@ -124,9 +129,13 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
           {/* Content */}
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Recommendation Summary */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">{recommendation.title}</h4>
-              <p className="text-sm text-gray-600 line-clamp-2">{recommendation.description}</p>
+            <div className="bg-primary border border-border-color p-4 rounded-lg">
+              <h4 className="font-medium text-text-primary mb-2">
+                {recommendation.title}
+              </h4>
+              <p className="text-sm text-text-secondary line-clamp-2">
+                {recommendation.description}
+              </p>
               <div className="mt-2 flex items-center space-x-2">
                 <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                   {recommendation.type}
@@ -139,7 +148,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
             {/* Helpful Question */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-text-primary mb-3">
                 Was this recommendation helpful?
               </label>
               <div className="flex items-center space-x-4">
@@ -148,8 +157,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
                   onClick={() => setHelpful(true)}
                   className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
                     helpful === true
-                      ? 'bg-green-100 text-green-800 border-green-300'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? "bg-green-500/10 text-green-400 border-green-500/20"
+                      : "bg-primary text-text-primary border-border-color hover:bg-secondary"
                   }`}
                 >
                   <HandThumbUpIcon className="h-4 w-4 mr-2" />
@@ -160,8 +169,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
                   onClick={() => setHelpful(false)}
                   className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
                     helpful === false
-                      ? 'bg-red-100 text-red-800 border-red-300'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? "bg-red-500/10 text-red-400 border-red-500/20"
+                      : "bg-primary text-text-primary border-border-color hover:bg-secondary"
                   }`}
                 >
                   <HandThumbDownIcon className="h-4 w-4 mr-2" />
@@ -172,7 +181,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
             {/* Rating */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-text-primary mb-3">
                 Rate this recommendation (1-5 stars)
               </label>
               <div className="flex items-center space-x-1">
@@ -184,20 +193,20 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
                     onMouseEnter={() => setHoveredRating(star)}
                     onMouseLeave={() => setHoveredRating(0)}
                     className="text-2xl transition-colors focus:outline-none"
-                    aria-label={`Rate ${star} star${star !== 1 ? 's' : ''}`}
+                    aria-label={`Rate ${star} star${star !== 1 ? "s" : ""}`}
                   >
-                    <StarIcon 
+                    <StarIcon
                       className={`h-8 w-8 ${
                         star <= (hoveredRating || rating)
-                          ? 'text-yellow-400 fill-current'
-                          : 'text-gray-300'
+                          ? "text-yellow-400 fill-current"
+                          : "text-gray-300"
                       }`}
                     />
                   </button>
                 ))}
                 {rating > 0 && (
                   <span className="ml-2 text-sm text-gray-600">
-                    {rating} star{rating !== 1 ? 's' : ''}
+                    {rating} star{rating !== 1 ? "s" : ""}
                   </span>
                 )}
               </div>
@@ -205,7 +214,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
             {/* Reasons */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-text-primary mb-3">
                 Why do you feel this way? (Select all that apply)
               </label>
               <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
@@ -217,7 +226,9 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
                       onChange={() => handleReasonToggle(reason)}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="ml-2 text-sm text-gray-700">{reason}</span>
+                    <span className="ml-2 text-sm text-text-primary">
+                      {reason}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -225,7 +236,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
             {/* Comment */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Additional comments (optional)
               </label>
               <textarea
@@ -242,7 +253,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-text-primary bg-primary border border-border-color rounded-lg hover:bg-secondary transition-colors"
               >
                 Cancel
               </button>
@@ -257,16 +268,17 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
                     Submitting...
                   </>
                 ) : (
-                  'Submit Feedback'
+                  "Submit Feedback"
                 )}
               </button>
             </div>
           </form>
 
           {/* Footer */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-            <p className="text-xs text-gray-500 text-center">
-              Your feedback helps us improve our recommendation system. Thank you!
+          <div className="px-6 py-4 bg-primary border-t border-border-color rounded-b-lg">
+            <p className="text-xs text-text-secondary text-center">
+              Your feedback helps us improve our recommendation system. Thank
+              you!
             </p>
           </div>
         </div>

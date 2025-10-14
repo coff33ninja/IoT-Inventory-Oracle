@@ -135,7 +135,7 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
     const percentage = getTotalAmount() > 0 ? (amount / getTotalAmount()) * 100 : 0;
     
     return (
-      <div key={item.category || item.name || item.id || index} className="p-4 bg-gray-50 rounded-lg">
+      <div key={item.category || item.name || item.id || index} className="p-4 bg-primary rounded-lg">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center">
             <div 
@@ -152,7 +152,7 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
           </div>
         </div>
         
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+        <div className="w-full bg-secondary rounded-full h-2 mb-3">
           <div 
             className="h-2 rounded-full transition-all duration-300"
             style={{ 
@@ -304,7 +304,7 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
           </h4>
           <div className="space-y-4">
             {spendingAnalysis.recommendations.slice(0, 5).map((recommendation, index) => (
-              <div key={index} className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div key={index} className="p-4 bg-green-900/20 rounded-lg border border-green-700/30">
                 <p className="text-sm text-text-primary">{recommendation}</p>
               </div>
             ))}
@@ -315,12 +315,12 @@ const CostBreakdownView: React.FC<CostBreakdownViewProps> = ({
       )}
 
       {/* Insights */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-4">
         <div className="flex items-start">
           <InformationCircleIcon className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
-          <div className="text-sm text-blue-700">
+          <div className="text-sm text-blue-300">
             <p className="font-medium mb-1">Cost Breakdown Insights:</p>
-            <ul className="list-disc list-inside space-y-1 text-blue-600">
+            <ul className="list-disc list-inside space-y-1 text-blue-400">
               <li>Use category breakdown to identify spending patterns</li>
               <li>Project breakdown helps track individual project costs</li>
               <li>Component breakdown shows which parts are most expensive</li>

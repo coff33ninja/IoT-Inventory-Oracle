@@ -219,8 +219,8 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-green-50">
-              <DocumentTextIcon className="h-6 w-6 text-green-600" />
+            <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <DocumentTextIcon className="h-6 w-6 text-blue-400" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-text-secondary">Total Documents</p>
@@ -232,8 +232,8 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
 
         <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-green-50">
-              <CpuChipIcon className="h-6 w-6 text-green-600" />
+            <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20">
+              <CpuChipIcon className="h-6 w-6 text-green-400" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-text-secondary">Components</p>
@@ -245,8 +245,8 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
 
         <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-green-50">
-              <CircuitBoardIcon className="h-6 w-6 text-green-600" />
+            <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+              <CircuitBoardIcon className="h-6 w-6 text-purple-400" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-text-secondary">Pinout Diagrams</p>
@@ -260,8 +260,8 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
 
         <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-yellow-50">
-              <LinkIcon className="h-6 w-6 text-yellow-600" />
+            <div className="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+              <LinkIcon className="h-6 w-6 text-yellow-400" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-text-secondary">External Links</p>
@@ -315,12 +315,12 @@ const TechnicalDocumentationHub: React.FC<TechnicalDocumentationHubProps> = ({
       </div>
 
       {/* Help Section */}
-      <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div className="mt-8 p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
         <div className="flex items-start">
-          <DocumentTextIcon className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-          <div className="text-sm text-green-700">
-            <p className="font-medium mb-1">Technical Documentation Features:</p>
-            <ul className="list-disc list-inside space-y-1 text-green-600">
+          <DocumentTextIcon className="h-5 w-5 text-blue-400 mr-2 mt-0.5" />
+          <div className="text-sm text-text-primary">
+            <p className="font-medium mb-1 text-blue-300">Technical Documentation Features:</p>
+            <ul className="list-disc list-inside space-y-1 text-text-secondary">
               <li>Search and browse component documentation and datasheets</li>
               <li>View and generate pinout diagrams with detailed pin descriptions</li>
               <li>Access schematic symbols and connection diagrams</li>

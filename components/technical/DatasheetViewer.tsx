@@ -305,9 +305,9 @@ const DatasheetViewer: React.FC<DatasheetViewerProps> = ({
       )}
 
       {/* Auto-parsing Info */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-4">
         <div className="flex items-start">
-          <DocumentTextIcon className="h-5 w-5 text-yellow-500 mr-2 mt-0.5" />
+          <DocumentTextIcon className="h-5 w-5 text-yellow-400 mr-2 mt-0.5" />
           <div className="text-sm text-yellow-700">
             <p className="font-medium mb-1">Automatic Datasheet Parsing:</p>
             <ul className="list-disc list-inside space-y-1 text-yellow-600">

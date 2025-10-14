@@ -282,7 +282,7 @@ const PinoutGenerator: React.FC<PinoutGeneratorProps> = ({
                         <tr
                           key={pin.pin}
                           className={`hover:bg-primary cursor-pointer ${
-                            selectedPin?.pin === pin.pin ? 'bg-green-50 border border-green-200' : ''
+                            selectedPin?.pin === pin.pin ? 'bg-green-500/10 border border-green-500/20' : ''
                           }`}
                           onClick={() => setSelectedPin(pin)}
                         >
@@ -367,9 +367,9 @@ const PinoutGenerator: React.FC<PinoutGeneratorProps> = ({
       )}
 
       {/* Help Section */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+      <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-4">
         <div className="flex items-start">
-          <InformationCircleIcon className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+          <InformationCircleIcon className="h-5 w-5 text-green-400 mr-2 mt-0.5" />
           <div className="text-sm text-green-700">
             <p className="font-medium mb-1">Pinout Generator Features:</p>
             <ul className="list-disc list-inside space-y-1 text-green-600">

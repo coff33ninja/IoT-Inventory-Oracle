@@ -85,16 +85,16 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <ChartBarIcon className="h-6 w-6 text-gray-500 mr-2" />
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <ChartBarIcon className="h-6 w-6 text-text-secondary mr-2" />
+          <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setViewMode('chart')}
             className={`px-3 py-1 rounded text-sm font-medium ${
               viewMode === 'chart' 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                : 'bg-primary text-text-primary border border-border-color hover:bg-secondary'
             }`}
           >
             Chart
@@ -103,8 +103,8 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
             onClick={() => setViewMode('table')}
             className={`px-3 py-1 rounded text-sm font-medium ${
               viewMode === 'table' 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                : 'bg-primary text-text-primary border border-border-color hover:bg-secondary'
             }`}
           >
             Table
@@ -114,8 +114,8 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
 
       {data.length === 0 ? (
         <div className="text-center py-12">
-          <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">No usage data available</p>
+          <ChartBarIcon className="h-12 w-12 text-text-secondary mx-auto mb-4" />
+          <p className="text-text-secondary">No usage data available</p>
         </div>
       ) : (
         <>
@@ -126,14 +126,14 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
                 <div key={item.componentId} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <span className="text-sm font-medium text-gray-600 w-6">
+                      <span className="text-sm font-medium text-text-secondary w-6">
                         {index + 1}.
                       </span>
-                      <span className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                      <span className="text-sm font-medium text-text-primary truncate max-w-xs">
                         {item.componentName}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <div className="flex items-center space-x-4 text-sm text-text-secondary">
                       <span>{item.utilizationRate.toFixed(1)}%</span>
                       <span>{item.totalQuantityUsed} used</span>
                       <span>{item.averageProjectsPerMonth.toFixed(1)}/mo</span>
@@ -142,13 +142,13 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
                   
                   {/* Utilization Bar */}
                   <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-gray-200 rounded-full h-3">
+                    <div className="flex-1 bg-primary border border-border-color rounded-full h-3">
                       <div 
                         className={`h-3 rounded-full ${getUtilizationColor(item.utilizationRate)}`}
                         style={{ width: `${(item.utilizationRate / maxUtilization) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs text-gray-500 w-16">
+                    <span className="text-xs text-text-secondary w-16">
                       {formatLastUsed(item.lastUsed)}
                     </span>
                   </div>
@@ -157,7 +157,7 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
               
               {data.length > 20 && (
                 <div className="text-center pt-4">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-text-secondary">
                     Showing top 20 of {data.length} components
                   </p>
                 </div>
@@ -166,11 +166,11 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
           ) : (
             /* Table View */
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-border-color">
+                <thead className="bg-secondary border-b border-border-color">
                   <tr>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-primary"
                       onClick={() => handleSort('componentName')}
                     >
                       <div className="flex items-center space-x-1">
@@ -179,7 +179,7 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-primary"
                       onClick={() => handleSort('utilizationRate')}
                     >
                       <div className="flex items-center space-x-1">
@@ -188,7 +188,7 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-primary"
                       onClick={() => handleSort('totalQuantityUsed')}
                     >
                       <div className="flex items-center space-x-1">
@@ -197,7 +197,7 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-primary"
                       onClick={() => handleSort('averageProjectsPerMonth')}
                     >
                       <div className="flex items-center space-x-1">
@@ -206,7 +206,7 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-primary"
                       onClick={() => handleSort('lastUsed')}
                     >
                       <div className="flex items-center space-x-1">
@@ -220,30 +220,30 @@ const UsageAnalyticsChart: React.FC<UsageAnalyticsChartProps> = ({
                   {sortedData.map((item, index) => (
                     <tr key={item.componentId} className={index % 2 === 0 ? 'bg-secondary' : 'bg-primary'}>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-text-primary">
                           {item.componentName}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-1 max-w-20 bg-gray-200 rounded-full h-2 mr-2">
+                          <div className="flex-1 max-w-20 bg-primary border border-border-color rounded-full h-2 mr-2">
                             <div 
                               className={`h-2 rounded-full ${getUtilizationColor(item.utilizationRate)}`}
                               style={{ width: `${item.utilizationRate}%` }}
                             />
                           </div>
-                          <span className="text-sm text-gray-900">
+                          <span className="text-sm text-text-primary">
                             {item.utilizationRate.toFixed(1)}%
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
                         {item.totalQuantityUsed}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
                         {item.averageProjectsPerMonth.toFixed(1)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                         {formatLastUsed(item.lastUsed)}
                       </td>
                     </tr>

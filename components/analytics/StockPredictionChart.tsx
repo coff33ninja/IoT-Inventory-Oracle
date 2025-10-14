@@ -102,11 +102,11 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
-      case 'warning': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'normal': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'good': return 'text-green-600 bg-green-50 border-green-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'critical': return 'text-red-400 bg-red-500/10 border-red-500/20';
+      case 'warning': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+      case 'normal': return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+      case 'good': return 'text-green-400 bg-green-500/10 border-green-500/20';
+      default: return 'text-text-secondary bg-secondary border-border-color';
     }
   };
 
@@ -147,8 +147,8 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <ExclamationTriangleIcon className="h-6 w-6 text-gray-500 mr-2" />
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <ExclamationTriangleIcon className="h-6 w-6 text-text-secondary mr-2" />
+          <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
         </div>
         <button
           onClick={loadPredictions}
@@ -162,10 +162,10 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         {[
-          { key: 'critical', label: 'Critical', color: 'text-red-600 bg-red-50' },
-          { key: 'warning', label: 'Warning', color: 'text-yellow-600 bg-yellow-50' },
-          { key: 'normal', label: 'Normal', color: 'text-blue-600 bg-blue-50' },
-          { key: 'good', label: 'Good', color: 'text-green-600 bg-green-50' }
+          { key: 'critical', label: 'Critical', color: 'text-red-400 bg-red-500/10 border border-red-500/20' },
+          { key: 'warning', label: 'Warning', color: 'text-yellow-400 bg-yellow-500/10 border border-yellow-500/20' },
+          { key: 'normal', label: 'Normal', color: 'text-blue-400 bg-blue-500/10 border border-blue-500/20' },
+          { key: 'good', label: 'Good', color: 'text-green-400 bg-green-500/10 border border-green-500/20' }
         ].map(({ key, label, color }) => (
           <button
             key={key}
@@ -182,9 +182,9 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
 
       {/* Filter Info */}
       {filter !== 'all' && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-blue-700">
+            <span className="text-sm text-blue-300">
               Showing {filteredPredictions.length} {filter} items
             </span>
             <button
@@ -201,12 +201,12 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
       {isLoading ? (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading stock predictions...</p>
+          <p className="text-text-secondary">Loading stock predictions...</p>
         </div>
       ) : filteredPredictions.length === 0 ? (
         <div className="text-center py-12">
-          <ExclamationTriangleIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">
+          <ExclamationTriangleIcon className="h-12 w-12 text-text-secondary mx-auto mb-4" />
+          <p className="text-text-secondary">
             {filter === 'all' ? 'No predictions available' : `No ${filter} items found`}
           </p>
         </div>
@@ -225,7 +225,7 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
                   <div className="flex items-start space-x-3">
                     <UrgencyIcon className="h-6 w-6 mt-1" />
                     <div>
-                      <h4 className="font-medium text-gray-900">{prediction.item.name}</h4>
+                      <h4 className="font-medium text-text-primary">{prediction.item.name}</h4>
                       <div className="mt-1 space-y-1 text-sm">
                         <div className="flex items-center space-x-4">
                           <span>Current Stock: <strong>{prediction.currentStock}</strong></span>
@@ -241,10 +241,10 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
                   </div>
                   
                   <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-text-primary">
                       Reorder: {prediction.recommendedReorderQuantity}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-text-secondary mt-1">
                       {prediction.urgencyLevel.toUpperCase()}
                     </div>
                   </div>
@@ -252,7 +252,7 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
                 
                 {/* Progress Bar */}
                 <div className="mt-3">
-                  <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                  <div className="flex items-center justify-between text-xs text-text-secondary mb-1">
                     <span>Stock Level</span>
                     <span>{prediction.currentStock} remaining</span>
                   </div>
@@ -272,8 +272,8 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
                 
                 {/* Factors */}
                 {prediction.factors.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <div className="text-xs text-gray-600">
+                  <div className="mt-3 pt-3 border-t border-border-color">
+                    <div className="text-xs text-text-secondary">
                       <strong>Prediction factors:</strong> {prediction.factors.join(', ')}
                     </div>
                   </div>
@@ -285,8 +285,8 @@ const StockPredictionChart: React.FC<StockPredictionChartProps> = ({
       )}
 
       {/* Legend */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Urgency Levels</h4>
+      <div className="mt-6 pt-4 border-t border-border-color">
+        <h4 className="text-sm font-medium text-text-primary mb-2">Urgency Levels</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
           <div className="flex items-center">
             <XCircleIcon className="h-4 w-4 text-red-500 mr-1" />

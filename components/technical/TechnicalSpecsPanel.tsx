@@ -131,9 +131,9 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
     return (
       <div className="space-y-4">
         {conditions.voltage && (
-          <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div className="flex items-center justify-between p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
             <div className="flex items-center">
-              <BoltIcon className="h-5 w-5 text-yellow-500 mr-2" />
+              <BoltIcon className="h-5 w-5 text-yellow-400 mr-2" />
               <span className="font-medium text-text-primary">Supply Voltage</span>
             </div>
             <span className="text-text-secondary">
@@ -143,9 +143,9 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
         )}
 
         {conditions.current && (
-          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-between p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
             <div className="flex items-center">
-              <BoltIcon className="h-5 w-5 text-blue-500 mr-2" />
+              <BoltIcon className="h-5 w-5 text-blue-400 mr-2" />
               <span className="font-medium text-text-primary">Maximum Current</span>
             </div>
             <span className="text-text-secondary">
@@ -155,9 +155,9 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
         )}
 
         {conditions.temperature && (
-          <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+          <div className="flex items-center justify-between p-3 bg-red-500/10 rounded-lg border border-red-500/20">
             <div className="flex items-center">
-              <ThermometerIcon className="h-5 w-5 text-red-500 mr-2" />
+              <ThermometerIcon className="h-5 w-5 text-red-400 mr-2" />
               <span className="font-medium text-text-primary">
                 Operating Temperature
               </span>
@@ -389,10 +389,10 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
                           ).electrical.map(({ key, value }) => (
                             <div
                               key={key}
-                              className="flex items-center justify-between p-3 bg-yellow-50 rounded border border-yellow-200">
+                              className="flex items-center justify-between p-3 bg-yellow-500/10 rounded border border-yellow-500/20">
                               <div className="flex items-center">
-                                <BoltIcon className="h-4 w-4 text-yellow-500 mr-2" />
-                                <span className="text-gray-700">{key}:</span>
+                                <BoltIcon className="h-4 w-4 text-yellow-400 mr-2" />
+                                <span className="text-text-primary">{key}:</span>
                               </div>
                               {renderSpecificationValue(value)}
                             </div>
@@ -404,15 +404,15 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
 
                   {activeSection === "mechanical" && (
                     <div className="space-y-6">
-                      <h4 className="text-lg font-semibold text-gray-900">
+                      <h4 className="text-lg font-semibold text-text-primary">
                         Mechanical Specifications
                       </h4>
 
                       {/* Package Info */}
                       {specification.packageInfo && (
-                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                          <h5 className="font-medium text-gray-900 mb-3 flex items-center">
-                            <CpuChipIcon className="h-5 w-5 text-purple-500 mr-2" />
+                        <div className="bg-purple-500/10 p-4 rounded-lg border border-purple-500/20">
+                          <h5 className="font-medium text-text-primary mb-3 flex items-center">
+                            <CpuChipIcon className="h-5 w-5 text-purple-400 mr-2" />
                             Package Details
                           </h5>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -448,7 +448,7 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
 
                       {/* Mechanical Specs */}
                       <div>
-                        <h5 className="font-medium text-gray-900 mb-3">
+                        <h5 className="font-medium text-text-primary mb-3">
                           Physical Parameters
                         </h5>
                         <div className="space-y-2">
@@ -460,7 +460,7 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
                               className="flex items-center justify-between p-3 bg-purple-50 rounded border border-purple-200">
                               <div className="flex items-center">
                                 <CpuChipIcon className="h-4 w-4 text-purple-500 mr-2" />
-                                <span className="text-gray-700">{key}:</span>
+                                <span className="text-text-primary">{key}:</span>
                               </div>
                               {renderSpecificationValue(value)}
                             </div>
@@ -472,18 +472,18 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
 
                   {activeSection === "environmental" && (
                     <div className="space-y-6">
-                      <h4 className="text-lg font-semibold text-gray-900">
+                      <h4 className="text-lg font-semibold text-text-primary">
                         Environmental Specifications
                       </h4>
 
                       {/* Temperature Conditions */}
                       {specification.operatingConditions?.temperature && (
-                        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                          <h5 className="font-medium text-gray-900 mb-3 flex items-center">
-                            <ThermometerIcon className="h-5 w-5 text-red-500 mr-2" />
+                        <div className="bg-red-500/10 p-4 rounded-lg border border-red-500/20">
+                          <h5 className="font-medium text-text-primary mb-3 flex items-center">
+                            <ThermometerIcon className="h-5 w-5 text-red-400 mr-2" />
                             Temperature Range
                           </h5>
-                          <div className="text-gray-700">
+                          <div className="text-text-primary">
                             Operating:{" "}
                             {specification.operatingConditions.temperature.min}
                             °C to{" "}
@@ -495,7 +495,7 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
 
                       {/* Environmental Specs */}
                       <div>
-                        <h5 className="font-medium text-gray-900 mb-3">
+                        <h5 className="font-medium text-text-primary mb-3">
                           Environmental Parameters
                         </h5>
                         <div className="space-y-2">
@@ -504,10 +504,10 @@ const TechnicalSpecsPanel: React.FC<TechnicalSpecsPanelProps> = ({
                           ).environmental.map(({ key, value }) => (
                             <div
                               key={key}
-                              className="flex items-center justify-between p-3 bg-red-50 rounded border border-red-200">
+                              className="flex items-center justify-between p-3 bg-red-500/10 rounded border border-red-500/20">
                               <div className="flex items-center">
-                                <ThermometerIcon className="h-4 w-4 text-red-500 mr-2" />
-                                <span className="text-gray-700">{key}:</span>
+                                <ThermometerIcon className="h-4 w-4 text-red-400 mr-2" />
+                                <span className="text-text-primary">{key}:</span>
                               </div>
                               {renderSpecificationValue(value)}
                             </div>

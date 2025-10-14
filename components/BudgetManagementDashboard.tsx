@@ -210,8 +210,8 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-green-50">
-              <CurrencyDollarIcon className="h-6 w-6 text-green-600" />
+            <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20">
+              <CurrencyDollarIcon className="h-6 w-6 text-green-400" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-text-secondary">Total Spent</p>
@@ -225,8 +225,8 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
 
         <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-green-50">
-              <ChartBarIcon className="h-6 w-6 text-green-600" />
+            <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <ChartBarIcon className="h-6 w-6 text-blue-400" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-text-secondary">
@@ -242,8 +242,8 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
 
         <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-green-50">
-              <CalendarIcon className="h-6 w-6 text-green-600" />
+            <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+              <CalendarIcon className="h-6 w-6 text-purple-400" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-text-secondary">
@@ -259,8 +259,8 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
 
         <div className="bg-secondary p-6 rounded-lg shadow border border-border-color">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-yellow-50">
-              <ExclamationTriangleIcon className="h-6 w-6 text-yellow-600" />
+            <div className="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+              <ExclamationTriangleIcon className="h-6 w-6 text-yellow-400" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-text-secondary">
@@ -277,10 +277,10 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
 
       {/* Error Display */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
           <div className="flex items-center">
-            <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
-            <span className="text-red-700">{error}</span>
+            <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2" />
+            <span className="text-red-300">{error}</span>
           </div>
         </div>
       )}
@@ -317,11 +317,11 @@ const BudgetManagementDashboard: React.FC<BudgetManagementDashboardProps> = ({
       <div className="min-h-96">{renderTabContent()}</div>
 
       {/* Footer Info */}
-      <div className="mt-8 p-4 bg-primary border border-border-color rounded-lg">
+      <div className="mt-8 p-4 bg-green-500/5 border border-green-500/20 rounded-lg">
         <div className="flex items-start">
-          <CurrencyDollarIcon className="h-5 w-5 text-text-secondary mr-2 mt-0.5" />
+          <CurrencyDollarIcon className="h-5 w-5 text-green-400 mr-2 mt-0.5" />
           <div className="text-sm text-text-primary">
-            <p className="font-medium mb-1">Budget Management Tips:</p>
+            <p className="font-medium mb-1 text-green-300">Budget Management Tips:</p>
             <ul className="list-disc list-inside space-y-1 text-text-secondary">
               <li>
                 Set realistic budgets based on historical spending patterns

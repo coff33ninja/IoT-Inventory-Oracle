@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { CalendarIcon, FunnelIcon, XMarkIcon } from '../icons/AnalyticsIcons';
+import React, { useState } from "react";
+import { CalendarIcon, FunnelIcon, XMarkIcon } from "../icons/AnalyticsIcons";
 
 interface AnalyticsFilters {
-  timeframe: '7d' | '30d' | '90d' | '1y';
+  timeframe: "7d" | "30d" | "90d" | "1y";
   categories: string[];
   dateRange: {
     start: Date | null;
@@ -23,37 +23,37 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
   filters,
   onFiltersChange,
   availableCategories,
-  instanceId = 'default'
+  instanceId = "default",
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const timeframeOptions = [
-    { value: '7d', label: 'Last 7 days' },
-    { value: '30d', label: 'Last 30 days' },
-    { value: '90d', label: 'Last 90 days' },
-    { value: '1y', label: 'Last year' }
+    { value: "7d", label: "Last 7 days" },
+    { value: "30d", label: "Last 30 days" },
+    { value: "90d", label: "Last 90 days" },
+    { value: "1y", label: "Last year" },
   ];
 
   const handleCategoryToggle = (category: string) => {
     const newCategories = filters.categories.includes(category)
-      ? filters.categories.filter(c => c !== category)
+      ? filters.categories.filter((c) => c !== category)
       : [...filters.categories, category];
-    
+
     onFiltersChange({ categories: newCategories });
   };
 
   const clearAllFilters = () => {
     onFiltersChange({
-      timeframe: '30d',
+      timeframe: "30d",
       categories: [],
       dateRange: { start: null, end: null },
       showTrends: true,
-      showPredictions: true
+      showPredictions: true,
     });
   };
 
   const formatDate = (date: Date | null) => {
-    return date ? date.toISOString().split('T')[0] : '';
+    return date ? date.toISOString().split("T")[0] : "";
   };
 
   const parseDate = (dateString: string) => {
@@ -64,19 +64,19 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
     <div className="bg-secondary p-4 rounded-lg shadow border border-border-color">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
-          <FunnelIcon className="h-5 w-5 text-gray-500 mr-2" />
-          <h3 className="text-lg font-medium text-gray-900">Filters</h3>
+          <FunnelIcon className="h-5 w-5 text-text-secondary mr-2" />
+          <h3 className="text-lg font-medium text-text-primary">Filters</h3>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="text-sm text-blue-600 hover:text-blue-800"
           >
-            {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
+            {showAdvanced ? "Hide Advanced" : "Show Advanced"}
           </button>
           <button
             onClick={clearAllFilters}
-            className="text-sm text-gray-600 hover:text-gray-800 flex items-center"
+            className="text-sm text-text-secondary hover:text-text-primary flex items-center"
           >
             <XMarkIcon className="h-4 w-4 mr-1" />
             Clear All
@@ -87,18 +87,20 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
       <div className="space-y-4">
         {/* Timeframe Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             Time Period
           </label>
           <div className="flex flex-wrap gap-2">
-            {timeframeOptions.map(option => (
+            {timeframeOptions.map((option) => (
               <button
                 key={option.value}
-                onClick={() => onFiltersChange({ timeframe: option.value as any })}
+                onClick={() =>
+                  onFiltersChange({ timeframe: option.value as any })
+                }
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   filters.timeframe === option.value
-                    ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                    : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                    ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                    : "bg-primary text-text-primary border border-border-color hover:bg-secondary"
                 }`}
               >
                 {option.label}
@@ -109,18 +111,18 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
 
         {/* Category Filters */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             Categories ({filters.categories.length} selected)
           </label>
           <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-            {availableCategories.map(category => (
+            {availableCategories.map((category) => (
               <button
                 key={`filter-category-${instanceId}-${category}`}
                 onClick={() => handleCategoryToggle(category)}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   filters.categories.includes(category)
-                    ? 'bg-green-100 text-green-800 border border-green-300'
-                    : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                    ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                    : "bg-primary text-text-primary border border-border-color hover:bg-secondary"
                 }`}
               >
                 {category}
@@ -128,47 +130,57 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
             ))}
           </div>
           {availableCategories.length === 0 && (
-            <p className="text-sm text-gray-500 italic">No categories available</p>
+            <p className="text-sm text-text-secondary italic">
+              No categories available
+            </p>
           )}
         </div>
 
         {/* Advanced Filters */}
         {showAdvanced && (
-          <div className="space-y-4 pt-4 border-t border-gray-200">
+          <div className="space-y-4 pt-4 border-t border-border-color">
             {/* Custom Date Range */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 <CalendarIcon className="h-4 w-4 inline mr-1" />
                 Custom Date Range
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Start Date</label>
+                  <label className="block text-xs text-text-secondary mb-1">
+                    Start Date
+                  </label>
                   <input
                     type="date"
                     value={formatDate(filters.dateRange.start)}
-                    onChange={(e) => onFiltersChange({
-                      dateRange: {
-                        ...filters.dateRange,
-                        start: parseDate(e.target.value)
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) =>
+                      onFiltersChange({
+                        dateRange: {
+                          ...filters.dateRange,
+                          start: parseDate(e.target.value),
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-border-color bg-primary text-text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                     aria-label="Start date"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">End Date</label>
+                  <label className="block text-xs text-text-secondary mb-1">
+                    End Date
+                  </label>
                   <input
                     type="date"
                     value={formatDate(filters.dateRange.end)}
-                    onChange={(e) => onFiltersChange({
-                      dateRange: {
-                        ...filters.dateRange,
-                        end: parseDate(e.target.value)
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) =>
+                      onFiltersChange({
+                        dateRange: {
+                          ...filters.dateRange,
+                          end: parseDate(e.target.value),
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-border-color bg-primary text-text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                     aria-label="End date"
                   />
                 </div>
@@ -177,7 +189,7 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
 
             {/* Display Options */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Display Options
               </label>
               <div className="space-y-2">
@@ -185,19 +197,27 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
                   <input
                     type="checkbox"
                     checked={filters.showTrends}
-                    onChange={(e) => onFiltersChange({ showTrends: e.target.checked })}
+                    onChange={(e) =>
+                      onFiltersChange({ showTrends: e.target.checked })
+                    }
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700">Show trend indicators</span>
+                  <span className="ml-2 text-sm text-text-primary">
+                    Show trend indicators
+                  </span>
                 </label>
                 <label className="flex items-center">
                   <input
                     type="checkbox"
                     checked={filters.showPredictions}
-                    onChange={(e) => onFiltersChange({ showPredictions: e.target.checked })}
+                    onChange={(e) =>
+                      onFiltersChange({ showPredictions: e.target.checked })
+                    }
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700">Show predictions</span>
+                  <span className="ml-2 text-sm text-text-primary">
+                    Show predictions
+                  </span>
                 </label>
               </div>
             </div>
@@ -205,24 +225,31 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
         )}
 
         {/* Active Filters Summary */}
-        {(filters.categories.length > 0 || filters.dateRange.start || filters.dateRange.end) && (
-          <div className="pt-4 border-t border-gray-200">
+        {(filters.categories.length > 0 ||
+          filters.dateRange.start ||
+          filters.dateRange.end) && (
+          <div className="pt-4 border-t border-border-color">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Active Filters:</span>
-              <span className="text-xs text-gray-500">
-                {filters.categories.length + (filters.dateRange.start ? 1 : 0) + (filters.dateRange.end ? 1 : 0)} active
+              <span className="text-sm font-medium text-text-primary">
+                Active Filters:
+              </span>
+              <span className="text-xs text-text-secondary">
+                {filters.categories.length +
+                  (filters.dateRange.start ? 1 : 0) +
+                  (filters.dateRange.end ? 1 : 0)}{" "}
+                active
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {filters.categories.map(category => (
+              {filters.categories.map((category) => (
                 <span
                   key={`active-filter-${instanceId}-${category}`}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-900/20 text-blue-400"
                 >
                   {category}
                   <button
                     onClick={() => handleCategoryToggle(category)}
-                    className="ml-1 text-blue-600 hover:text-blue-800"
+                    className="ml-1 text-blue-400 hover:text-blue-300"
                     aria-label={`Remove ${category} filter`}
                   >
                     <XMarkIcon className="h-3 w-3" />
@@ -230,13 +257,15 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
                 </span>
               ))}
               {filters.dateRange.start && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-900/20 text-green-400">
                   From: {filters.dateRange.start.toLocaleDateString()}
                   <button
-                    onClick={() => onFiltersChange({
-                      dateRange: { ...filters.dateRange, start: null }
-                    })}
-                    className="ml-1 text-green-600 hover:text-green-800"
+                    onClick={() =>
+                      onFiltersChange({
+                        dateRange: { ...filters.dateRange, start: null },
+                      })
+                    }
+                    className="ml-1 text-green-400 hover:text-green-300"
                     aria-label="Remove start date filter"
                   >
                     <XMarkIcon className="h-3 w-3" />
@@ -244,13 +273,15 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({
                 </span>
               )}
               {filters.dateRange.end && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-900/20 text-green-400">
                   To: {filters.dateRange.end.toLocaleDateString()}
                   <button
-                    onClick={() => onFiltersChange({
-                      dateRange: { ...filters.dateRange, end: null }
-                    })}
-                    className="ml-1 text-green-600 hover:text-green-800"
+                    onClick={() =>
+                      onFiltersChange({
+                        dateRange: { ...filters.dateRange, end: null },
+                      })
+                    }
+                    className="ml-1 text-green-400 hover:text-green-300"
                     aria-label="Remove end date filter"
                   >
                     <XMarkIcon className="h-3 w-3" />

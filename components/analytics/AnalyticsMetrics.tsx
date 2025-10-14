@@ -121,8 +121,15 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
             key={index}
             className="bg-secondary p-6 rounded-lg shadow border border-border-color">
             <div className="flex items-center">
-              <div className={`p-2 rounded-lg ${metric.bgColor}`}>
-                <metric.icon className={`h-6 w-6 ${metric.color}`} />
+              <div className={`p-2 rounded-lg border ${
+                metric.color === 'text-blue-500' ? 'bg-blue-500/10 border-blue-500/20' :
+                metric.color === 'text-green-500' ? 'bg-green-500/10 border-green-500/20' :
+                metric.color === 'text-purple-500' ? 'bg-purple-500/10 border-purple-500/20' :
+                metric.color === 'text-indigo-500' ? 'bg-indigo-500/10 border-indigo-500/20' :
+                metric.color === 'text-yellow-500' ? 'bg-yellow-500/10 border-yellow-500/20' :
+                'bg-orange-500/10 border-orange-500/20'
+              }`}>
+                <metric.icon className={`h-6 w-6 ${metric.color.replace('500', '400')}`} />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-text-secondary">
@@ -279,7 +286,7 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
                     .map((recommendation: string, index: number) => (
                       <div
                         key={index}
-                        className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        className="p-3 bg-green-500/5 rounded-lg border border-green-500/20">
                         <p className="text-sm text-text-primary">
                           {recommendation}
                         </p>
@@ -294,15 +301,15 @@ const AnalyticsMetrics: React.FC<AnalyticsMetricsProps> = ({
       {/* Waste Analysis Alert */}
       {analytics.wasteAnalysis &&
         analytics.wasteAnalysis.unusedComponents > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
             <div className="flex items-center">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2" />
               <div>
-                <h4 className="text-sm font-medium text-red-800">
+                <h4 className="text-sm font-medium text-red-300">
                   Waste Alert: {analytics.wasteAnalysis.unusedComponents} unused
                   components
                 </h4>
-                <p className="text-sm text-red-700">
+                <p className="text-sm text-red-400">
                   Total waste value: $
                   {analytics.wasteAnalysis.totalWasteValue.toFixed(2)}
                 </p>

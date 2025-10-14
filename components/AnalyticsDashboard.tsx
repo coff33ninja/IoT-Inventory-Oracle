@@ -250,23 +250,23 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ className = '' 
               {filteredData.wasteAnalysis && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-red-50 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">
+                    <div className="text-center p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <div className="text-2xl font-bold text-red-400">
                         {filteredData.wasteAnalysis.unusedComponents}
                       </div>
-                      <div className="text-sm text-red-600">Unused Components</div>
+                      <div className="text-sm text-red-300">Unused Components</div>
                     </div>
-                    <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600">
+                    <div className="text-center p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-400">
                         {formatCurrency(filteredData.wasteAnalysis.totalWasteValue)}
                       </div>
-                      <div className="text-sm text-yellow-600">Total Waste Value</div>
+                      <div className="text-sm text-yellow-300">Total Waste Value</div>
                     </div>
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-center p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-400">
                         {filteredData.wasteAnalysis.suggestions.length}
                       </div>
-                      <div className="text-sm text-blue-600">Optimization Tips</div>
+                      <div className="text-sm text-blue-300">Optimization Tips</div>
                     </div>
                   </div>
                   
@@ -331,10 +331,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ className = '' 
 
       {/* Error Display */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
           <div className="flex items-center">
-            <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
-            <span className="text-red-700">{error}</span>
+            <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2" />
+            <span className="text-red-300">{error}</span>
           </div>
         </div>
       )}

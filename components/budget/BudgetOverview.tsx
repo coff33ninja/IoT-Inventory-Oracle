@@ -48,9 +48,9 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
   };
 
   const getBudgetHealthColor = (utilization: number) => {
-    if (utilization > 90) return 'text-red-600 bg-red-50';
-    if (utilization > 75) return 'text-yellow-600 bg-yellow-50';
-    return 'text-green-600 bg-green-50';
+    if (utilization > 90) return 'text-red-400 bg-red-900/20';
+    if (utilization > 75) return 'text-yellow-400 bg-yellow-900/20';
+    return 'text-green-400 bg-green-900/20';
   };
 
   const getBudgetHealthStatus = (utilization: number) => {
@@ -216,8 +216,8 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
           {spendingAnalysis ? (
             <>
               <div className="flex items-start">
-                <div className="p-2 bg-green-50 rounded-lg mr-3">
-                  <ChartBarIcon className="h-4 w-4 text-green-600" />
+                <div className="p-2 bg-green-900/20 rounded-lg mr-3">
+                  <ChartBarIcon className="h-4 w-4 text-green-400" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-text-primary">Budget Efficiency</p>
@@ -228,8 +228,8 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
               </div>
               
               <div className="flex items-start">
-                <div className="p-2 bg-green-50 rounded-lg mr-3">
-                  <CurrencyDollarIcon className="h-4 w-4 text-green-600" />
+                <div className="p-2 bg-green-900/20 rounded-lg mr-3">
+                  <CurrencyDollarIcon className="h-4 w-4 text-green-400" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-text-primary">Spending Pattern</p>
@@ -241,8 +241,8 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
               
               {spendingAnalysis.recommendations && spendingAnalysis.recommendations.length > 0 && (
                 <div className="flex items-start">
-                  <div className="p-2 bg-green-50 rounded-lg mr-3">
-                    <ExclamationTriangleIcon className="h-4 w-4 text-green-600" />
+                  <div className="p-2 bg-green-900/20 rounded-lg mr-3">
+                    <ExclamationTriangleIcon className="h-4 w-4 text-green-400" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-text-primary">Recommendations Available</p>

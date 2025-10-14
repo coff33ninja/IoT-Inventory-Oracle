@@ -127,7 +127,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                   onClick={() => setChartType(type.id as any)}
                   className={`px-3 py-1 rounded text-sm font-medium ${
                     chartType === type.id
-                      ? 'bg-green-100 text-green-800'
+                      ? 'bg-green-900/20 text-green-400'
                       : 'bg-primary text-text-secondary hover:bg-secondary'
                   }`}
                 >
@@ -142,7 +142,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
             <select
               value={filters.timeframe}
               onChange={(e) => onFiltersChange({ timeframe: e.target.value as any })}
-              className="text-sm border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="text-sm border border-border-color bg-primary text-text-primary rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-accent"
               aria-label="Select time period for spending analytics"
             >
               <option value="7d">Last 7 days</option>
@@ -175,7 +175,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                       <span className="text-text-secondary">{category.percentage.toFixed(1)}%</span>
                     </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-secondary rounded-full h-3">
                     <div 
                       className="h-3 rounded-full transition-all duration-300"
                       style={{ 
@@ -198,7 +198,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                     {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </div>
                   <div className="flex-1 flex items-center">
-                    <div className="w-full bg-gray-200 rounded-full h-2 mr-3">
+                    <div className="w-full bg-secondary rounded-full h-2 mr-3">
                       <div 
                         className="bg-green-500 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${maxTimelineAmount > 0 ? (day.amount / maxTimelineAmount) * 100 : 0}%` }}
@@ -215,7 +215,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
               ))}
             </div>
             
-            <div className="mt-6 pt-4 border-t border-gray-200">
+            <div className="mt-6 pt-4 border-t border-border-color">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
                   <div className="text-2xl font-bold text-text-primary">
@@ -247,7 +247,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                 <button
                   onClick={() => handleSort('name')}
                   className={`flex items-center px-2 py-1 rounded ${
-                    sortBy === 'name' ? 'bg-green-100 text-green-800' : 'text-text-secondary hover:bg-primary'
+                    sortBy === 'name' ? 'bg-green-900/20 text-green-400' : 'text-text-secondary hover:bg-primary'
                   }`}
                 >
                   Name <SortIcon field="name" />
@@ -255,7 +255,7 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                 <button
                   onClick={() => handleSort('amount')}
                   className={`flex items-center px-2 py-1 rounded ${
-                    sortBy === 'amount' ? 'bg-green-100 text-green-800' : 'text-text-secondary hover:bg-primary'
+                    sortBy === 'amount' ? 'bg-green-900/20 text-green-400' : 'text-text-secondary hover:bg-primary'
                   }`}
                 >
                   Cost <SortIcon field="amount" />
@@ -274,8 +274,8 @@ const SpendingAnalyticsChart: React.FC<SpendingAnalyticsChartProps> = ({
                         <span>{project.components} components</span>
                         <span>•</span>
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          project.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                          project.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                          project.status === 'Completed' ? 'bg-green-900/20 text-green-400' :
+                          project.status === 'In Progress' ? 'bg-blue-900/20 text-blue-400' :
                           'bg-primary text-text-secondary border border-border-color'
                         }`}>
                           {project.status}

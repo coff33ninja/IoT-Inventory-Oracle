@@ -37,26 +37,26 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'component': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'project': return 'bg-green-100 text-green-800 border-green-200';
-      case 'bundle': return 'bg-purple-100 text-purple-800 border-purple-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'component': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'project': return 'bg-green-500/10 text-green-400 border-green-500/20';
+      case 'bundle': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
     }
   };
 
   const getDifficultyColor = (difficulty?: string) => {
     switch (difficulty) {
-      case 'beginner': return 'text-green-600';
-      case 'intermediate': return 'text-yellow-600';
-      case 'advanced': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'beginner': return 'text-green-400';
+      case 'intermediate': return 'text-yellow-400';
+      case 'advanced': return 'text-red-400';
+      default: return 'text-gray-400';
     }
   };
 
   const getRelevanceColor = (score: number) => {
-    if (score >= 0.8) return 'text-green-600 bg-green-50';
-    if (score >= 0.6) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
+    if (score >= 0.8) return 'text-green-400 bg-green-500/10 border border-green-500/20';
+    if (score >= 0.6) return 'text-yellow-400 bg-yellow-500/10 border border-yellow-500/20';
+    return 'text-red-400 bg-red-500/10 border border-red-500/20';
   };
 
   const formatTime = (timeString?: string) => {
@@ -72,16 +72,16 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
   const TypeIcon = getTypeIcon(recommendation.type);
 
   return (
-    <div className="bg-white rounded-lg shadow border hover:shadow-lg transition-shadow duration-200">
+    <div className="bg-secondary rounded-lg shadow border border-border-color hover:shadow-lg transition-shadow duration-200">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-border-color">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
-            <div className="p-2 rounded-lg bg-gray-50">
-              <TypeIcon className="h-5 w-5 text-gray-600" />
+            <div className="p-2 rounded-lg bg-primary border border-border-color">
+              <TypeIcon className="h-5 w-5 text-text-secondary" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 line-clamp-2">
+              <h3 className="font-semibold text-text-primary line-clamp-2">
                 {recommendation.title}
               </h3>
               <div className="flex items-center space-x-2 mt-1">
@@ -120,14 +120,14 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
       {/* Content */}
       <div className="p-4">
         {/* Description */}
-        <p className={`text-sm text-gray-600 mb-4 ${isExpanded ? '' : 'line-clamp-3'}`}>
+        <p className={`text-sm text-text-secondary mb-4 ${isExpanded ? '' : 'line-clamp-3'}`}>
           {recommendation.description}
         </p>
         
         {!isExpanded && recommendation.description.length > 150 && (
           <button
             onClick={() => setIsExpanded(true)}
-            className="text-sm text-blue-600 hover:text-blue-800 mb-4"
+            className="text-sm text-accent hover:text-blue-300 mb-4"
           >
             Read more...
           </button>
@@ -136,7 +136,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
         {isExpanded && recommendation.description.length > 150 && (
           <button
             onClick={() => setIsExpanded(false)}
-            className="text-sm text-blue-600 hover:text-blue-800 mb-4"
+            className="text-sm text-accent hover:text-blue-300 mb-4"
           >
             Show less
           </button>
@@ -145,14 +145,14 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
         {/* Details */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           {recommendation.estimatedCost && (
-            <div className="flex items-center text-sm text-gray-600">
+            <div className="flex items-center text-sm text-text-secondary">
               <CurrencyDollarIcon className="h-4 w-4 mr-1" />
               <span>{formatCost(recommendation.estimatedCost)}</span>
             </div>
           )}
           
           {recommendation.estimatedTime && (
-            <div className="flex items-center text-sm text-gray-600">
+            <div className="flex items-center text-sm text-text-secondary">
               <ClockIcon className="h-4 w-4 mr-1" />
               <span>{formatTime(recommendation.estimatedTime)}</span>
             </div>
@@ -160,12 +160,12 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
         </div>
 
         {/* Reasoning */}
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="mb-4 p-3 bg-primary border border-border-color rounded-lg">
           <div className="flex items-start">
-            <InformationCircleIcon className="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" />
+            <InformationCircleIcon className="h-4 w-4 text-text-secondary mr-2 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-xs font-medium text-gray-700 mb-1">Why this recommendation?</p>
-              <p className="text-xs text-gray-600">{recommendation.reasoning}</p>
+              <p className="text-xs font-medium text-text-primary mb-1">Why this recommendation?</p>
+              <p className="text-xs text-text-secondary">{recommendation.reasoning}</p>
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
             
             <button
               onClick={() => onAction(recommendation, 'dismiss')}
-              className="flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
+              className="flex items-center px-3 py-1.5 bg-secondary border border-border-color text-text-primary text-sm rounded hover:bg-primary transition-colors"
             >
               <HandThumbDownIcon className="h-4 w-4 mr-1" />
               Dismiss
@@ -192,7 +192,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           
           <button
             onClick={() => onAction(recommendation, 'feedback')}
-            className="flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 text-sm rounded hover:bg-blue-200 transition-colors"
+            className="flex items-center px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm rounded hover:bg-blue-500/20 transition-colors"
           >
             <ChatBubbleLeftIcon className="h-4 w-4 mr-1" />
             Feedback
@@ -202,24 +202,24 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
       {/* Expanded Details */}
       {isExpanded && (
-        <div className="px-4 pb-4 border-t border-gray-100">
+        <div className="px-4 pb-4 border-t border-border-color">
           <div className="mt-4 space-y-3">
             {/* Additional metadata if available */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium text-gray-700">Recommendation ID:</span>
-                <span className="text-gray-600 ml-2">{recommendation.itemId}</span>
+                <span className="font-medium text-text-primary">Recommendation ID:</span>
+                <span className="text-text-secondary ml-2">{recommendation.itemId}</span>
               </div>
               <div>
-                <span className="font-medium text-gray-700">Relevance Score:</span>
-                <span className="text-gray-600 ml-2">{(recommendation.relevanceScore * 100).toFixed(1)}%</span>
+                <span className="font-medium text-text-primary">Relevance Score:</span>
+                <span className="text-text-secondary ml-2">{(recommendation.relevanceScore * 100).toFixed(1)}%</span>
               </div>
             </div>
             
             {/* Detailed reasoning */}
             <div>
-              <span className="font-medium text-gray-700 text-sm">Detailed Analysis:</span>
-              <p className="text-sm text-gray-600 mt-1">{recommendation.reasoning}</p>
+              <span className="font-medium text-text-primary text-sm">Detailed Analysis:</span>
+              <p className="text-sm text-text-secondary mt-1">{recommendation.reasoning}</p>
             </div>
           </div>
         </div>

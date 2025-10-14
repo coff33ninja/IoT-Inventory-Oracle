@@ -206,12 +206,14 @@ const RecommendationSettingsPanel: React.FC<
             onClick={onClose}
             className="text-text-secondary hover:text-text-primary transition-colors"
             title="Close settings"
-            aria-label="Close">
+            aria-label="Close"
+          >
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24">
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -238,7 +240,8 @@ const RecommendationSettingsPanel: React.FC<
                 activeTab === tab.id
                   ? "text-accent border-b-2 border-accent bg-accent/5"
                   : "text-text-secondary hover:text-text-primary"
-              }`}>
+              }`}
+            >
               <span className="mr-2">{tab.icon}</span>
               {tab.label}
             </button>
@@ -264,7 +267,8 @@ const RecommendationSettingsPanel: React.FC<
                 />
                 <label
                   htmlFor="budget-enabled"
-                  className="text-sm font-medium text-text-primary">
+                  className="text-sm font-medium text-text-primary"
+                >
                   Enable budget limits and tracking
                 </label>
               </div>
@@ -277,7 +281,7 @@ const RecommendationSettingsPanel: React.FC<
                         Maximum Project Budget
                       </label>
                       <div className="flex">
-                        <div className="bg-gray-50 border border-border-color rounded-l-md px-3 py-2 text-text-secondary text-sm flex items-center">
+                        <div className="bg-secondary border border-border-color rounded-l-md px-3 py-2 text-text-secondary text-sm flex items-center">
                           {getCurrency().flag} {currentCurrency}
                         </div>
                         <input
@@ -371,7 +375,8 @@ const RecommendationSettingsPanel: React.FC<
                         }
                       }}
                       title="Select preferred supplier"
-                      aria-label="Select preferred supplier from existing list">
+                      aria-label="Select preferred supplier from existing list"
+                    >
                       <option value="">
                         Select from existing suppliers...
                       </option>
@@ -403,7 +408,8 @@ const RecommendationSettingsPanel: React.FC<
                       (supplier, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm">
+                          className="inline-flex items-center px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm"
+                        >
                           {supplier}
                           <button
                             onClick={() =>
@@ -413,7 +419,8 @@ const RecommendationSettingsPanel: React.FC<
                                 index
                               )
                             }
-                            className="ml-2 text-green-300 hover:text-green-100">
+                            className="ml-2 text-green-300 hover:text-green-100"
+                          >
                             ×
                           </button>
                         </span>
@@ -449,7 +456,8 @@ const RecommendationSettingsPanel: React.FC<
                       (supplier, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm">
+                          className="inline-flex items-center px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm"
+                        >
                           {supplier}
                           <button
                             onClick={() =>
@@ -459,7 +467,8 @@ const RecommendationSettingsPanel: React.FC<
                                 index
                               )
                             }
-                            className="ml-2 text-red-300 hover:text-red-100">
+                            className="ml-2 text-red-300 hover:text-red-100"
+                          >
                             ×
                           </button>
                         </span>
@@ -484,7 +493,8 @@ const RecommendationSettingsPanel: React.FC<
                   />
                   <label
                     htmlFor="prioritize-local"
-                    className="text-sm text-text-primary">
+                    className="text-sm text-text-primary"
+                  >
                     Prioritize local suppliers
                   </label>
                 </div>
@@ -533,7 +543,8 @@ const RecommendationSettingsPanel: React.FC<
                       }
                     }}
                     title="Select preferred category"
-                    aria-label="Select category to add to preferred list">
+                    aria-label="Select category to add to preferred list"
+                  >
                     <option value="">Select category to prefer...</option>
                     {availableCategories.map((category) => (
                       <option key={category} value={category}>
@@ -547,7 +558,8 @@ const RecommendationSettingsPanel: React.FC<
                       (category, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm">
+                          className="inline-flex items-center px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm"
+                        >
                           {category}
                           <button
                             onClick={() =>
@@ -557,7 +569,8 @@ const RecommendationSettingsPanel: React.FC<
                                 index
                               )
                             }
-                            className="ml-2 text-blue-300 hover:text-blue-100">
+                            className="ml-2 text-blue-300 hover:text-blue-100"
+                          >
                             ×
                           </button>
                         </span>
@@ -585,7 +598,8 @@ const RecommendationSettingsPanel: React.FC<
                       }
                     }}
                     title="Select category to avoid"
-                    aria-label="Select category to add to avoid list">
+                    aria-label="Select category to add to avoid list"
+                  >
                     <option value="">Select category to avoid...</option>
                     {availableCategories.map((category) => (
                       <option key={category} value={category}>
@@ -599,7 +613,8 @@ const RecommendationSettingsPanel: React.FC<
                       (category, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm">
+                          className="inline-flex items-center px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm"
+                        >
                           {category}
                           <button
                             onClick={() =>
@@ -609,7 +624,8 @@ const RecommendationSettingsPanel: React.FC<
                                 index
                               )
                             }
-                            className="ml-2 text-red-300 hover:text-red-100">
+                            className="ml-2 text-red-300 hover:text-red-100"
+                          >
                             ×
                           </button>
                         </span>
@@ -634,7 +650,8 @@ const RecommendationSettingsPanel: React.FC<
                   />
                   <label
                     htmlFor="quality-over-price"
-                    className="text-sm text-text-primary">
+                    className="text-sm text-text-primary"
+                  >
                     Prioritize quality over price
                   </label>
                 </div>
@@ -652,7 +669,8 @@ const RecommendationSettingsPanel: React.FC<
                     }
                     className="w-full bg-primary border border-border-color rounded-md px-3 py-2 text-text-primary"
                     title="Brand loyalty level"
-                    aria-label="Select brand loyalty preference level">
+                    aria-label="Select brand loyalty preference level"
+                  >
                     <option value="strict">
                       Strict - Only suggest same brands
                     </option>
@@ -684,7 +702,8 @@ const RecommendationSettingsPanel: React.FC<
                   }
                   className="w-full bg-primary border border-border-color rounded-md px-3 py-2 text-text-primary"
                   title="Recommendation sensitivity level"
-                  aria-label="Select recommendation sensitivity level">
+                  aria-label="Select recommendation sensitivity level"
+                >
                   <option value="conservative">
                     Conservative - Only high-confidence suggestions
                   </option>
@@ -719,7 +738,8 @@ const RecommendationSettingsPanel: React.FC<
                   }
                   className="w-full bg-primary border border-border-color rounded-md px-3 py-2 text-text-primary"
                   title="Recommendation frequency"
-                  aria-label="Select how often to show recommendations">
+                  aria-label="Select how often to show recommendations"
+                >
                   <option value="minimal">
                     Minimal - Only when explicitly requested
                   </option>
@@ -808,7 +828,8 @@ const RecommendationSettingsPanel: React.FC<
                     <div>
                       <label
                         htmlFor={setting.key}
-                        className="text-sm font-medium text-text-primary">
+                        className="text-sm font-medium text-text-primary"
+                      >
                         {setting.label}
                       </label>
                       <p className="text-xs text-text-secondary">
@@ -870,7 +891,8 @@ const RecommendationSettingsPanel: React.FC<
                     <div>
                       <label
                         htmlFor={setting.key}
-                        className="text-sm font-medium text-text-primary">
+                        className="text-sm font-medium text-text-primary"
+                      >
                         {setting.label}
                       </label>
                       <p className="text-xs text-text-secondary">
@@ -901,7 +923,8 @@ const RecommendationSettingsPanel: React.FC<
                     <div>
                       <label
                         htmlFor="push-notifications"
-                        className="text-sm font-medium text-text-primary">
+                        className="text-sm font-medium text-text-primary"
+                      >
                         Browser Notifications
                       </label>
                       <p className="text-xs text-text-secondary">
@@ -925,7 +948,8 @@ const RecommendationSettingsPanel: React.FC<
                     <div>
                       <label
                         htmlFor="email-notifications"
-                        className="text-sm font-medium text-text-primary">
+                        className="text-sm font-medium text-text-primary"
+                      >
                         Email Notifications
                       </label>
                       <p className="text-xs text-text-secondary">
@@ -943,19 +967,22 @@ const RecommendationSettingsPanel: React.FC<
         <div className="p-6 border-t border-border-color flex justify-between">
           <button
             onClick={handleReset}
-            className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors">
+            className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors"
+          >
             Reset to Defaults
           </button>
           <div className="flex space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors">
+              className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors"
+            >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-2 bg-accent hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50 flex items-center">
+              className="px-4 py-2 bg-accent hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50 flex items-center"
+            >
               {saving ? (
                 <>
                   <SpinnerIcon className="mr-2" />

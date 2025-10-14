@@ -105,7 +105,7 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
   return (
     <div className={`space-y-2 ${className}`}>
       {showLabel && (
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-text-primary">
           Currency
         </label>
       )}

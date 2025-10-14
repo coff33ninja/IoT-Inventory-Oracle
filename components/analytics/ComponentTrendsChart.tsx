@@ -30,19 +30,19 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
   };
 
   const getTrendColor = (growth: number) => {
-    if (growth > 10) return 'text-green-600';
+    if (growth > 10) return 'text-green-400';
     if (growth > 0) return 'text-green-500';
-    if (growth < -10) return 'text-red-600';
+    if (growth < -10) return 'text-red-400';
     if (growth < 0) return 'text-red-500';
-    return 'text-gray-500';
+    return 'text-text-secondary';
   };
 
   const getTrendBgColor = (growth: number) => {
     if (growth > 10) return 'bg-green-100 border-green-300';
-    if (growth > 0) return 'bg-green-50 border-green-200';
-    if (growth < -10) return 'bg-red-100 border-red-300';
-    if (growth < 0) return 'bg-red-50 border-red-200';
-    return 'bg-gray-50 border-gray-200';
+    if (growth > 0) return 'bg-green-500/10 border-green-500/20';
+    if (growth < -10) return 'bg-red-500/20 border-red-500/30';
+    if (growth < 0) return 'bg-red-500/10 border-red-500/20';
+    return 'bg-secondary border-border-color';
   };
 
   const sortedData = [...data].sort((a, b) => b.trendScore - a.trendScore);
@@ -53,16 +53,16 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <TrendingUpIcon className="h-6 w-6 text-gray-500 mr-2" />
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <TrendingUpIcon className="h-6 w-6 text-text-secondary mr-2" />
+          <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setViewMode('visual')}
             className={`px-3 py-1 rounded text-sm font-medium ${
               viewMode === 'visual' 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                : 'bg-primary text-text-primary border border-border-color hover:bg-secondary'
             }`}
           >
             Visual
@@ -71,8 +71,8 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
             onClick={() => setViewMode('list')}
             className={`px-3 py-1 rounded text-sm font-medium ${
               viewMode === 'list' 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                : 'bg-primary text-text-primary border border-border-color hover:bg-secondary'
             }`}
           >
             List
@@ -82,8 +82,8 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
 
       {data.length === 0 ? (
         <div className="text-center py-12">
-          <TrendingUpIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">No trending data available</p>
+          <TrendingUpIcon className="h-12 w-12 text-text-secondary mx-auto mb-4" />
+          <p className="text-text-secondary">No trending data available</p>
         </div>
       ) : (
         <>
@@ -105,12 +105,12 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <span className="text-sm font-medium text-gray-600 w-6">
+                        <span className="text-sm font-medium text-text-secondary w-6">
                           {index + 1}.
                         </span>
                         <div>
-                          <h4 className="font-medium text-gray-900">{trend.componentName}</h4>
-                          <p className="text-sm text-gray-600">Trend Score: {trend.trendScore.toFixed(1)}</p>
+                          <h4 className="font-medium text-text-primary">{trend.componentName}</h4>
+                          <p className="text-sm text-text-secondary">Trend Score: {trend.trendScore.toFixed(1)}</p>
                         </div>
                       </div>
                       
@@ -122,7 +122,7 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
                               {trend.usageGrowth >= 0 ? '+' : ''}{trend.usageGrowth.toFixed(1)}%
                             </span>
                           </div>
-                          <p className="text-xs text-gray-500">growth</p>
+                          <p className="text-xs text-text-secondary">growth</p>
                         </div>
                         
                         {showDetails && (
@@ -133,11 +133,11 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
                     
                     {/* Trend Score Bar */}
                     <div className="mt-3">
-                      <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                      <div className="flex items-center justify-between text-xs text-text-secondary mb-1">
                         <span>Trend Strength</span>
                         <span>{trend.trendScore.toFixed(1)}/{maxTrendScore.toFixed(1)}</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-primary border border-border-color rounded-full h-2">
                         <div 
                           className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${(trend.trendScore / maxTrendScore) * 100}%` }}
@@ -147,21 +147,21 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
                     
                     {/* Expanded Details */}
                     {selectedTrend?.componentId === trend.componentId && showDetails && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="mt-4 pt-4 border-t border-border-color">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <h5 className="font-medium text-gray-900 mb-2">Trend Analysis</h5>
-                            <p className="text-sm text-gray-700">{trend.reasonForTrend}</p>
+                            <h5 className="font-medium text-text-primary mb-2">Trend Analysis</h5>
+                            <p className="text-sm text-text-secondary">{trend.reasonForTrend}</p>
                           </div>
                           <div>
-                            <h5 className="font-medium text-gray-900 mb-2">Key Metrics</h5>
+                            <h5 className="font-medium text-text-primary mb-2">Key Metrics</h5>
                             <div className="space-y-1 text-sm">
                               <div className="flex justify-between">
-                                <span className="text-gray-600">Trend Score:</span>
-                                <span className="font-medium">{trend.trendScore.toFixed(2)}</span>
+                                <span className="text-text-secondary">Trend Score:</span>
+                                <span className="font-medium text-text-primary">{trend.trendScore.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-gray-600">Usage Growth:</span>
+                                <span className="text-text-secondary">Usage Growth:</span>
                                 <span className={`font-medium ${trendColor}`}>
                                   {trend.usageGrowth >= 0 ? '+' : ''}{trend.usageGrowth.toFixed(2)}%
                                 </span>
@@ -177,7 +177,7 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
               
               {data.length > 15 && (
                 <div className="text-center pt-4">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-text-secondary">
                     Showing top 15 of {data.length} trending components
                   </p>
                 </div>
@@ -186,22 +186,22 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
           ) : (
             /* List View */
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-border-color">
+                <thead className="bg-secondary border-b border-border-color">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Rank
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Component
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Trend Score
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Usage Growth
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                       Reason
                     </th>
                   </tr>
@@ -213,23 +213,23 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
                     
                     return (
                       <tr key={trend.componentId} className={index % 2 === 0 ? 'bg-secondary' : 'bg-primary'}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-primary">
                           #{index + 1}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-text-primary">
                             {trend.componentName}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="flex-1 max-w-20 bg-gray-200 rounded-full h-2 mr-2">
+                            <div className="flex-1 max-w-20 bg-primary border border-border-color rounded-full h-2 mr-2">
                               <div 
                                 className="bg-blue-500 h-2 rounded-full"
                                 style={{ width: `${(trend.trendScore / maxTrendScore) * 100}%` }}
                               />
                             </div>
-                            <span className="text-sm text-gray-900">
+                            <span className="text-sm text-text-primary">
                               {trend.trendScore.toFixed(1)}
                             </span>
                           </div>
@@ -242,7 +242,7 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                        <td className="px-6 py-4 text-sm text-text-secondary max-w-xs truncate">
                           {trend.reasonForTrend}
                         </td>
                       </tr>
@@ -256,20 +256,20 @@ const ComponentTrendsChart: React.FC<ComponentTrendsChartProps> = ({
       )}
       
       {/* Legend */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Legend</h4>
+      <div className="mt-6 pt-4 border-t border-border-color">
+        <h4 className="text-sm font-medium text-text-primary mb-2">Legend</h4>
         <div className="flex flex-wrap gap-4 text-xs">
           <div className="flex items-center">
             <TrendingUpIcon className="h-4 w-4 text-green-500 mr-1" />
-            <span className="text-gray-600">Strong Growth ({'>'}5%)</span>
+            <span className="text-text-secondary">Strong Growth ({'>'}5%)</span>
           </div>
           <div className="flex items-center">
-            <MinusIcon className="h-4 w-4 text-gray-500 mr-1" />
-            <span className="text-gray-600">Stable (-5% to 5%)</span>
+            <MinusIcon className="h-4 w-4 text-text-secondary mr-1" />
+            <span className="text-text-secondary">Stable (-5% to 5%)</span>
           </div>
           <div className="flex items-center">
             <TrendingDownIcon className="h-4 w-4 text-red-500 mr-1" />
-            <span className="text-gray-600">Declining ({'<'}-5%)</span>
+            <span className="text-text-secondary">Declining ({'<'}-5%)</span>
           </div>
         </div>
       </div>

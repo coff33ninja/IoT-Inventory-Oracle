@@ -74,7 +74,7 @@ const RecommendationFiltersComponent: React.FC<RecommendationFiltersProps> = ({
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow border">
+    <div className="bg-secondary p-4 rounded-lg shadow border border-border-color">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
@@ -100,7 +100,7 @@ const RecommendationFiltersComponent: React.FC<RecommendationFiltersProps> = ({
           {hasActiveFilters() && (
             <button
               onClick={clearAllFilters}
-              className="text-sm text-gray-600 hover:text-gray-800 flex items-center"
+              className="text-sm text-text-secondary hover:text-text-primary flex items-center"
             >
               <XMarkIcon className="h-4 w-4 mr-1" />
               Clear All
@@ -169,7 +169,7 @@ const RecommendationFiltersComponent: React.FC<RecommendationFiltersProps> = ({
           <div>
             <div className="flex items-center mb-3">
               <CurrencyDollarIcon className="h-4 w-4 text-gray-500 mr-2" />
-              <label className="text-sm font-medium text-gray-700">Price Range</label>
+              <label className="text-sm font-medium text-text-primary">Price Range</label>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -205,7 +205,7 @@ const RecommendationFiltersComponent: React.FC<RecommendationFiltersProps> = ({
           <div>
             <div className="flex items-center mb-3">
               <ClockIcon className="h-4 w-4 text-gray-500 mr-2" />
-              <label className="text-sm font-medium text-gray-700">Time Commitment</label>
+              <label className="text-sm font-medium text-text-primary">Time Commitment</label>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
               {[
@@ -220,7 +220,7 @@ const RecommendationFiltersComponent: React.FC<RecommendationFiltersProps> = ({
                   className={`px-3 py-2 text-sm rounded border transition-colors ${
                     filters.timeRange === option.value
                       ? 'bg-blue-100 text-blue-800 border-blue-300'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      : 'bg-primary text-text-primary border-border-color hover:bg-secondary'
                   }`}
                 >
                   {option.label}
@@ -231,7 +231,7 @@ const RecommendationFiltersComponent: React.FC<RecommendationFiltersProps> = ({
 
           {/* Advanced Options */}
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Advanced Options</h4>
+            <h4 className="text-sm font-medium text-text-primary mb-3">Advanced Options</h4>
             <div className="space-y-3">
               <div>
                 <label className="text-sm text-gray-600 mb-2 block">
@@ -260,10 +260,10 @@ const RecommendationFiltersComponent: React.FC<RecommendationFiltersProps> = ({
 
       {/* Active Filters Summary */}
       {hasActiveFilters() && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-border-color">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Active Filters:</span>
-            <span className="text-xs text-gray-500">{getActiveFilterCount()} active</span>
+            <span className="text-sm font-medium text-text-primary">Active Filters:</span>
+            <span className="text-xs text-text-secondary">{getActiveFilterCount()} active</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {filters.type !== 'all' && (

@@ -46,7 +46,7 @@ const RecommendationTooltip: React.FC<RecommendationTooltipProps> = ({
   }, [onClose]);
 
   const getPositionClasses = () => {
-    const baseClasses = 'absolute z-50 w-80 bg-white border border-gray-200 rounded-lg shadow-lg';
+    const baseClasses = 'absolute z-50 w-80 bg-secondary border border-border-color rounded-lg shadow-lg';
     
     switch (position) {
       case 'top':
@@ -71,7 +71,7 @@ const RecommendationTooltip: React.FC<RecommendationTooltipProps> = ({
   };
 
   const getArrowClasses = () => {
-    const arrowBase = 'absolute w-3 h-3 bg-white border transform rotate-45';
+    const arrowBase = 'absolute w-3 h-3 bg-secondary border transform rotate-45';
     
     switch (position) {
       case 'top':
@@ -159,7 +159,7 @@ const RecommendationTooltip: React.FC<RecommendationTooltipProps> = ({
         {/* Relevance Score */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Relevance Score</span>
+            <span className="text-sm font-medium text-text-primary">Relevance Score</span>
             <span className={`text-lg font-bold ${getScoreColor(recommendation.relevanceScore)}`}>
               {(recommendation.relevanceScore * 100).toFixed(0)}%
             </span>
@@ -177,14 +177,14 @@ const RecommendationTooltip: React.FC<RecommendationTooltipProps> = ({
 
         {/* Recommendation Factors */}
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Why this recommendation?</h4>
+          <h4 className="text-sm font-medium text-text-primary mb-3">Why this recommendation?</h4>
           <div className="space-y-2">
             {relevanceFactors.length > 0 ? (
               relevanceFactors.map((factor, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center">
                     <factor.icon className="h-4 w-4 text-gray-500 mr-2" />
-                    <span className="text-sm text-gray-700">{factor.text}</span>
+                    <span className="text-sm text-text-primary">{factor.text}</span>
                   </div>
                   <span className={`text-xs font-medium ${getWeightColor(factor.weight)}`}>
                     {factor.weight}
@@ -234,7 +234,7 @@ const RecommendationTooltip: React.FC<RecommendationTooltipProps> = ({
                   className={`w-2 h-2 rounded-full mr-1 ${
                     i < Math.round(recommendation.relevanceScore * 5)
                       ? 'bg-blue-500'
-                      : 'bg-gray-200'
+                      : 'bg-border-color'
                   }`}
                 />
               ))}
@@ -244,8 +244,8 @@ const RecommendationTooltip: React.FC<RecommendationTooltipProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 bg-gray-50 rounded-b-lg border-t border-gray-200">
-        <p className="text-xs text-gray-500 text-center">
+      <div className="px-4 py-3 bg-primary rounded-b-lg border-t border-border-color">
+        <p className="text-xs text-text-secondary text-center">
           This recommendation is based on your usage patterns and preferences
         </p>
       </div>
